@@ -37,6 +37,7 @@ import Difference from './src/Screens/Difference';
 import IncompleteOrders from './src/Screens/IncompleteOrders';
 import HomeTrader from './src/Screens/HomeTrader';
 import LoomsDetails from './src/Screens/LoomsDetails';
+import ConfirmEnquires from './src/Screens/ConfirmEnquires';
 
 
 
@@ -437,6 +438,8 @@ const App = () => {
         <Stack.Screen name="LoginTrader" component={LoginTrader} />
         <Stack.Screen name="Data" component={Data} />
         <Stack.Screen name="LoomBooking" component={LoomBooking} />
+        <Stack.Screen name="ConfirmEnquires" component={ConfirmEnquires} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -4,7 +4,7 @@ import CheckBox from '@react-native-community/checkbox';
 import { Dropdown } from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import axios from 'axios'
 
 
 
@@ -84,9 +84,16 @@ const PlanLooms = ({ navigation }) => {
 
 
   useEffect(() => {
-    getData();
-    console.log(Name, AppUserId, LoomOrTrader, id)
-    currentDate1();
+
+    fetchselectedEnquiryId()
+
+    const callfuns = () => {
+      fetch("")
+        .then(getData())
+    }
+
+    callfuns();
+
   }, [])
 
 
@@ -105,21 +112,21 @@ const PlanLooms = ({ navigation }) => {
   }
 
 
-  const [data, setData] = useState(null);
+  const [data, setData] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [loading, setLoading] = useState(false);
 
 
-  const fetchData = async () => {
-    setLoading(true)
-    fetch('https://textileapp.microtechsolutions.co.in/php/getidenquiry.php?Colname=TraderId&Colvalue=' + id)
-      .then(response => response.json())
-      .then(jsonData => {setData(jsonData); console.log(jsonData) ; setLoading(false)})
-      .catch(error => {
-        console.error('Error fetching data:', error);
-        setLoading(false)
-      });
+  const fetchselectedEnquiryId = async () => {
+    try {
+      const response = await axios.get('https://textileapp.microtechsolutions.co.in/php/getidenquiry.php?Colname=TraderId&Colvalue=' + id);
+      setData(response.data);
+    } catch (error) {
+      console.error(error);
+    }
   };
+
+
 
 
 
@@ -212,7 +219,7 @@ const PlanLooms = ({ navigation }) => {
   useEffect(() => {
     const callfuns = () => {
       fetch("")
-        .then(fetchData())
+        .then(fetchselectedEnquiryId())
         .then(NOFds())
         .then(NOFRs())
         .then(Shedd())
@@ -357,7 +364,7 @@ const PlanLooms = ({ navigation }) => {
   const SubmitEnquiryDetails = (result) => {
     const formdata = new FormData();
     formdata.append("EnquiryId", result);
-    formdata.append("LoomNo", numLoomsPossible);
+    formdata.append("LoomNo", numLoomsRequired);
     formdata.append("MachineType", machineType);
     formdata.append("Width", width);
     formdata.append("RPM", rpm);
@@ -432,7 +439,7 @@ const PlanLooms = ({ navigation }) => {
                 </View>
               </View>
 
-              {data ?
+              {data.length ?
                 data.map(item => (
                   <TouchableOpacity key={item.id} onPress={() => handleItemPress(item)}>
                     <View key={item.EnquiryId} style={[styles.header, { justifyContent: "space-evenly" }]}>
@@ -453,8 +460,8 @@ const PlanLooms = ({ navigation }) => {
               <TouchableOpacity onPress={() => Toggle()} style={{ backgroundColor: '#71B7E1', padding: 10, alignItems: 'center', marginTop: "10%" }}>
                 <Text style={{ color: 'white' }}>NEW</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => fetchData()} style={{ backgroundColor: '#71B7E1', padding: 10, alignItems: 'center', marginTop: "10%" }}>
-                <Text style={{ color: 'white' }}>Refresh</Text>
+              <TouchableOpacity onPress={() => navigation.navigate("ConfirmEnquires")} style={{ backgroundColor: '#71B7E1', padding: 10, alignItems: 'center', marginTop: "10%" }}>
+                <Text style={{ color: 'white' }}>Confirm Enquires</Text>
               </TouchableOpacity>
             </View> : null
 

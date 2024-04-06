@@ -4,6 +4,8 @@ import CheckBox from '@react-native-community/checkbox';
 import { Dropdown } from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 
 
@@ -88,13 +90,35 @@ const JobWorkEnquires = ({ navigation }) => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const [Name, setName] = useState("");
+  const [AppUserId, setAppUserId] = useState("")
+  const [LoomOrTrader, SetLoomOrTrader] = useState("")
+  const [id, setId] = useState("")
+
+
+  const getData = async () => {
+    const Name = await AsyncStorage.getItem("Name");
+    const AppUserId = await AsyncStorage.getItem("AppUserId");
+    const LoomOrTrader = await AsyncStorage.getItem("LoomOrTrader")
+    const Id = await AsyncStorage.getItem("Id")
+
+    setName(Name)
+    setAppUserId(AppUserId)
+    SetLoomOrTrader(LoomOrTrader)
+    setId(Id)
+
+  }
+
   useEffect(() => {
 
+
+    fetchselectedEnquiryId();
     // const loomNos = arr.map(item => item.LoomNo);
     // console.log(loomNos);
 
     const callfuns = () => {
       fetch("")
+        .then(getData())
         .then(fetchData())
         .then(fetchselectedEnquiryId())
         .then(fetchselectedEnquiryId())
@@ -129,6 +153,7 @@ const JobWorkEnquires = ({ navigation }) => {
 
   const [responseLoomNo, setResponseLoomNo] = useState([])
   const [show, setShow] = useState(false)
+  const [loomdata, setLoomdata] = useState([])
 
   const CheckLoomAvailability = () => {
     console.log(updatedDateFrom, updatedDateTo)
@@ -161,15 +186,50 @@ const JobWorkEnquires = ({ navigation }) => {
     axios.request(config)
       .then(response => {
         console.log(response.data)
-        const arr = response.data
-        const loomNos = arr.map(item => item.LoomNo);
-        console.log(loomNos);
+        let temp = JSON.stringify(response.data);
+        setLoomdata(response.data)
       })
       .catch((error) => {
         console.log(error);
         setResponseLoomNo(null)
       });
   }
+
+
+  const EnquiryConfirm = () => {
+
+    console.log("Enquiry Confirm = ", EnquiryId, id, updatedDateFrom, updatedDateTo, counterOffer, numLoomsPossible)
+
+    const qs = require('qs');
+    let data = qs.stringify({
+      'EnquiryId': EnquiryId,
+      'LoomTraderId': id,
+      'DatePossibleFrom': updatedDateFrom,
+      'DatePossibleTo': updatedDateTo,
+      'JobRateExp': counterOffer,
+      'Status': false,
+      'LoomPossible': numLoomsPossible,
+    });
+
+    let config = {
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: 'https://textileapp.microtechsolutions.co.in/php/postenquiryconfirm.php',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      data: data
+    };
+
+    axios.request(config)
+      .then(response => {
+        console.log(response.data)
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
 
 
 
@@ -215,22 +275,22 @@ const JobWorkEnquires = ({ navigation }) => {
 
 
 
-  const renderItem = ({ item }) => (
-    <View style={styles.row}>
-      <View style={[styles.cell, { flex: 1 }]}>
-        <Text style={{ color: '#000' }}>{item.srNo}</Text>
-      </View>
-      <View style={[styles.cell, { flex: 2 }]}>
-        <Text style={{ color: '#000' }}>{item.enquiryNo}</Text>
-      </View>
-      <View style={[styles.cell, { flex: 2 }]}>
-        <Text style={{ color: '#000' }}>{item.date}</Text>
-      </View>
-      <View style={[styles.cell, { flex: 3 }]}>
-        <Text style={{ color: '#000' }}>{item.traderName}</Text>
-      </View>
-    </View>
-  );
+  // const renderItem = ({ item }) => (
+  //   <View style={styles.row}>
+  //     <View style={[styles.cell, { flex: 1 }]}>
+  //       <Text style={{ color: '#000' }}>{item.srNo}</Text>
+  //     </View>
+  //     <View style={[styles.cell, { flex: 2 }]}>
+  //       <Text style={{ color: '#000' }}>{item.enquiryNo}</Text>
+  //     </View>
+  //     <View style={[styles.cell, { flex: 2 }]}>
+  //       <Text style={{ color: '#000' }}>{item.date}</Text>
+  //     </View>
+  //     <View style={[styles.cell, { flex: 3 }]}>
+  //       <Text style={{ color: '#000' }}>{item.traderName}</Text>
+  //     </View>
+  //   </View>
+  // );
 
   const Toggle = () => {
     setShowTable(false);
@@ -289,6 +349,13 @@ const JobWorkEnquires = ({ navigation }) => {
     console.log(enquiryNo, traderName, updatedDateFrom, updatedDateTo, fabricQuality, fabricLength, dalalAgent, loomNo, machineType, width, rpm, sheddingType, numFrames, numFeeders, selvadgeJacquard, topBeam, cramming, lenoDesign, availableLoomDates, numLoomsRequired, numLoomsPossible, jobRateOffered, counterOffer);
   };
 
+  const renderItem = ({ item, index }) => (
+    <View>
+      <Text>{item.LoomNo}</Text>
+    </View>
+
+  )
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#e5f2fe" }}>
       <StatusBar backgroundColor={"#0b659a"}></StatusBar>
@@ -323,7 +390,7 @@ const JobWorkEnquires = ({ navigation }) => {
             {storeEID.length ? storeEID.map(item =>
               <View>
 
-                <Text style={styles.input1}>ENquiry No.: {item.EnquiryNo}</Text>
+                <Text style={styles.input1}>ENquiry No.: {item.EnquiryId}</Text>
 
 
                 <Text style={styles.input1}>Trader Name: {item.Name}</Text>
@@ -555,17 +622,15 @@ const JobWorkEnquires = ({ navigation }) => {
                   </TouchableOpacity>
                 </View>
 
-                {/* <View style={{ flexDirection: "row", margin: '5%' }}>
-                      <Text style={{ color: "#000", fontSize: 18 }}>Available Loom No. : </Text>
-                      {responseLoomNo.map((item, index) => (
-                        <View key={index}>
-                          <Text>Index: {index}</Text>
-                          <Text>LoomNo: {item.LoomNo}</Text>
-                        </View>
-                      ))}
-                    </View>  */}
+                <View style={{ flexDirection: 'row', marginTop: 20 }}>
+                  <Text style={{ fontSize: 16, }}>Available Loom No : </Text>
 
-                <Text>Available Loom No: {responseLoomNo}</Text>
+                  {loomdata.map((item, index) => (
+                    <View key={index}  >
+                      <Text style={{ fontSize: 17, fontWeight: 500 }}> {item.LoomNo} </Text>
+                    </View>
+                  ))}
+                </View>
 
               </View>
             </View>
@@ -600,7 +665,7 @@ const JobWorkEnquires = ({ navigation }) => {
 
 
             <View style={{ flexDirection: "row", justifyContent: "space-evenly" }}>
-              <TouchableOpacity style={[styles.button]} onPress={handleSubmit}>
+              <TouchableOpacity style={[styles.button]} onPress={EnquiryConfirm}>
                 <Text style={styles.buttonText}>Submit</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.button, styles.notInterestedButton]} onPress={() => setModalVisible(true)}>

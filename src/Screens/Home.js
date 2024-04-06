@@ -27,8 +27,8 @@ const Home = ({ navigation }) => {
   const [otherDesc, setOtherDesc] = useState([]);
   const [Name, setName] = useState("");
   const [AppUserId, setAppUserId] = useState("")
-  const [LoomOrTrader,SetLoomOrTrader]=useState("")
-  const [id,setId]=useState("")
+  const [LoomOrTrader, SetLoomOrTrader] = useState("")
+  const [id, setId] = useState("")
   const [otpinput, setotpInput] = useState("")
   const [value, setValue] = useState(null);
   const [isFocus, setIsFocus] = useState("");
@@ -129,8 +129,8 @@ const Home = ({ navigation }) => {
 
 
   useEffect(() => {
-      getData();
-      console.log(Name,AppUserId,LoomOrTrader,id)
+    getData();
+    console.log(Name, AppUserId, LoomOrTrader, id)
   }, [])
 
 
@@ -260,7 +260,7 @@ const Home = ({ navigation }) => {
 
 
   return (
-    <SafeAreaView style={{flex:1,backgroundColor:"#e5f2fe"}}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#e5f2fe" }}>
       <View>
         <StatusBar backgroundColor={"#0b659a"}></StatusBar>
         <View style={{ backgroundColor: "#71B7E1", flexDirection: "row" }}>
@@ -276,6 +276,8 @@ const Home = ({ navigation }) => {
         <View style={{ alignItems: "center" }}>
           <Text style={{ fontSize: 22, color: "#000", marginLeft: "0%", marginTop: "5%", marginRight: "5%", marginLeft: "5%" }}>Welcome :{Name},{id}</Text>
         </View>
+        
+      
 
         {/* <ScrollView horizontal={true}>
           <View style={styles.container}>
