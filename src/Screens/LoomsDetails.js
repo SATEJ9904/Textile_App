@@ -248,7 +248,7 @@ const LoomsDetails = ({ navigation }) => {
                 <Text style={styles.headerText1}>Loom Details</Text>
             </View>
             <View style={styles.container}>
-                <Text style={{ color: "#000", fontSize: 25 }}>{id}</Text>
+                <Text style={{ color: "#000", fontSize: 25 }}>Loom Id : {id}</Text>
                 <ScrollView horizontal={true}>
                     <View style={styles.table}>
                         <View style={styles.headerRow}>

@@ -140,14 +140,11 @@ const LiveOrders = ({ navigation }) => {
     // Beam Form 
 
 
-    const [beamIn, setBeamIn] = useState([{ id: 1, date: new Date(), sizingTippanNumber: '', imageUri: null }]);
+    const [beamIn, setBeamIn] = useState([{ SizingTippanNo: '', PhotoPath: null }]);
 
     const [showDatePickerBI, setShowDatePickerBI] = useState(false);
     const [selectedDateIndexBI, setSelectedDateIndexBI] = useState(0);
 
-    const Clear = () => {
-
-    }
 
     const handleDateChangeBI = (event, date) => {
         if (date) {
@@ -165,7 +162,7 @@ const LiveOrders = ({ navigation }) => {
     };
 
     const handleAddRowBI = () => {
-        const newFormData = [...beamIn, { id: 1, date: new Date(), sizingTippanNumber: '', imageUri: null }];
+        const newFormData = [...beamIn, { SizingTippanNo: '', PhotoPath: null }];
         setBeamIn(newFormData);
     };
 
@@ -176,34 +173,48 @@ const LiveOrders = ({ navigation }) => {
     };
 
     const HandleSubmitBeamIn = () => {
+        const formdata = new FormData();
+        formdata.append("OrderNoId", 10);
+        formdata.append("Date",'2024-05-08' );
+        formdata.append("Value",beamIn );
+
+        const requestOptions = {
+            method: "POST",
+            body: formdata,
+            redirect: "follow"
+        };
+
+        fetch("https://textileapp.microtechsolutions.co.in/php/postorderbeam.php", requestOptions)
+            .then((response) => response.text())
+            .then((result) => console.log(result))
+            .catch((error) => console.error(error));
         setModalVisible(true)
         console.log('Table Data:', beamIn)
         setBeamInForm(false)
-        setBeamIn([{ id: 1, date: new Date(), sizingTippanNumber: '', imageUri: null }])
+      //  setBeamIn([{SizingTippanNo: '', PhotoPath: null }])
     }
 
-    const handleCameraPickBI = async (index) => {
+    const handleImagePickerBI = async (index) => {
         try {
             const image = await ImageCropPicker.openCamera({
                 width: 300,
                 height: 300,
                 cropping: true,
             });
-            const newFormData = [...tableRows];
-            newFormData[index]['imageUri'] = image.path;
-            setTableRows(newFormData);
-            console.log(tableRows)
-            setShow1(1)
+
+            const updatedRows = [...beamIn];
+            updatedRows[index].PhotoPath = { uri: image.path };
+            console.log({ uri: image.path })
+            setBeamIn(updatedRows);
         } catch (error) {
-            console.log('Error capturing image:', error);
+            console.log('ImagePicker Error: ', error);
         }
     };
-
 
     //WEFT Yard In Form 
 
 
-    const [Weft, setWeft] = useState([{ id: 1, date: new Date(), gatePassNumber: '' }]);
+    const [Weft, setWeft] = useState([{ date: new Date(), gatePassNumber: '', imageUri: null }]);
 
     const [showDatePickerWEFT, setShowDatePickerWEFT] = useState(false);
     const [selectedDateIndexWEFT, setSelectedDateIndexWEFT] = useState(0);
@@ -224,7 +235,7 @@ const LiveOrders = ({ navigation }) => {
     };
 
     const handleAddRowWEFT = () => {
-        setWeft([...Weft, { date: new Date(), gatePassNumber: '' }]);
+        setWeft([...Weft, { date: new Date(), gatePassNumber: '', imageUri: null }]);
     };
 
     const handleRemoveRowWEFT = (index) => {
@@ -237,8 +248,27 @@ const LiveOrders = ({ navigation }) => {
         setModalVisible(true)
         console.log('Table Data:', Weft)
         setWeftform(false)
-        setWeft([{ id: 1, date: new Date(), gatePassNumber: '' }])
+        setWeft([{ id: 1, date: new Date(), gatePassNumber: '', imageUri: null }])
     }
+
+
+    const handleImagePickerWEFT = async (index) => {
+        try {
+            const image = await ImageCropPicker.openCamera({
+                width: 300,
+                height: 300,
+                cropping: true,
+                cropperCircleOverlay: true,
+            });
+
+            const updatedRows = [...Weft];
+            updatedRows[index].imageUri = { uri: image.path };
+            console.log({ uri: image.path })
+            setWeft(updatedRows);
+        } catch (error) {
+            console.log('ImagePicker Error: ', error);
+        }
+    };
 
 
     // Drawing In
@@ -407,7 +437,7 @@ const LiveOrders = ({ navigation }) => {
                                     </TouchableOpacity>
                                     {Beaminform ? <View style={{ width: "100%" }}>
                                         <ScrollView horizontal={true} vertical={true}>
-                                            <View style={[styles.table,{width:520}]}>
+                                            <View style={[styles.table, { width: 520 }]}>
                                                 <View style={styles.header1}>
                                                     <Text style={styles.headerText1}>Date</Text>
                                                     <Text style={[styles.headerText1, { marginRight: 120 }]}>Sizing Tippan Number</Text>
@@ -438,8 +468,6 @@ const LiveOrders = ({ navigation }) => {
 
                                                             <View style={styles.row}>
                                                                 <View>
-                                                                    <Text style={styles.dateText}>{row.date.toDateString()}</Text>
-
                                                                     <TouchableOpacity onPress={() => { setShowDatePickerBI(true); setSelectedDateIndexBI(index); }}>
                                                                         <Image
                                                                             style={{ width: 30, height: 30, marginLeft: 30 }}
@@ -457,13 +485,13 @@ const LiveOrders = ({ navigation }) => {
                                                                 )}
                                                                 <TextInput
                                                                     style={[styles.input, { width: "42%" }]}
-                                                                    value={row.sizingTippanNumber}
-                                                                    onChangeText={(text) => handleInputChangeBI(text, index, 'sizingTippanNumber')}
+                                                                    value={row.SizingTippanNo}
+                                                                    onChangeText={(text) => handleInputChangeBI(text, index, 'SizingTippanNo')}
                                                                     keyboardType="numeric"
                                                                     placeholder="sizing Tippan Number"
                                                                 />
                                                                 <View>
-                                                                    <TouchableOpacity onPress={() => { handleCameraPickBI(); setShow1(1) }}>
+                                                                    <TouchableOpacity onPress={() => { handleImagePickerBI(index); setShow1(1) }}>
 
 
                                                                         {
@@ -473,7 +501,7 @@ const LiveOrders = ({ navigation }) => {
                                                                                     return (
                                                                                         <View>
                                                                                             <Image
-                                                                                                source={require('../Images/pic1.png')}
+                                                                                                source={row.PhotoPath}
                                                                                                 style={{ width: 40, height: 40, alignSelf: 'flex-start', marginLeft: 20 }}
 
                                                                                             />
@@ -534,7 +562,7 @@ const LiveOrders = ({ navigation }) => {
 
                                     {weftform ? <View style={{ justifyContent: "space-evenly", width: "100%" }}>
                                         <ScrollView horizontal={true}>
-                                        <View style={[styles.table,{width:520}]}>
+                                            <View style={[styles.table, { width: 520 }]}>
                                                 <View style={styles.header1}>
                                                     <Text style={styles.headerText1}>Date</Text>
                                                     <Text style={[styles.headerText1, { marginRight: 90 }]}>Gate Pass Number</Text>
@@ -569,7 +597,7 @@ const LiveOrders = ({ navigation }) => {
                                                                 placeholder="gatePassNumber"
                                                             />
                                                             <View>
-                                                                <TouchableOpacity onPress={() => { handleCameraPickBI(); setShow1(1) }}>
+                                                                <TouchableOpacity onPress={() => { handleImagePickerWEFT(index); setShow1(1) }}>
 
 
                                                                     {
@@ -579,7 +607,7 @@ const LiveOrders = ({ navigation }) => {
                                                                                 return (
                                                                                     <View>
                                                                                         <Image
-                                                                                            source={require('../Images/pic1.png')}
+                                                                                            source={row.imageUri}
                                                                                             style={{ width: 40, height: 40, alignSelf: 'flex-start', marginLeft: 20 }}
 
                                                                                         />
@@ -637,7 +665,7 @@ const LiveOrders = ({ navigation }) => {
                                     </TouchableOpacity>
                                     {DrawingInForm ? <View style={{ width: "100%" }}>
                                         <ScrollView horizontal={true} vertical={true}>
-                                            <View style={[ styles.table,{ width: 200,marginLeft:30}]}>
+                                            <View style={[styles.table, { width: 200, marginLeft: 30 }]}>
                                                 <View style={styles.header1}>
                                                     <Text style={styles.headerText1}>Drawing In</Text>
                                                 </View>
@@ -682,7 +710,7 @@ const LiveOrders = ({ navigation }) => {
                                     </TouchableOpacity>
                                     {beamGettingForm ? <View style={{ width: "100%" }}>
                                         <ScrollView horizontal={true} vertical={true}>
-                                        <View style={[ styles.table,{ width: 200,marginLeft:30}]}>
+                                            <View style={[styles.table, { width: 200, marginLeft: 30 }]}>
                                                 <View style={styles.header1}>
                                                     <Text style={styles.headerText1}>Beam Getting</Text>
                                                 </View>
@@ -1151,7 +1179,7 @@ const styles = StyleSheet.create({
         borderColor: '#000',
         marginBottom: 20,
         marginRight: 0,
-        width:1200
+        width: 1200
     },
     submitButton: {
         backgroundColor: 'green',
@@ -1195,7 +1223,7 @@ const styles = StyleSheet.create({
     button: {
         fontSize: 24,
         paddingHorizontal: 10,
-        color:"#000"
+        color: "#000"
     },
     dateText: {
         marginBottom: 10,

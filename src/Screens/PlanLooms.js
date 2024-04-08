@@ -81,11 +81,15 @@ const PlanLooms = ({ navigation }) => {
   const [LoomOrTrader, SetLoomOrTrader] = useState("")
   const [id, setId] = useState("")
 
-
+  const [data, setData] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
 
-    fetchselectedEnquiryId()
+
+    fetchselectedEnquiryId();
+
 
     const callfuns = () => {
       fetch("")
@@ -95,6 +99,18 @@ const PlanLooms = ({ navigation }) => {
     callfuns();
 
   }, [])
+
+
+  
+  const fetchselectedEnquiryId = async () => {
+    try {
+      const response = await axios.get('https://textileapp.microtechsolutions.co.in/php/getidenquiry.php?Colname=TraderId&Colvalue=' + id);
+      setData(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
 
 
 
@@ -110,25 +126,6 @@ const PlanLooms = ({ navigation }) => {
     setId(Id)
 
   }
-
-
-  const [data, setData] = useState([]);
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-
-  const fetchselectedEnquiryId = async () => {
-    try {
-      const response = await axios.get('https://textileapp.microtechsolutions.co.in/php/getidenquiry.php?Colname=TraderId&Colvalue=' + id);
-      setData(response.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-
-
-
 
   // Machine Type Data Fetching
 
@@ -219,7 +216,6 @@ const PlanLooms = ({ navigation }) => {
   useEffect(() => {
     const callfuns = () => {
       fetch("")
-        .then(fetchselectedEnquiryId())
         .then(NOFds())
         .then(NOFRs())
         .then(Shedd())
@@ -402,6 +398,13 @@ const PlanLooms = ({ navigation }) => {
           />
         </TouchableOpacity>
         <Text style={{ fontSize: 25, color: "white", margin: "2.5%", marginLeft: "25%" }}>Plan Looms</Text>
+        <TouchableOpacity onPress={() => fetchselectedEnquiryId()}>
+          <ImageBackground
+            source={require("../Images/refresh2.png")}
+            style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#71B7E1", marginTop: 15, marginRight: -30, marginLeft: 80 }}
+            imageStyle={{ borderRadius: 0 }}
+          />
+        </TouchableOpacity>
       </View>
       {selectedItem ? (
         <View>
@@ -439,7 +442,7 @@ const PlanLooms = ({ navigation }) => {
                 </View>
               </View>
 
-              {data.length ?
+              {data ?
                 data.map(item => (
                   <TouchableOpacity key={item.id} onPress={() => handleItemPress(item)}>
                     <View key={item.EnquiryId} style={[styles.header, { justifyContent: "space-evenly" }]}>
