@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, SafeAreaView, StatusBar, TouchableOpacity, ImageBackground, StyleSheet, FlatList, ScrollView, Modal, Pressable } from 'react-native';
+import { View, Text, SafeAreaView, StatusBar, TouchableOpacity, ImageBackground, StyleSheet, FlatList, ScrollView, Modal, Pressable, Image } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
@@ -29,8 +29,14 @@ const ConfirmEnquires = ({ navigation }) => {
   }
 
   const yesbutton = () => {
-    UpdateEnquiryConfirm();
     setModalVisible(false)
+    setCancelModalVisible(true)
+    handleConfirm();
+  }
+
+  const yesbutton2 = () => {
+    UpdateEnquiryConfirm();
+    setCancelModalVisible(false)
     navigation.navigate("PlanLooms")
   }
 
@@ -52,33 +58,25 @@ const ConfirmEnquires = ({ navigation }) => {
     fetchData();
   }, []);
 
+const handleLoomDetails=(LoomTraderId)=>{
+  setConfirmed((prev) => {
+    const newConfirmed = new Set(prev);
+    if (newConfirmed.has(LoomTraderId)) {
+      newConfirmed.delete(LoomTraderId);
+    } else {
+      newConfirmed.add(LoomTraderId);
+    }
+    return newConfirmed;
+  });
+     
+  const selectedItem = data.find((item) => item.LoomTraderId === LoomTraderId);
+  setSelectedData(selectedItem);
+  setModalVisible(true);
+}
 
-
-  let confirmCount = 0;
 
   const handleConfirm = (LoomTraderId) => {
-    confirmCount++;
-    setConfirmed((prev) => {
-      const newConfirmed = new Set(prev);
-      if (newConfirmed.has(LoomTraderId)) {
-        newConfirmed.delete(LoomTraderId);
-      } else {
-        newConfirmed.add(LoomTraderId);
-      }
-      return newConfirmed;
-    });
-    const selectedItem = data.find((item) => item.LoomTraderId === LoomTraderId);
-    setSelectedData(selectedItem);
-    if (confirmCount === 1) {
-      setModalVisible(true);
-    } else if (confirmCount === 2) {
-      setCancelModalVisible(true);
-      setModalVisible(false);
-    } else if (confirmCount > 2) {
-      setModalVisible(true);
-      setCancelModalVisible(false);
-      confirmCount = 1;
-    }
+
   };
 
   const UpdateEnquiryConfirm = () => {
@@ -153,9 +151,9 @@ const ConfirmEnquires = ({ navigation }) => {
                   <TouchableOpacity
                     style={[
                       styles.confirmButton,
-                      confirmed.has(item.LoomTraderId) ? styles.confirmedButton : null,
+                      confirmed.has(item.LoomTraderId) ? styles.confirmButton : null,
                     ]}
-                    onPress={() => handleConfirm(item.LoomTraderId)}
+                    onPress={() => handleLoomDetails(item.LoomTraderId)}
                   >
                     <Text style={styles.text}>Confirm</Text>
                   </TouchableOpacity>
@@ -179,14 +177,18 @@ const ConfirmEnquires = ({ navigation }) => {
             }}>
             <View style={styles.centeredView}>
               <View style={styles.modalView}>
-                <Text style={styles.modalText}>Congralutations !!! {" "} {Name}</Text>
-                <Text style={styles.modalText}>Your order number  {selectedData?.EnquiryId} of {selectedData?.LoomPossible}
-                  Looms is placed with {selectedData?.Name} With the job rate of {selectedData?.JobRateExp}
-                  paise from  {selectedData?.DatePossibleFrom.date.substring(0, 10)}
-                  to  {selectedData?.DatePossibleTo.date.substring(0, 10)}
-                  please proceed for contract formation contact details of
-                  {selectedData?.Name} :- ( {selectedData?.Name},
-                  {selectedData?.AppUserId},{selectedData?.Address} , {selectedData?.PrimaryContact} )</Text>
+                <View style={{flexDirection:"row"}}>
+                <Text style={styles.modalText}>LoomDetails</Text>
+                <TouchableOpacity onPress={()=>setModalVisible(false)} style={{justifyContent:"flex-start",alignItems:"flex-end",marginRight:"-30%"}}>
+                <Image
+                style={{width:22,height:22,marginLeft:100,marginTop:-30}}
+                source={require("../Images/cross.png")}
+                />
+                </TouchableOpacity>
+                </View>
+                <Text style={styles.modalText}>Enquiry ID  : {selectedData?.EnquiryId} , Looms Possible :  {selectedData?.LoomPossible} , Loom Name: {selectedData?.Name} , job rate : {selectedData?.JobRateExp} paise  , From Date:   {selectedData?.DatePossibleFrom.date.substring(0, 10)} , To Date : {selectedData?.DatePossibleTo.date.substring(0, 10)}
+                <Text> , </Text>
+                 Loom Email : {selectedData?.AppUserId}, Loom Address : {selectedData?.Address} , Loom Contact No. {selectedData?.PrimaryContact} </Text>
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
                 </View>
               </View>
@@ -212,14 +214,14 @@ const ConfirmEnquires = ({ navigation }) => {
             <View style={styles.centeredView}>
               <View style={styles.modalView}>
                 <Text style={styles.modalText}> !!! {" "} {Name}</Text>
-                <Text style={styles.modalText}>Your order number  {selectedData?.EnquiryId} of {selectedData?.LoomPossible} Looms is cancel with {selectedData?.LoomTraderId}  With the job rate of {selectedData?.JobRateExp} paise from  {selectedData?.DatePossibleFrom.date.substring(0, 10)} to  {selectedData?.DatePossibleTo.date.substring(0, 10)}  please proceed for contract formation contact details of {selectedData?.Name} :- (NAME,CONTACT NO., MAIL ID,ADDRESS) Dalal/Agent Name & Contact No. </Text>
+                <Text style={styles.modalText}>Your order number  {selectedData?.EnquiryId} of {selectedData?.LoomPossible} Looms is Confirmed with {selectedData?.LoomTraderId}  With the job rate of {selectedData?.JobRateExp} paise from  {selectedData?.DatePossibleFrom.date.substring(0, 10)} to  {selectedData?.DatePossibleTo.date.substring(0, 10)}  please proceed for contract formation contact details of {selectedData?.Name} :- (NAME,CONTACT NO., MAIL ID,ADDRESS) Dalal/Agent Name & Contact No. </Text>
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
                 </View>
               </View>
               <View style={{ flexDirection: "column", alignItems: "center" }}>
                 <Pressable
                   style={[styles.button1, styles.buttonClose1]}
-                  onPress={() => yesbutton(!cancelModalVisible)}>
+                  onPress={() => yesbutton2(!cancelModalVisible)}>
                   <Text style={styles.textStyle1}>OKAY</Text>
                 </Pressable>
               </View>

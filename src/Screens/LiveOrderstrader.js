@@ -936,11 +936,7 @@ const LiveOrderstrader = ({ navigation }) => {
               <TouchableOpacity style={[styles.button1, { backgroundColor: "red", alignItems: "center", marginTop: 20 }]} onPress={() => ToggleScreens()}>
                 <Text style={[styles.buttonText, { color: "#fff" }]}>Back</Text>
               </TouchableOpacity>
-              <View style={{ justifyContent: "flex-end", marginTop: "35%" }}>
-                <TouchableOpacity style={styles.submitButton} onPress={() => console.log('Table Data:', Weft)}>
-                  <Text style={styles.submitButtonText}>Order Completed</Text>
-                </TouchableOpacity>
-              </View>
+              
             </View>
             <Modal
               animationType="slide"

@@ -203,7 +203,7 @@ const LoomDrawerNavigator = () => (
         drawerActiveBackgroundColor: '#71B7E1',
         drawerActiveTintColor: '#FFF',
         drawerInactiveTintColor: '#71B7E1',
-        title: 'Storage',
+        title: 'Exit',
         drawerLabelStyle: {
           marginLeft: 10,
           fontFamily: 'Roboto-Medium',

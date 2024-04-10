@@ -8,14 +8,38 @@ import { PermissionsAndroid } from 'react-native';
 
 const LiveOrders = ({ navigation }) => {
 
-    const [orders, setOrders] = useState([
-        { orderNo: 1, partyName: "Party A", Quality: "A" },
-        { orderNo: 2, partyName: "Party B", Quality: "B" },
-        { orderNo: 3, partyName: "Party C", Quality: "C" },
-        { orderNo: 4, partyName: "Party D", Quality: "D" },
-        { orderNo: 5, partyName: "Party E", Quality: "E" },
-        { orderNo: 6, partyName: "Party F", Quality: "F" },
-    ]);
+    const [orders, setOrders] = useState([]);
+
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await fetch('https://textileapp.microtechsolutions.co.in/php/gettable.php?table=LoomOrder');
+                const json = await response.json();
+                setOrders(json);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        };
+
+        fetchData();
+        handleButtonPress();
+    }, []);
+
+    const [currentDate, setCurrentDate] = useState('');
+
+    useEffect(() => {
+        const getCurrentDate = () => {
+            const date = new Date();
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+
+            setCurrentDate(`${year}-${month}-${day}`);
+        };
+
+        getCurrentDate();
+    }, []);
 
     const [showBlocks, setShowBlocks] = useState(true)
     const [selectedOrder, setSelectedOrder] = useState(null);
@@ -29,9 +53,7 @@ const LiveOrders = ({ navigation }) => {
     const [fpaform, setFPAForm] = useState(false);
     const [show1, setShow1] = useState();
 
-    const currentDate = new Date();
 
-    const formattedDate = currentDate.toDateString();
 
 
     const yesbutton = () => {
@@ -113,7 +135,11 @@ const LiveOrders = ({ navigation }) => {
         setremaining_Goods_ReturnForm(false);
     }
 
+    const [getOrderNo, setGetOrderNo] = useState("")
+
     const handleOrderPress = (order) => {
+        setGetOrderNo(order.LoomOrderId)
+        console.log(order.LoomOrderId)
         setSelectedOrder(order);
         setShowBlocks(false);
     };
@@ -122,8 +148,8 @@ const LiveOrders = ({ navigation }) => {
 
     const handleButtonPress = (action) => {
         if (selectedOrder) {
-            console.log(`Order No: ${selectedOrder.orderNo}, Party Name: ${selectedOrder.partyName}, Action: ${action}`);
-            setAction("Order No. : " + selectedOrder.orderNo + "\nParty Name : " + selectedOrder.partyName + "\nQuality : " + selectedOrder.Quality)
+            console.log(`Order No: ${selectedOrder.OrderNo}, Party Name: ${selectedOrder.PartyName}, Action: ${action}`);
+            setAction("Order No. : " + selectedOrder.OrderNo + "\nParty Name : " + selectedOrder.PartyName + "\nQuality : " + selectedOrder.Quality)
         }
     };
 
@@ -140,7 +166,7 @@ const LiveOrders = ({ navigation }) => {
     // Beam Form 
 
 
-    const [beamIn, setBeamIn] = useState([{ SizingTippanNo: '', PhotoPath: null }]);
+    const [beamIn, setBeamIn] = useState([{ SizingTippanNo: null, PhotoPath: null }]);
 
     const [showDatePickerBI, setShowDatePickerBI] = useState(false);
     const [selectedDateIndexBI, setSelectedDateIndexBI] = useState(0);
@@ -172,11 +198,21 @@ const LiveOrders = ({ navigation }) => {
         setBeamIn(newFormData);
     };
 
-    const HandleSubmitBeamIn = () => {
+    const HandleSubmitBeamIn1 = (item) => {
+
+        const integerNumber = parseInt(item.SizingTippanNo, 10);
+        console.log("Converted to Integer", integerNumber)
+
+
         const formdata = new FormData();
-        formdata.append("OrderNoId", 10);
-        formdata.append("Date",'2024-05-08' );
-        formdata.append("Value",beamIn );
+        formdata.append("OrderNoId", getOrderNo);
+        formdata.append("Date", '2024-05-08');
+        formdata.append("SizingTippanNo", integerNumber);
+        formdata.append('PhotoPath', {
+            uri: item.PhotoPath.uri,
+            type: "image/jpg",
+            name: "cprograming.jpg",
+        });
 
         const requestOptions = {
             method: "POST",
@@ -189,9 +225,8 @@ const LiveOrders = ({ navigation }) => {
             .then((result) => console.log(result))
             .catch((error) => console.error(error));
         setModalVisible(true)
-        console.log('Table Data:', beamIn)
         setBeamInForm(false)
-      //  setBeamIn([{SizingTippanNo: '', PhotoPath: null }])
+
     }
 
     const handleImagePickerBI = async (index) => {
@@ -211,21 +246,32 @@ const LiveOrders = ({ navigation }) => {
         }
     };
 
+
+    const HandleSubmitBeamIn = () => {
+
+        {
+            beamIn.map((item) => {
+                HandleSubmitBeamIn1(item);
+            })
+        }
+    }
+
     //WEFT Yard In Form 
 
 
-    const [Weft, setWeft] = useState([{ date: new Date(), gatePassNumber: '', imageUri: null }]);
+    const [Weft, setWeft] = useState([{ GatePassNo: '', PhotoPath: null }]);
 
     const [showDatePickerWEFT, setShowDatePickerWEFT] = useState(false);
     const [selectedDateIndexWEFT, setSelectedDateIndexWEFT] = useState(0);
 
+
     const handleDateChangeWEFT = (event, date) => {
         if (date) {
             const updatedRows = [...Weft];
-            updatedRows[selectedDateIndexWEFT].date = date;
+            updatedRows[selectedDateIndexBI].date = date;
             setWeft(updatedRows);
         }
-        setShowDatePickerWEFT(false);
+        setShowDatePickerBI(false);
     };
 
     const handleInputChangeWEFT = (text, index, field) => {
@@ -235,22 +281,46 @@ const LiveOrders = ({ navigation }) => {
     };
 
     const handleAddRowWEFT = () => {
-        setWeft([...Weft, { date: new Date(), gatePassNumber: '', imageUri: null }]);
+        const newFormData = [...Weft, { GatePassNo: '', PhotoPath: null }];
+        setWeft(newFormData);
     };
 
     const handleRemoveRowWEFT = (index) => {
-        const updatedRows = [...Weft];
-        updatedRows.splice(index, 1);
-        setWeft(updatedRows);
+        const newFormData = [...Weft];
+        newFormData.splice(index, 1);
+        setWeft(newFormData);
     };
 
-    const HandleSubmitWEFT = () => {
-        setModalVisible(true)
-        console.log('Table Data:', Weft)
-        setWeftform(false)
-        setWeft([{ id: 1, date: new Date(), gatePassNumber: '', imageUri: null }])
-    }
+    const HandleSubmitWEFT1 = (item) => {
 
+        const integerNumber = parseInt(item.GatePassNo, 10);
+        console.log("Converted to Integer", integerNumber)
+
+
+        const formdata = new FormData();
+        formdata.append("OrderNoId", getOrderNo);
+        formdata.append("Date", '2024-05-08');
+        formdata.append("GatePassNo", integerNumber);
+        formdata.append('PhotoPath', {
+            uri: item.PhotoPath.uri,
+            type: "image/jpg",
+            name: "cprograming.jpg",
+        });
+
+        const requestOptions = {
+            method: "POST",
+            body: formdata,
+            redirect: "follow"
+        };
+
+        fetch("https://textileapp.microtechsolutions.co.in/php/postorderyarn.php ", requestOptions)
+            .then((response) => response.text())
+            .then((result) => console.log(result))
+            .catch((error) => console.error(error));
+        setModalVisible(true)
+        setWeftform(false)
+
+    }
 
     const handleImagePickerWEFT = async (index) => {
         try {
@@ -258,24 +328,46 @@ const LiveOrders = ({ navigation }) => {
                 width: 300,
                 height: 300,
                 cropping: true,
-                cropperCircleOverlay: true,
             });
 
-            const updatedRows = [...Weft];
-            updatedRows[index].imageUri = { uri: image.path };
+            const updatedRows = [...beamIn];
+            updatedRows[index].PhotoPath = { uri: image.path };
             console.log({ uri: image.path })
-            setWeft(updatedRows);
+            setBeamIn(updatedRows);
         } catch (error) {
             console.log('ImagePicker Error: ', error);
         }
     };
 
 
+    const HandleSubmitWEFT = () => {
+
+        {
+            beamIn.map((item) => {
+                HandleSubmitWEFT1(item);
+            })
+        }
+    }
+
     // Drawing In
 
     const [DrawingIn, setDrawingIn] = useState(false)
 
     const SubmitDrawingIn = () => {
+        const formdata = new FormData();
+        formdata.append("OrderNoId", getOrderNo);
+        formdata.append("Status", DrawingIn);
+
+        const requestOptions = {
+            method: "POST",
+            body: formdata,
+            redirect: "follow"
+        };
+
+        fetch("https://textileapp.microtechsolutions.co.in/php/postorderdrawingin.php", requestOptions)
+            .then((response) => response.text())
+            .then((result) => console.log(result))
+            .catch((error) => console.error(error));
         setDrawingInForm(false)
         setDrawingIn(false)
         console.log(DrawingIn)
@@ -286,6 +378,20 @@ const LiveOrders = ({ navigation }) => {
     const [beamgetting, setBeamGetting] = useState(false)
 
     const SubmitBeamInGetting = () => {
+        const formdata = new FormData();
+        formdata.append("OrderNoId", getOrderNo);
+        formdata.append("Status", beamgetting);
+
+        const requestOptions = {
+            method: "POST",
+            body: formdata,
+            redirect: "follow"
+        };
+
+        fetch("https://textileapp.microtechsolutions.co.in/php/postorderbeamgetting.php", requestOptions)
+            .then((response) => response.text())
+            .then((result) => console.log(result))
+            .catch((error) => console.error(error));
         setBeamGettingForm(false)
         setBeamGetting(false)
         console.log(beamgetting)
@@ -304,18 +410,19 @@ const LiveOrders = ({ navigation }) => {
 
     // Fabric Dispatch
 
-    const [tableRows, setTableRows] = useState([{ date: new Date(), meterWidth: '', weight: '', dispatchNumber: '' }]);
+    const [tableRows, setTableRows] = useState([{ Meter: '', Weight: '' }]);
     const [showDatePickerFD, setShowDatePickerFD] = useState(false);
     const [selectedDateIndexFD, setSelectedDateIndexFD] = useState(0);
-    const [beamInCss, setBeamInCss] = useState(styles.BeamInCss)
+
+
 
     const handleDateChangeFD = (event, date) => {
         if (date) {
             const updatedRows = [...tableRows];
-            updatedRows[selectedDateIndexFD].date = date;
+            updatedRows[selectedDateIndexBI].date = date;
             setTableRows(updatedRows);
         }
-        setShowDatePickerFD(false);
+        setShowDatePickerBI(false);
     };
 
     const handleInputChangeFD = (text, index, field) => {
@@ -325,22 +432,49 @@ const LiveOrders = ({ navigation }) => {
     };
 
     const handleAddRowFD = () => {
-        setTableRows([...tableRows, { date: new Date(), meterWidth: '', weight: '', dispatchNumber: '' }]);
+        const newFormData = [...tableRows, { Meter: '', weight: '' }];
+        setTableRows(newFormData);
     };
 
     const handleRemoveRowFD = (index) => {
-        const updatedRows = [...tableRows];
-        updatedRows.splice(index, 1);
-        setTableRows(updatedRows);
+        const newFormData = [...tableRows];
+        newFormData.splice(index, 1);
+        setTableRows(newFormData);
     };
-    const HandleSubmitFD = () => {
+
+    const HandleSubmitFD1 = (item) => {
+
+        const integerNumber = parseInt(item.Meter, 10);
+        const integerNumber2 = parseInt(item.Weight, 10);
+        console.log("Converted to Integer", integerNumber)
+
+
+        const formdata = new FormData();
+        formdata.append("OrderNoId", getOrderNo);
+        formdata.append("Date", integerNumber);
+        formdata.append("Weight", integerNumber2);
+        formdata.append('PhotoPath', {
+            uri: item.PhotoPath.uri,
+            type: "image/jpg",
+            name: "cprograming.jpg",
+        });
+
+        const requestOptions = {
+            method: "POST",
+            body: formdata,
+            redirect: "follow"
+        };
+
+        fetch("https://textileapp.microtechsolutions.co.in/php/postorderyarn.php ", requestOptions)
+            .then((response) => response.text())
+            .then((result) => console.log(result))
+            .catch((error) => console.error(error));
         setModalVisible(true)
-        console.log('Table Data:', tableRows)
-        setTableRows([{ date: new Date(), meterWidth: '', weight: '', dispatchNumber: '' }])
-        setFdForm(false)
+        setWeftform(false)
+
     }
 
-    const handleCameraPick = async (index) => {
+    const handleImagePickerFD = async (index) => {
         try {
             const image = await ImageCropPicker.openCamera({
                 width: 300,
@@ -348,40 +482,90 @@ const LiveOrders = ({ navigation }) => {
                 cropping: true,
             });
 
-            const newFormData = [...formData];
-            newFormData[index]['imageUri'] = image.path;
-            setFormData(newFormData);
+            const updatedRows = [...beamIn];
+            updatedRows[index].PhotoPath = { uri: image.path };
+            console.log({ uri: image.path })
+            setBeamIn(updatedRows);
         } catch (error) {
-            console.log('Error capturing image:', error);
+            console.log('ImagePicker Error: ', error);
         }
     };
 
+
+    const HandleSubmitFD = () => {
+
+        {
+            beamIn.map((item) => {
+                HandleSubmitFD1(item);
+            })
+        }
+    }
+
     //REMAINING GOODS RETURN 
 
-    const [remaining_goods_return, setRemaining_Goods_Return] = useState([{ GP_NO: '', Yarn_count: '', weight: '', Cut_piece: '', Meter: '' }]);
+    const [remaining_goods_return, setRemaining_Goods_Return] = useState([{ GpNo: '', YarnCount: '', Weight: '', CutPiece: '', Meter: '' }]);
+
 
     const handleInputChangeRGR = (text, index, field) => {
-        const updatedRows = [...remaining_goods_return];
+        const updatedRows = [...tableRows];
         updatedRows[index][field] = text;
         setRemaining_Goods_Return(updatedRows);
     };
 
     const handleAddRowRGR = () => {
-        setRemaining_Goods_Return([...remaining_goods_return, { GP_NO: '', Yarn_count: '', weight: '', Cut_piece: '', Meter: '' }]);
+        const newFormData = [...tableRows, { GpNo: '', YarnCount: '', Weight: '', CutPiece: '', Meter: '' }];
+        setRemaining_Goods_Return(newFormData);
     };
 
     const handleRemoveRowRGR = (index) => {
-        const updatedRows = [...remaining_goods_return];
-        updatedRows.splice(index, 1);
-        setRemaining_Goods_Return(updatedRows);
+        const newFormData = [...tableRows];
+        newFormData.splice(index, 1);
+        setRemaining_Goods_Return(newFormData);
     };
 
-    const HandleSubmitRGR = () => {
-        setModalVisible(true)
-        console.log('Table Data:', remaining_goods_return);
-        setRemaining_Goods_Return([{ GP_NO: '', Yarn_count: '', weight: '', Cut_piece: '', Meter: '' }]);
-        setremaining_Goods_ReturnForm(false)
+    const HandleSubmiRGR1 = (item) => {
 
+        const integerNumber = parseInt(item.GpNo, 10);
+        const integerNumber2 = parseInt(item.YarnCount, 10);
+        const integerNumber3 = parseInt(item.Weight, 10);
+        const integerNumber4 = parseInt(item.CutPiece, 10);
+        const integerNumber5 = parseInt(item.Meter, 10);
+
+        console.log("Converted to Integer", integerNumber)
+
+
+        const formdata = new FormData();
+        formdata.append("OrderNoId", getOrderNo);
+        formdata.append("GpNo", integerNumber);
+        formdata.append("YarnCount", integerNumber2);
+        formdata.append("Weight", integerNumber3);
+        formdata.append("CutPiece", integerNumber4);
+        formdata.append("Meter", integerNumber5);
+
+
+        const requestOptions = {
+            method: "POST",
+            body: formdata,
+            redirect: "follow"
+        };
+
+        fetch("https://textileapp.microtechsolutions.co.in/php/getorderreturn.php ", requestOptions)
+            .then((response) => response.text())
+            .then((result) => console.log(result))
+            .catch((error) => console.error(error));
+        setModalVisible(true)
+        setWeftform(false)
+
+    }
+
+
+    const HandleSubmitRGR = () => {
+
+        {
+            beamIn.map((item) => {
+                HandleSubmiRGR1(item);
+            })
+        }
     }
 
 
@@ -418,7 +602,7 @@ const LiveOrders = ({ navigation }) => {
                                     key={index}
                                     style={styles.orderContainer}
                                     onPress={() => handleOrderPress(order)}>
-                                    <Text style={styles.orderText}>{`Order No: ${order.orderNo}     party Name : ${order.partyName}   \n\n    Quality :${order.Quality}`}</Text>
+                                    <Text style={styles.orderText}>{`Order No: ${order.OrderNo}     party Name : ${order.PartyName}   \n\n    Quality :${order.Quality}`}</Text>
                                 </TouchableOpacity>
                             ))}
                         </View> : null}
@@ -468,7 +652,8 @@ const LiveOrders = ({ navigation }) => {
 
                                                             <View style={styles.row}>
                                                                 <View>
-                                                                    <TouchableOpacity onPress={() => { setShowDatePickerBI(true); setSelectedDateIndexBI(index); }}>
+                                                                    <Text style={{ color: "#000" }}>{currentDate}</Text>
+                                                                    <TouchableOpacity>
                                                                         <Image
                                                                             style={{ width: 30, height: 30, marginLeft: 30 }}
                                                                             source={require("../Images/calendar.png")}
@@ -572,9 +757,8 @@ const LiveOrders = ({ navigation }) => {
                                                     <View key={index} style={styles.rowContainer}>
                                                         <View style={styles.row}>
                                                             <View>
-                                                                <Text style={styles.dateText}>{row.date.toDateString()}</Text>
-
-                                                                <TouchableOpacity onPress={() => { setShowDatePickerWEFT(true); setSelectedDateIndexWEFT(index); }}>
+                                                                <Text style={{ color: "#000" }}>{currentDate}</Text>
+                                                                <TouchableOpacity>
                                                                     <Image
                                                                         style={{ width: 30, height: 30, marginLeft: 30 }}
                                                                         source={require("../Images/calendar.png")}
@@ -696,7 +880,7 @@ const LiveOrders = ({ navigation }) => {
                                                     />
                                                     <Text style={{ color: "#000", marginLeft: 15, fontSize: 20 }}>Yes</Text>
                                                 </View>
-                                                <Text style={styles.text}>{formattedDate}</Text>
+                                                <Text style={styles.text}>{currentDate}</Text>
                                             </View>
                                         </ScrollView>
                                         <TouchableOpacity style={styles.submitButton} onPress={() => SubmitDrawingIn()}>
@@ -745,7 +929,7 @@ const LiveOrders = ({ navigation }) => {
                                                     />
                                                     <Text style={{ color: "#000", marginLeft: 15, fontSize: 20 }}>Yes</Text>
                                                 </View>
-                                                <Text style={styles.text}>{formattedDate}</Text>
+                                                <Text style={styles.text}>{currentDate}</Text>
                                             </View>
                                         </ScrollView>
                                         <TouchableOpacity style={styles.submitButton} onPress={() => SubmitBeamInGetting()}>
@@ -824,6 +1008,16 @@ const LiveOrders = ({ navigation }) => {
                                                 {tableRows.map((row, index) => (
                                                     <View key={index} style={styles.rowContainer}>
                                                         <View style={styles.row}>
+
+                                                        <View style={{flexDirection:"column"}}>
+                                                                    <Text style={{color:"#000"}}>{currentDate}</Text>
+                                                                    <TouchableOpacity>
+                                                                        <Image
+                                                                            style={{ width: 30, height: 30, marginLeft: 30 }}
+                                                                            source={require("../Images/calendar.png")}
+                                                                        />
+                                                                    </TouchableOpacity>
+                                                                </View>
                                                             <TextInput
                                                                 style={styles.input}
                                                                 value={row.dispatchNumber}
@@ -831,16 +1025,7 @@ const LiveOrders = ({ navigation }) => {
                                                                 keyboardType="numeric"
                                                                 placeholder="Dispatch Number"
                                                             />
-                                                            <View style={{ flexDirection: "column" }}>
-                                                                <Text style={styles.dateText}>{row.date.toDateString()}</Text>
-
-                                                                <TouchableOpacity onPress={() => { setShowDatePickerFD(true); setSelectedDateIndexFD(index); }}>
-                                                                    <Image
-                                                                        style={{ width: 30, height: 30, marginLeft: 30 }}
-                                                                        source={require("../Images/calendar.png")}
-                                                                    />
-                                                                </TouchableOpacity>
-                                                            </View>
+                                                           
                                                             {showDatePickerFD && selectedDateIndexFD === index && (
                                                                 <DateTimePicker
                                                                     value={row.date}
@@ -851,21 +1036,21 @@ const LiveOrders = ({ navigation }) => {
                                                             )}
                                                             <TextInput
                                                                 style={styles.input}
-                                                                value={row.meterWidth}
+                                                                value={row.Meter}
                                                                 onChangeText={(text) => handleInputChangeFD(text, index, 'meterWidth')}
                                                                 keyboardType="numeric"
                                                                 placeholder="Meter"
                                                             />
                                                             <TextInput
                                                                 style={styles.input}
-                                                                value={row.weight}
+                                                                value={row.Weight}
                                                                 onChangeText={(text) => handleInputChangeFD(text, index, 'weight')}
                                                                 keyboardType="numeric"
                                                                 placeholder="Weight"
                                                             />
 
                                                             <View>
-                                                                <TouchableOpacity onPress={() => { handleCameraPickBI(); setShow1(1) }}>
+                                                                <TouchableOpacity onPress={() => { handleImagePickerFD(); setShow1(1) }}>
 
 
                                                                     {
@@ -875,7 +1060,7 @@ const LiveOrders = ({ navigation }) => {
                                                                                 return (
                                                                                     <View>
                                                                                         <Image
-                                                                                            source={require('../Images/pic1.png')}
+                                                                                            source={row.PhotoPath}
                                                                                             style={{ width: 40, height: 40, alignSelf: 'flex-start', marginLeft: 20 }}
 
                                                                                         />
@@ -960,16 +1145,16 @@ const LiveOrders = ({ navigation }) => {
                                                         <SafeAreaView style={[styles.row, { width: 600 }]}>
                                                             <TextInput
                                                                 style={[styles.input, { width: "18%" }]}
-                                                                value={row.GP_NO}
-                                                                onChangeText={(text) => handleInputChangeRGR(text, index, 'GP_NO')}
+                                                                value={row.GpNo}
+                                                                onChangeText={(text) => handleInputChangeRGR(text, index, 'GpNo')}
                                                                 keyboardType="numeric"
                                                                 placeholder="GP_NO"
                                                                 placeholderTextColor={"#000"}
                                                             />
                                                             <TextInput
                                                                 style={[styles.input, { width: "18%" }]}
-                                                                value={row.Yarn_count}
-                                                                onChangeText={(text) => handleInputChangeRGR(text, index, 'Yarn_count')}
+                                                                value={row.YarnCount}
+                                                                onChangeText={(text) => handleInputChangeRGR(text, index, 'YarnCount')}
                                                                 keyboardType="numeric"
                                                                 placeholder="Yarn_count"
                                                                 placeholderTextColor={"#000"}
@@ -977,8 +1162,8 @@ const LiveOrders = ({ navigation }) => {
                                                             />
                                                             <TextInput
                                                                 style={[styles.input, { width: "18%" }]}
-                                                                value={row.weight}
-                                                                onChangeText={(text) => handleInputChangeRGR(text, index, 'weight')}
+                                                                value={row.Weight}
+                                                                onChangeText={(text) => handleInputChangeRGR(text, index, 'Weight')}
                                                                 keyboardType="numeric"
                                                                 placeholder="Weight"
                                                                 placeholderTextColor={"#000"}
@@ -986,8 +1171,8 @@ const LiveOrders = ({ navigation }) => {
                                                             />
                                                             <TextInput
                                                                 style={[styles.input, { width: "18%" }]}
-                                                                value={row.Cut_piece}
-                                                                onChangeText={(text) => handleInputChangeRGR(text, index, 'Cut_piece')}
+                                                                value={row.CutPiece}
+                                                                onChangeText={(text) => handleInputChangeRGR(text, index, 'CutPiece')}
                                                                 keyboardType="numeric"
                                                                 placeholder="Cut_piece"
                                                                 placeholderTextColor={"#000"}
@@ -1107,7 +1292,8 @@ const styles = StyleSheet.create({
     },
     ordersContainer: {
         flexDirection: 'column',
-        alignItems: "center"
+        alignItems: "center",
+        marginTop:"5%"
     },
     header1: {
         flexDirection: 'row',

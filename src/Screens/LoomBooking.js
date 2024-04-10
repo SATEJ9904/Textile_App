@@ -1,277 +1,217 @@
-import { SafeAreaView, StyleSheet, TextInput, Text, View, StatusBar, ImageBackground, Image, Button, TouchableOpacity, ScrollView } from 'react-native'
-import React, { useState } from 'react'
-import DateTimePicker from '@react-native-community/datetimepicker';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, TextInput, Button, StyleSheet } from 'react-native';
+import DatePicker from 'react-native-datepicker'
+const LoomBooking = () => {
+  const [loomData, setLoomData] = useState([]);
+  const [selectedLoom, setSelectedLoom] = useState(null);
+  const [loomBookingId, setLoomBookingId] = useState([]);
+  const [partyName, setPartyName] = useState('');
+  const [jobRate, setJobRate] = useState('');
+  const [quality, setQuality] = useState('');
+  const [orderDate, setOrderDate] = useState('');
+  const [bookedDateFrom, setBookedDateFrom] = useState('');
+  const [bookedDateTo, setBookedDateTo] = useState('');
+  const [showForm, setShowForm] = useState(false);
 
-const LoomBooking = ({ navigation }) => {
-
-
-  const [blocks, setBlocks] = useState(Array.from({ length: 20 }, (_, index) => index + 1));
-  const [selectedBlock, setSelectedBlock] = useState(null);
-  const [formData, setFormData] = useState({
-    Enter_order_no: '',
-    Quality: '',
-    fromDate: new Date(),
-    toDate: new Date(),
-    partyName: '',
-    job_rate: '',
-  });
-  const [showFromDatePicker, setShowFromDatePicker] = useState(false);
-  const [showToDatepicker, setShowToDatepicker] = useState(false);
-  const [blockSubmitted, setBlockSubmitted] = useState(Array(20).fill(false));
-
-  const handleBlockPress = (index) => {
-    setSelectedBlock(index);
-  };
-
-  const handleFromDateChange = (event, selectedDate) => {
-    setShowFromDatePicker(Platform.OS === 'ios');
-    if (selectedDate) {
-      setFormData({ ...formData, fromDate: selectedDate });
+  useEffect(() => {
+    // Fetch loom data from API
+    // Replace the URL with your API endpoint
+    const apifetch = () => {
+      fetch('https://textileapp.microtechsolutions.co.in/php/gettable.php?table=LoomBooking')
+        .then(response => response.json())
+        .then(data => {
+          setLoomData(data)
+          setLoomBookingId(data)
+        }
+        )
+        .catch(error => console.error('Error fetching loom data:', error));
     }
+
+    apifetch();
+  }, []);
+
+  const handleBlockClick = (LoomNo, BookingId) => {
+    setSelectedLoom(LoomNo);
+    setShowForm(true); // Show the form when a block is clicked
+    setLoomBookingId(BookingId);
+    console.log(BookingId)
   };
 
-  const handleToDateChange = (event, selectedDate) => {
-    setShowToDatepicker(Platform.OS === 'ios');
-    if (selectedDate) {
-      setFormData({ ...formData, toDate: selectedDate });
-    }
-  };
+  const handleSubmit = () => {
 
-  const showFromDatepicker = () => {
-    setShowFromDatePicker(true);
-  };
+    //console.log(loomBookingId)
 
-  const showTo_Datepicker = () => {
-    setShowToDatepicker(true);
-  };
+    const integerNumber = parseInt(loomBookingId, 10);
+    const integerNumber1 = parseInt(jobRate, 10);
 
-  const handleFormSubmit = () => {
-    if (
-      formData.Enter_order_no &&
-      formData.Quality &&
-      formData.partyName &&
-      formData.job_rate
-    ) {
-      console.log("Block Number:", blocks[selectedBlock]);
-      console.log("Submitted Data:", formData);
-      const updatedBlockSubmitted = [...blockSubmitted];
-      updatedBlockSubmitted[selectedBlock] = true;
-      setBlockSubmitted(updatedBlockSubmitted);
-    }
-    setSelectedBlock(null);
-    setFormData({
-      Enter_order_no: '',
-      Quality: '',
-      fromDate: new Date(),
-      toDate: new Date(),
-      partyName: '',
-      job_rate: '',
+
+
+
+    const formdata = new FormData();
+    formdata.append("LoomBookingId", integerNumber);
+    formdata.append("PartyName", partyName);
+    formdata.append("JobRate", integerNumber1);
+    formdata.append("Quality", quality);
+    formdata.append("Orderdate", orderDate);
+    formdata.append("BookedDateFrom", bookedDateFrom);
+    formdata.append("BookedDateTo", bookedDateTo);
+
+    const requestOptions = {
+      method: "POST",
+      body: formdata,
+      redirect: "follow"
+    };
+
+    fetch("https://textileapp.microtechsolutions.co.in/php/postloomorder.php", requestOptions)
+      .then((response) => response.text())
+      .then((result) => console.log(result))
+      .catch((error) => console.error(error));
+
+
+    console.log("Submitted Data", {
+      integerNumber,
+      partyName,
+      integerNumber1,
+      quality,
+      orderDate,
+      bookedDateFrom,
+      bookedDateTo,
+      selectedLoom
     });
+   // You can add code here to send the form data to your server
+
+    //Reset form fields after submission
+    setLoomBookingId('');
+    setPartyName('');
+    setJobRate('');
+    setQuality('');
+    setOrderDate('');
+    setBookedDateFrom('');
+    setBookedDateTo('');
+    setSelectedLoom(null);
+    setShowForm(false);
   };
 
-  const isWithinBookingPeriod = (fromDate, toDate) => {
-    const now = new Date();
-    const from = new Date(fromDate);
-    const to = new Date(toDate);
-    return now >= from && now <= to;
+  const isFormFilled = () => {
+    return (
+      loomBookingId !== '' &&
+      partyName !== '' &&
+      jobRate !== '' &&
+      quality !== '' &&
+      orderDate !== '' &&
+      bookedDateFrom !== '' &&
+      bookedDateTo !== ''
+    );
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#e5f2fe" }}>
-      <StatusBar backgroundColor={"#0b659a"}></StatusBar>
-      <View style={{ backgroundColor: "#71B7E1", flexDirection: "row" }}>
-        <TouchableOpacity onPress={() => navigation.navigate("Home")}>
-          <ImageBackground
-            source={require("../Images/back.png")}
-            style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#71B7E1", marginTop: 15, marginRight: 0, marginLeft: 10 }}
-            imageStyle={{ borderRadius: 0 }}
-          />
-        </TouchableOpacity>
-        <Text style={{ fontSize: 25, color: "white", margin: "2.5%", marginLeft: "25%" }}>Loom Booking</Text>
+    <View style={styles.container}>
+      <View style={styles.loomContainer}>
+        {loomData.map((item) => (
+          <TouchableOpacity
+            key={item.loomNo}
+            style={[
+              styles.loomBlock,
+              selectedLoom === item.LoomNo ? styles.selectedLoom : null
+            ]}
+            onPress={() => { handleBlockClick(item.LoomNo, item.BookingId) }}>
+            <Text style={styles.loomText}>{item.LoomNo}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
-      <ScrollView>
+      {showForm && (
+        <View style={styles.formContainer}>
 
+          <TextInput
+            style={styles.input}
+            placeholder="Party Name"
+            value={partyName}
+            onChangeText={text => setPartyName(text)}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Job Rate"
+            value={jobRate}
+            onChangeText={text => setJobRate(text)}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Quality"
+            value={quality}
+            onChangeText={text => setQuality(text)}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Order Date"
+            value={orderDate}
+            onChangeText={text => setOrderDate(text)}
+          />
 
-        <View style={styles.container}>
-          <View style={styles.blocksContainer}>
-            {blocks.map((number, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.block,
-                  {
-                    backgroundColor: blockSubmitted[index]
-                      ? isWithinBookingPeriod(formData.fromDate, formData.toDate)
-                        ? 'green'
-                        : 'red'
-                      : 'green',
-                  },
-                ]}
-                onPress={() => handleBlockPress(index)}
-                disabled={blockSubmitted[index]}
-              >
-                <Text style={styles.blockText}>{number}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          {selectedBlock !== null && (
-            <View style={styles.formContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter Order No"
-                placeholderTextColor={"#000"}
-                value={formData.Enter_order_no}
-                onChangeText={(text) => setFormData({ ...formData, Enter_order_no: text })}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Quality"
-                placeholderTextColor={"#000"}
+          <TextInput
+            style={styles.input}
+            placeholder="From Date"
+            value={bookedDateFrom}
+            onChangeText={date => setBookedDateFrom(date)}
+          />
 
-                value={formData.Quality}
-                onChangeText={(text) => setFormData({ ...formData, Quality: text })}
-              />
-              <View style={styles.dateContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="To Date"
+            value={bookedDateTo}
+            onChangeText={date => setBookedDateTo(date)}
+          />
 
-                <View style={styles.dateContaine1r}>
-                  <TextInput
-                    style={[styles.input,{marginLeft:"12%"}]}
-                    placeholder="From Date"
-                    placeholderTextColor={"#000"}
-
-                    value={formData.fromDate.toDateString()}
-                    onChangeText={(text) => setFormData({ ...formData, fromDate: text })}
-                  />
-
-                  <TouchableOpacity  onPress={showFromDatepicker} >
-                    <Image
-                      style={{ width: 40, height: 40 }}
-                      source={require("../Images/calendar.png")}
-                    />
-                  </TouchableOpacity>
-                </View>
-
-                {showFromDatePicker && (
-                  <DateTimePicker
-                    testID="fromDatePicker"
-                    value={formData.fromDate}
-                    mode="date"
-                    is24Hour={true}
-                    display="default"
-                    onChange={handleFromDateChange}
-                  />
-                )}
-              </View>
-              <View style={styles.dateContainer}>
-                <View style={styles.dateContaine1r}>
-                  <TextInput
-                    style={[styles.input,{marginLeft:"12%"}]}
-                    placeholder="To Date"
-                    placeholderTextColor={"#000"}
-
-                    value={formData.toDate.toDateString()}
-                    onChangeText={(text) => setFormData({ ...formData, toDate: text })}
-                  />
-                  <TouchableOpacity  onPress={showTo_Datepicker} >
-                    <Image
-                      style={{ width: 40, height: 40 }}
-                      source={require("../Images/calendar.png")}
-                    />
-                  </TouchableOpacity>
-                </View>
-                {showToDatepicker && (
-                  <DateTimePicker
-                    testID="toDatePicker"
-                    value={formData.toDate}
-                    mode="date"
-                    is24Hour={true}
-                    display="default"
-                    onChange={handleToDateChange}
-                  />
-                )}
-              </View>
-              <TextInput
-                style={styles.input}
-                placeholder="Party Name"
-                placeholderTextColor={"#000"}
-
-                value={formData.partyName}
-                onChangeText={(text) => setFormData({ ...formData, partyName: text })}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Job Rate"
-                placeholderTextColor={"#000"}
-
-                value={formData.job_rate}
-                onChangeText={(text) => setFormData({ ...formData, job_rate: text })}
-              />
-              <TouchableOpacity style={styles.submitButton} onPress={handleFormSubmit}>
-                <Text style={styles.submitButtonText}>Submit</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+          <Button title="Submit" onPress={handleSubmit} />
         </View>
-      </ScrollView>
-    </SafeAreaView>
-  )
-}
-
-export default LoomBooking
+      )}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: "25%",
-    backgroundColor: '#e5f2fe',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  blocksContainer: {
+  loomContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    marginBottom: 20,
   },
-  block: {
+  loomBlock: {
     width: 50,
     height: 50,
-    backgroundColor: 'green',
+    backgroundColor: 'lightgreen',
     margin: 5,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  blockText: {
-    color: 'white',
-    fontSize: 18,
+  selectedLoomFilled: {
+    backgroundColor: 'red',
+  },
+  selectedLoomEmpty: {
+    backgroundColor: 'lightgreen',
+  },
+  loomText: {
+    fontWeight: 'bold',
+    color: '#000',
   },
   formContainer: {
-    alignItems: 'center',
+    marginTop: 20,
   },
   input: {
-    width: 200,
     height: 40,
+    borderColor: 'gray',
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
     marginBottom: 10,
     paddingHorizontal: 10,
-    color: "#000"
+    width: 300
   },
-  submitButton: {
-    backgroundColor: '#71B7E1',
-    padding: 10,
-    borderRadius: 5,
-  },
-  submitButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  dateContainer: {
-    flexDirection: 'column',
-    alignItems: 'center',
+  datePicker: {
     marginBottom: 10,
+    width: 200, // adjust width as needed
   },
-  dateContaine1r: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-})
+});
+
+export default LoomBooking;
