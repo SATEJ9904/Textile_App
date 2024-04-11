@@ -9,24 +9,194 @@ import ImagePicker from 'react-native-image-crop-picker';
 
 const LiveOrderstrader = ({ navigation }) => {
 
+  const [orders, setOrders] = useState([]);
 
-  const [orders, setOrders] = useState([
-    { orderNo: 1, partyName: "Loom Unit  A" },
-    { orderNo: 2, partyName: "Loom Unit  B" },
-    { orderNo: 3, partyName: "Loom Unit  C" },
-    { orderNo: 4, partyName: "Loom Unit  D" },
-    { orderNo: 5, partyName: "Loom Unit  E" },
-    { orderNo: 6, partyName: "Loom Unit  F" },
-  ]);
 
-  const [BIList, setBIList] = useState([
-    { orderNo: 1, partyName: "Loom Unit  A" },
-    { orderNo: 2, partyName: "Loom Unit  B" },
-    { orderNo: 3, partyName: "Loom Unit  C" },
-    { orderNo: 4, partyName: "Loom Unit  D" },
-    { orderNo: 5, partyName: "Loom Unit  E" },
-    { orderNo: 6, partyName: "Loom Unit  F" },
-  ]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('https://textileapp.microtechsolutions.co.in/php/gettable.php?table=LoomOrder');
+        const json = await response.json();
+        setOrders(json);
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json()
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+    handleButtonPress();
+  }, []);
+
+
+
+
+  const [orderBeam, setOrderBeam] = useState([]);
+  const [imageSource, setImageSource] = useState(null);
+  const [dateBeamIn, setDateBeam] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getorderbeam.php');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        setOrderBeam(data);
+        data.map((item) => {
+          console.log(item.UpdatedOn.date.substring(0, 10))
+          setDateBeam(item.UpdatedOn.date.substring(0, 10))
+
+          console.log("Latest = ", dateBeamIn)
+          setImageSource(item.PhotoPath);
+        })
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData();
+  }, []);
+
+
+  const [orderYarn, setOrderYarn] = useState([]);
+  const [dateWEFT, setDatWEFT] = useState(null);
+  const [imageSourceWEFT, setImageSourceWEFT] = useState(null);
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getorderyarn.php');
+        const json = await response.json();
+        json.map((item) => {
+          console.log(item.UpdatedOn.date.substring(0, 10))
+          setDatWEFT(item.UpdatedOn.date.substring(0, 10))
+
+          console.log("Latest = ", dateBeamIn)
+          setImageSourceWEFT(item.PhotoPath);
+        })
+        setOrderYarn(json);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+
+
+
+
+  const [req, setreq] = useState([])
+  const [dateDI,setdateDI]= useState(null)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('https://textileapp.microtechsolutions.co.in/php/gettable.php?table=OrderDrawingIn');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        data.map((item) => {
+          setdateDI(item.UpdatedOn.date.substring(0,10))
+          setreq(item.Status)
+          console.log(" Status = ", item.Status)
+        })
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData();
+  }, []);
+
+
+  const [reqBG, setreqBG] = useState([])
+  const [dateBG,setdateBG]= useState(null)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('https://textileapp.microtechsolutions.co.in/php/gettable.php?table=OrderBeamGetting');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        data.map((item) => {
+          setdateBG(item.UpdatedOn.date.substring(0,10))
+          setreqBG(item.Status)
+          console.log(" Status = ", item.Status)
+        })
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData();
+  }, []);
+
+
+  const [orderfd, setOrderFD] = useState([]);
+  const [imageSourceFD, setImageSourceFD] = useState(null);
+  const [dateFD, setDateFD] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('https://textileapp.microtechsolutions.co.in/php/gettable.php?table=OrderFabric');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        setOrderFD(data);
+        data.map((item) => {
+          console.log(item.UpdatedOn.date.substring(0, 10))
+          setDateFD(item.UpdatedOn.date.substring(0, 10))
+
+          console.log("Latest = ", dateBeamIn)
+          setImageSourceFD(item.Photopath);
+        })
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData();
+  }, []);
+
+
+  const [RGR, setOrderRGR] = useState([]);
+  const [dateRGR, setDateRGR] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('https://textileapp.microtechsolutions.co.in/php/gettable.php?table=OrderGoodRemain');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        setOrderRGR(data);
+        data.map((item) => {
+          console.log(item.UpdatedOn.date.substring(0, 10))
+          setDateRGR(item.UpdatedOn.date.substring(0, 10))
+
+        })
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData();
+  }, []);
+
 
   const [modalVisible, setModalVisible] = useState(true);
   const [modalVisible2, setModalVisible2] = useState(false);
@@ -152,7 +322,7 @@ const LiveOrderstrader = ({ navigation }) => {
 
   const handleButtonPress = (action) => {
     if (selectedOrder) {
-      console.log(`Order No: ${selectedOrder.orderNo}, Party Name: ${selectedOrder.partyName}, Action: ${action}`);
+      console.log(`Order No: ${selectedOrder.OrderNo}, Party Name: ${selectedOrder.PartyName}, Action: ${action}`);
     }
   };
 
@@ -401,7 +571,7 @@ const LiveOrderstrader = ({ navigation }) => {
               key={index}
               style={styles.orderContainer}
               onPress={() => handleOrderPress(order)}>
-              <Text style={styles.orderText}>{`Order No: ${order.orderNo}     ${order.partyName}`}</Text>
+              <Text style={styles.orderText}>{`Order No: ${order.OrderNo}     ${order.PartyName}`}</Text>
             </TouchableOpacity>
           ))}
         </View> : null}
@@ -414,7 +584,7 @@ const LiveOrderstrader = ({ navigation }) => {
                     <Text style={[styles.buttonText, styles.BeamInCss]}>Beam in</Text>
                   </View>
                 </TouchableOpacity>
-                <Text style={{ color: "#ff0000", textDecorationLine: "underline", marginLeft: "5%" }}>09-03-2024</Text>
+                <Text style={{ color: "#ff0000", textDecorationLine: "underline", marginLeft: "5%" }}>{dateBeamIn}</Text>
               </View>
 
               {Beaminform ? <View style={{ width: "100%" }}>
@@ -423,6 +593,7 @@ const LiveOrderstrader = ({ navigation }) => {
                     <View style={styles.header1}>
                       <Text style={styles.headerText1}>Date</Text>
                       <Text style={[styles.headerText1, { marginLeft: 20 }]}>Sizing Tippan Number</Text>
+                      <Text style={styles.headerText1}>Image </Text>
 
                     </View>
 
@@ -437,74 +608,33 @@ const LiveOrderstrader = ({ navigation }) => {
 
 
 
-
-
-
-
-
-
-                    {beamIn.map((row, index) => (
-                      <ScrollView>
-                        <View key={index} style={styles.rowContainer}>
-
-                          <View style={styles.row}>
-                            <View>
-                              <Text style={styles.dateText}>{row.date.toDateString()}</Text>
-
-                              <TouchableOpacity onPress={() => { setShowDatePickerBI(true); setSelectedDateIndexBI(index); }}>
-                                <Image
-                                  style={{ width: 30, height: 30, marginLeft: 30 }}
-                                  source={require("../Images/calendar.png")}
-                                />
-                              </TouchableOpacity>
-                            </View>
-                            {showDatePickerBI && selectedDateIndexBI === index && (
-                              <DateTimePicker
-                                value={row.date}
-                                mode="date"
-                                display="default"
-                                onChange={handleDateChangeBI}
-                              />
-                            )}
-                            <TextInput
-                              style={[styles.input, { width: "45%" }]}
-                              value={row.sizingTippanNumber}
-                              onChangeText={(text) => handleInputChangeBI(text, index, 'sizingTippanNumber')}
-                              keyboardType="numeric"
-                              placeholder="sizing Tippan Number"
-                            />
-
-                              <View style={styles.rowButtons}>
-                                {index !== 0 && (
-                                  <TouchableOpacity onPress={() => handleRemoveRowBI(index)}>
-                                    <Text style={{ fontSize: 35, marginTop: -20 }}>-</Text>
-                                  </TouchableOpacity>
-                                )}
-                                <TouchableOpacity onPress={handleAddRowBI}>
-                                  <Text style={styles.button}>+</Text>
-                                </TouchableOpacity>
-                              </View>
-                          </View>
-
+                    <View>
+                      {orderBeam.map((item, index) => (
+                        <View key={index} style={{ flexDirection: "row", justifyContent: 'space-between' }}>
+                          <Text style={{ color: "#000", marginHorizontal: 50, margin: 10 }}>{item.Date.date.substring(0, 10)}</Text>
+                          <Text style={{ color: "#000", marginHorizontal: 50, margin: 10 }}>{item.SizingTippanNo}</Text>
+                          <Image
+                            style={{ width: 40, height: 40, marginHorizontal: 50, margin: 10 }}
+                            source={{ uri: imageSource }}
+                          />
                         </View>
-                      </ScrollView>
-                    ))}
+                      ))}
+                    </View>
+
                   </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.submitButton} onPress={() => HandleSubmitBeamIn()}>
-                  <Text style={styles.submitButtonText}>Submit</Text>
-                </TouchableOpacity>
               </View> : null}
+
               <View style={{ flexDirection: "row" }}>
                 <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('WEFT yarn in'); FalseOthersWeft() }}>
-                  <Text style={styles.buttonText}>WEFT yarn in</Text>
+                  <Text style={styles.buttonText}>WEFT YARN IN</Text>
                 </TouchableOpacity>
-                <Text style={{ color: "#ff0000", textDecorationLine: "underline", marginLeft: "5%" }}>09-03-2024</Text>
+                <Text style={{ color: "#ff0000", textDecorationLine: "underline", marginLeft: "5%" }}>{dateWEFT}</Text>
               </View>
 
 
 
-              {/* WEFTCYARN IN FORM */}
+              {/* WEFTCYARN IN FORM  */}
 
 
 
@@ -520,50 +650,22 @@ const LiveOrderstrader = ({ navigation }) => {
                     <View style={styles.header1}>
                       <Text style={styles.headerText1}>Date</Text>
                       <Text style={[styles.headerText1, { marginLeft: 70 }]}>Gate Pass Number</Text>
+                      <Text style={styles.headerText1}>Image </Text>
+
 
                     </View>
-                    {Weft.map((row, index) => (
-                      <View key={index} style={styles.rowContainer}>
-                        <View style={styles.row}>
-                          <View>
-                            <Text style={styles.dateText}>{row.date.toDateString()}</Text>
-
-                            <TouchableOpacity onPress={() => { setShowDatePickerWEFT(true); setSelectedDateIndexWEFT(index); }}>
-                              <Image
-                                style={{ width: 30, height: 30, marginLeft: 30 }}
-                                source={require("../Images/calendar.png")}
-                              />
-                            </TouchableOpacity>
-                          </View>
-                          {showDatePickerWEFT && selectedDateIndexWEFT === index && (
-                            <DateTimePicker
-                              value={row.date}
-                              mode="date"
-                              display="default"
-                              onChange={handleDateChangeWEFT}
-                            />
-                          )}
-                          <TextInput
-                            style={[styles.input, { width: "45%" }]}
-                            value={row.gatePassNumber}
-                            onChangeText={(text) => handleInputChangeWEFT(text, index, 'gatePassNumber')}
-                            keyboardType="numeric"
-                            placeholder="gatePassNumber"
+                    <View>
+                      {orderYarn.map((item, index) => (
+                        <View key={index} style={{ flexDirection: "row", justifyContent: 'space-between' }}>
+                          <Text style={{ color: "#000", marginHorizontal: 50, margin: 10 }}>{item.Date.date.substring(0, 10)}</Text>
+                          <Text style={{ color: "#000", marginHorizontal: 50, margin: 10 }}>{item.GatePassNo}</Text>
+                          <Image
+                            style={{ width: 40, height: 40, marginHorizontal: 50, margin: 10 }}
+                            source={{ uri: imageSourceWEFT }}
                           />
-                          <View style={styles.rowButtons}>
-                            {index !== 0 && (
-                              <TouchableOpacity onPress={() => handleRemoveRowWEFT(index)}>
-                                <Text style={styles.button}>-</Text>
-                              </TouchableOpacity>
-                            )}
-                            <TouchableOpacity onPress={handleAddRowWEFT}>
-                              <Text style={styles.button}>+</Text>
-                            </TouchableOpacity>
-                          </View>
                         </View>
-                      </View>
-
-                    ))}
+                      ))}
+                    </View>
                   </View>
                 </ScrollView>
                 <TouchableOpacity style={styles.submitButton} onPress={() => HandleSubmitWEFT()}>
@@ -584,7 +686,7 @@ const LiveOrderstrader = ({ navigation }) => {
                 <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Drawing in'), FalseOthersDI() }}>
                   <Text style={styles.buttonText}>Drawing in</Text>
                 </TouchableOpacity>
-                <Text style={{ color: "#ff0000", textDecorationLine: "underline", marginLeft: "5%" }}>09-03-2024</Text>
+                <Text style={{ color: "#ff0000", textDecorationLine: "underline", marginLeft: "5%" }}>{dateDI}</Text>
               </View>
               {DrawingInForm ? <View style={{ width: "100%" }}>
                 <ScrollView horizontal={true} vertical={true}>
@@ -611,14 +713,11 @@ const LiveOrderstrader = ({ navigation }) => {
 
 
 
-
                     <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "center" }}>
-                      <CheckBox
-                        disabled={false}
-                        value={DrawingIn}
-                        onValueChange={(newValue) => setDrawingIn(newValue)}
-                      />
-                      <Text style={{ color: "#000", marginLeft: 15, fontSize: 20 }}>Yes</Text>
+
+                      {
+                        req === 1 ? <Text style={{color:'blue'}}>Required</Text > : <Text style={{color:"red"}}>not Required</Text>
+                      }
                     </View>
                   </View>
                 </ScrollView>
@@ -632,7 +731,7 @@ const LiveOrderstrader = ({ navigation }) => {
                 <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Beam Getting'), FalseOthersBG() }}>
                   <Text style={styles.buttonText}>Beam Getting</Text>
                 </TouchableOpacity>
-                <Text style={{ color: "#ff0000", textDecorationLine: "underline", marginLeft: "5%" }}>09-03-2024</Text>
+                <Text style={{ color: "#ff0000", textDecorationLine: "underline", marginLeft: "5%" }}>{dateBG}</Text>
               </View>
 
               {beamGettingForm ? <View style={{ width: "100%" }}>
@@ -666,12 +765,9 @@ const LiveOrderstrader = ({ navigation }) => {
 
 
                     <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "center" }}>
-                      <CheckBox
-                        disabled={false}
-                        value={beamgetting}
-                        onValueChange={(newValue) => setBeamGetting(newValue)}
-                      />
-                      <Text style={{ color: "#000", marginLeft: 15, fontSize: 20 }}>Yes</Text>
+                    {
+                        reqBG === 1 ? <Text style={{color:'blue'}}>Required</Text > : <Text style={{color:"red"}}>not Required</Text>
+                      }
                     </View>
                   </View>
                 </ScrollView>
@@ -726,7 +822,7 @@ const LiveOrderstrader = ({ navigation }) => {
                 <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Fabric Dispatch'), FalseOthersFD() }}>
                   <Text style={styles.buttonText}>Fabric Dispatch</Text>
                 </TouchableOpacity>
-                <Text style={{ color: "#ff0000", textDecorationLine: "underline", marginLeft: "5%" }}>09-03-2024</Text>
+                <Text style={{ color: "#ff0000", textDecorationLine: "underline", marginLeft: "5%" }}>{dateFD}</Text>
               </View>
 
 
@@ -749,69 +845,30 @@ const LiveOrderstrader = ({ navigation }) => {
                 <ScrollView horizontal={true}>
                   <View style={styles.table}>
                     <View style={styles.header1}>
+                      <Text style={styles.headerText1}>Date     </Text>
                       <Text style={styles.headerText1}>Dispatch No.</Text>
-                      <Text style={styles.headerText1}>Date</Text>
-                      <Text style={[styles.headerText1, { marginLeft: 0 }]}>Meter</Text>
-                      <Text style={[styles.headerText1, { marginLeft: 0 }]}>Weight</Text>
+                      <Text style={[styles.headerText1]}>Meter</Text>
+                      <Text style={[styles.headerText1]}>Weight</Text>
+                      <Text style={[styles.headerText1]}>Image</Text>
+
 
                     </View>
 
-                    {tableRows.map((row, index) => (
-                      <View key={index} style={styles.rowContainer}>
-                        <View style={styles.row}>
-                          <TextInput
-                            style={styles.input}
-                            value={row.dispatchNumber}
-                            onChangeText={(text) => handleInputChangeFD(text, index, 'dispatchNumber')}
-                            keyboardType="numeric"
-                            placeholder="Dispatch Number"
-                          />
-                          <View style={{ flexDirection: "column" }}>
-                            <Text style={styles.dateText}>{row.date.toDateString()}</Text>
+                    <View>
+                      {orderfd.map((item, index) => (
+                        <View key={index} style={styles.header1}>
+                          <Text style={styles.headerText1}>{item.Date.date.substring(0, 10)}</Text>
+                          <Text style={[styles.headerText1]}>{item.DispatchNo}</Text>
+                          <Text style={[styles.headerText1]}>{item.Meter}</Text>
+                          <Text style={[styles.headerText1]}>{item.Weight}</Text>
 
-                            <TouchableOpacity onPress={() => { setShowDatePickerFD(true); setSelectedDateIndexFD(index); }}>
-                              <Image
-                                style={{ width: 30, height: 30, marginLeft: 30 }}
-                                source={require("../Images/calendar.png")}
-                              />
-                            </TouchableOpacity>
-                          </View>
-                          {showDatePickerFD && selectedDateIndexFD === index && (
-                            <DateTimePicker
-                              value={row.date}
-                              mode="date"
-                              display="default"
-                              onChange={handleDateChangeFD}
-                            />
-                          )}
-                          <TextInput
-                            style={styles.input}
-                            value={row.meterWidth}
-                            onChangeText={(text) => handleInputChangeFD(text, index, 'meterWidth')}
-                            keyboardType="numeric"
-                            placeholder="Meter"
+                          <Image
+                            style={{ width: 40, height: 40, marginHorizontal: 10, margin: 10, marginRight: 60 }}
+                            source={{ uri: imageSourceFD }}
                           />
-                          <TextInput
-                            style={styles.input}
-                            value={row.weight}
-                            onChangeText={(text) => handleInputChangeFD(text, index, 'weight')}
-                            keyboardType="numeric"
-                            placeholder="Weight"
-                          />
-
                         </View>
-                        <View style={[styles.rowButtons, { marginRight: 70 }]}>
-                          {index !== 0 && (
-                            <TouchableOpacity onPress={() => handleRemoveRowFD(index)}>
-                              <Text style={styles.button}>-</Text>
-                            </TouchableOpacity>
-                          )}
-                          <TouchableOpacity onPress={handleAddRowFD}>
-                            <Text style={styles.button}>+</Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    ))}
+                      ))}
+                    </View>
 
 
                   </View>
@@ -828,7 +885,7 @@ const LiveOrderstrader = ({ navigation }) => {
                 <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Remaining Goods Return'), FalseOthersrgr() }}>
                   <Text style={styles.buttonText}>Remaining Goods Return</Text>
                 </TouchableOpacity>
-                <Text style={{ color: "#ff0000", textDecorationLine: "underline", marginLeft: "5%" }}>09-03-2024</Text>
+                <Text style={{ color: "#ff0000", textDecorationLine: "underline", marginLeft: "5%" }}>{dateRGR}</Text>
               </View>
 
 
@@ -865,56 +922,14 @@ const LiveOrderstrader = ({ navigation }) => {
                       </TouchableOpacity>
                     </View>
 
-                    {remaining_goods_return.map((row, index) => (
+                    {RGR.map((row, index) => (
                       <View key={index} style={styles.rowContainer}>
                         <SafeAreaView style={styles.row}>
-                          <TextInput
-                            style={[styles.input, { width: "18%" }]}
-                            value={row.GP_NO}
-                            onChangeText={(text) => handleInputChangeRGR(text, index, 'GP_NO')}
-                            keyboardType="numeric"
-                            placeholder="GP_NO"
-                          />
-                          <TextInput
-                            style={[styles.input, { width: "18%" }]}
-                            value={row.Yarn_count}
-                            onChangeText={(text) => handleInputChangeRGR(text, index, 'Yarn_count')}
-                            keyboardType="numeric"
-                            placeholder="Yarn_count"
-                          />
-                          <TextInput
-                            style={[styles.input, { width: "18%" }]}
-                            value={row.weight}
-                            onChangeText={(text) => handleInputChangeRGR(text, index, 'weight')}
-                            keyboardType="numeric"
-                            placeholder="Weight"
-                          />
-                          <TextInput
-                            style={[styles.input, { width: "18%" }]}
-                            value={row.Cut_piece}
-                            onChangeText={(text) => handleInputChangeRGR(text, index, 'Cut_piece')}
-                            keyboardType="numeric"
-                            placeholder="Cut_piece"
-                          />
-                          <TextInput
-                            style={[styles.input, { width: "18%" }]}
-                            value={row.Meter}
-                            onChangeText={(text) => handleInputChangeRGR(text, index, 'Meter')}
-                            keyboardType="numeric"
-                            placeholder="Meter"
-                          />
-                          <View style={styles.rowButtons}>
-                            {index !== 0 && (
-                              <TouchableOpacity onPress={() => handleRemoveRowRGR(index)}>
-                                <Text style={styles.button}>-</Text>
-                              </TouchableOpacity>
-                            )}
-                            <TouchableOpacity onPress={handleAddRowRGR}>
-                              <Text style={styles.button}>+</Text>
-                            </TouchableOpacity>
-                          </View>
-
-
+                        <Text style={styles.headerText1}>{row.GpNo}</Text>
+                      <Text style={[styles.headerText1,{marginLeft:50}]}>{row.YarnCount}</Text>
+                      <Text style={[styles.headerText1, { marginLeft: 40 }]}>{row.Weight}</Text>
+                      <Text style={[styles.headerText1, { marginLeft: 10 }]}>{row.CutPiece}</Text>
+                      <Text style={[styles.headerText1, { marginLeft: 10 }]}>{row.Meter}</Text>
                         </SafeAreaView>
 
 
@@ -936,7 +951,7 @@ const LiveOrderstrader = ({ navigation }) => {
               <TouchableOpacity style={[styles.button1, { backgroundColor: "red", alignItems: "center", marginTop: 20 }]} onPress={() => ToggleScreens()}>
                 <Text style={[styles.buttonText, { color: "#fff" }]}>Back</Text>
               </TouchableOpacity>
-              
+
             </View>
             <Modal
               animationType="slide"
@@ -1021,12 +1036,13 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#e5f2fe',
     borderWidth: 1,
-    justifyContent: "space-evenly"
+    justifyContent: "space-between",
   },
   headerText1: {
     fontWeight: 'bold',
     marginLeft: 10,
-    color: "#000"
+    color: "#000",
+    marginHorizontal: 50
   },
   orderContainer: {
     width: '88%',
@@ -1094,7 +1110,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#000',
     marginBottom: 20,
-    marginRight: 80
+    marginRight: 80,
+    justifyContent: 'space-evenly',
   },
   submitButton: {
     backgroundColor: 'green',

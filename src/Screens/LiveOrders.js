@@ -4,6 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import CheckBox from '@react-native-community/checkbox';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import { PermissionsAndroid } from 'react-native';
+import moment from 'moment';
 
 
 const LiveOrders = ({ navigation }) => {
@@ -166,7 +167,7 @@ const LiveOrders = ({ navigation }) => {
     // Beam Form 
 
 
-    const [beamIn, setBeamIn] = useState([{ SizingTippanNo: null, PhotoPath: null }]);
+    const [beamIn, setBeamIn] = useState([{ date: new Date(), SizingTippanNo: null, PhotoPath: null }]);
 
     const [showDatePickerBI, setShowDatePickerBI] = useState(false);
     const [selectedDateIndexBI, setSelectedDateIndexBI] = useState(0);
@@ -188,7 +189,7 @@ const LiveOrders = ({ navigation }) => {
     };
 
     const handleAddRowBI = () => {
-        const newFormData = [...beamIn, { SizingTippanNo: '', PhotoPath: null }];
+        const newFormData = [...beamIn, { date: new Date(), SizingTippanNo: '', PhotoPath: null }];
         setBeamIn(newFormData);
     };
 
@@ -201,12 +202,12 @@ const LiveOrders = ({ navigation }) => {
     const HandleSubmitBeamIn1 = (item) => {
 
         const integerNumber = parseInt(item.SizingTippanNo, 10);
-        console.log("Converted to Integer", integerNumber)
-
+        console.log("Converted to Integer", integerNumber, item.date.toISOString().split('T')[0])
+        let formatteddate = item.date.toISOString().split('T')[0]
 
         const formdata = new FormData();
         formdata.append("OrderNoId", getOrderNo);
-        formdata.append("Date", '2024-05-08');
+        formdata.append("Date", formatteddate);
         formdata.append("SizingTippanNo", integerNumber);
         formdata.append('PhotoPath', {
             uri: item.PhotoPath.uri,
@@ -259,7 +260,7 @@ const LiveOrders = ({ navigation }) => {
     //WEFT Yard In Form 
 
 
-    const [Weft, setWeft] = useState([{ GatePassNo: '', PhotoPath: null }]);
+    const [Weft, setWeft] = useState([{ date: new Date(), GatePassNo: '', PhotoPathweft: null }]);
 
     const [showDatePickerWEFT, setShowDatePickerWEFT] = useState(false);
     const [selectedDateIndexWEFT, setSelectedDateIndexWEFT] = useState(0);
@@ -268,11 +269,12 @@ const LiveOrders = ({ navigation }) => {
     const handleDateChangeWEFT = (event, date) => {
         if (date) {
             const updatedRows = [...Weft];
-            updatedRows[selectedDateIndexBI].date = date;
+            updatedRows[selectedDateIndexWEFT].date = date;
             setWeft(updatedRows);
         }
-        setShowDatePickerBI(false);
+        setShowDatePickerWEFT(false);
     };
+
 
     const handleInputChangeWEFT = (text, index, field) => {
         const updatedRows = [...Weft];
@@ -281,7 +283,7 @@ const LiveOrders = ({ navigation }) => {
     };
 
     const handleAddRowWEFT = () => {
-        const newFormData = [...Weft, { GatePassNo: '', PhotoPath: null }];
+        const newFormData = [...Weft, { date: new Date(), GatePassNo: '', PhotoPathweft: null }];
         setWeft(newFormData);
     };
 
@@ -291,18 +293,20 @@ const LiveOrders = ({ navigation }) => {
         setWeft(newFormData);
     };
 
-    const HandleSubmitWEFT1 = (item) => {
+    const HandleSubmitWEFT1 = (itemweft) => {
 
-        const integerNumber = parseInt(item.GatePassNo, 10);
-        console.log("Converted to Integer", integerNumber)
+       const integerNumber = parseInt(itemweft.GatePassNo);
+        console.log("Converted to Integer = ", integerNumber)
+        let formatteddate = itemweft.date.toISOString().split('T')[0]
+        
 
 
         const formdata = new FormData();
         formdata.append("OrderNoId", getOrderNo);
-        formdata.append("Date", '2024-05-08');
+        formdata.append("Date", formatteddate);
         formdata.append("GatePassNo", integerNumber);
         formdata.append('PhotoPath', {
-            uri: item.PhotoPath.uri,
+            uri: itemweft.PhotoPathweft.uri,
             type: "image/jpg",
             name: "cprograming.jpg",
         });
@@ -330,10 +334,10 @@ const LiveOrders = ({ navigation }) => {
                 cropping: true,
             });
 
-            const updatedRows = [...beamIn];
-            updatedRows[index].PhotoPath = { uri: image.path };
+            const updatedRows = [...Weft];
+            updatedRows[index].PhotoPathweft = { uri: image.path };
             console.log({ uri: image.path })
-            setBeamIn(updatedRows);
+            setWeft(updatedRows);
         } catch (error) {
             console.log('ImagePicker Error: ', error);
         }
@@ -343,8 +347,8 @@ const LiveOrders = ({ navigation }) => {
     const HandleSubmitWEFT = () => {
 
         {
-            beamIn.map((item) => {
-                HandleSubmitWEFT1(item);
+            Weft.map((itemweft) => {
+                HandleSubmitWEFT1(itemweft);
             })
         }
     }
@@ -400,6 +404,7 @@ const LiveOrders = ({ navigation }) => {
     // First Piece Approval
 
     const [first_piece_approval, setFirst_Piece_Approval] = useState(" ")
+    
 
     const SubmitFPA = () => {
         console.log(first_piece_approval)
@@ -410,7 +415,7 @@ const LiveOrders = ({ navigation }) => {
 
     // Fabric Dispatch
 
-    const [tableRows, setTableRows] = useState([{ Meter: '', Weight: '' }]);
+    const [tableRows, setTableRows] = useState([{ date: new Date(), Meter: '', Weight: '', PhotoPathFFD: null }]);
     const [showDatePickerFD, setShowDatePickerFD] = useState(false);
     const [selectedDateIndexFD, setSelectedDateIndexFD] = useState(0);
 
@@ -419,10 +424,10 @@ const LiveOrders = ({ navigation }) => {
     const handleDateChangeFD = (event, date) => {
         if (date) {
             const updatedRows = [...tableRows];
-            updatedRows[selectedDateIndexBI].date = date;
+            updatedRows[selectedDateIndexFD].date = date;
             setTableRows(updatedRows);
         }
-        setShowDatePickerBI(false);
+        setShowDatePickerFD(false);
     };
 
     const handleInputChangeFD = (text, index, field) => {
@@ -432,7 +437,7 @@ const LiveOrders = ({ navigation }) => {
     };
 
     const handleAddRowFD = () => {
-        const newFormData = [...tableRows, { Meter: '', weight: '' }];
+        const newFormData = [...tableRows, { date: new Date(), Meter: '', weight: '', PhotoPathFFD: null }];
         setTableRows(newFormData);
     };
 
@@ -444,17 +449,20 @@ const LiveOrders = ({ navigation }) => {
 
     const HandleSubmitFD1 = (item) => {
 
+        let formatteddate = item.date.toISOString().split('T')[0]
+
         const integerNumber = parseInt(item.Meter, 10);
         const integerNumber2 = parseInt(item.Weight, 10);
-        console.log("Converted to Integer", integerNumber)
+        console.log("Converted to Integer", integerNumber, integerNumber2, item.PhotoPathFFD.uri)
 
 
         const formdata = new FormData();
         formdata.append("OrderNoId", getOrderNo);
-        formdata.append("Date", integerNumber);
+        formdata.append("Date", formatteddate);
         formdata.append("Weight", integerNumber2);
+        formdata.append("Meter", integerNumber);
         formdata.append('PhotoPath', {
-            uri: item.PhotoPath.uri,
+            uri: item.PhotoPathFFD.uri,
             type: "image/jpg",
             name: "cprograming.jpg",
         });
@@ -465,7 +473,7 @@ const LiveOrders = ({ navigation }) => {
             redirect: "follow"
         };
 
-        fetch("https://textileapp.microtechsolutions.co.in/php/postorderyarn.php ", requestOptions)
+        fetch("https://textileapp.microtechsolutions.co.in/php/postorderfabric.php", requestOptions)
             .then((response) => response.text())
             .then((result) => console.log(result))
             .catch((error) => console.error(error));
@@ -482,10 +490,10 @@ const LiveOrders = ({ navigation }) => {
                 cropping: true,
             });
 
-            const updatedRows = [...beamIn];
-            updatedRows[index].PhotoPath = { uri: image.path };
+            const updatedRows = [...tableRows];
+            updatedRows[index].PhotoPathFFD = { uri: image.path };
             console.log({ uri: image.path })
-            setBeamIn(updatedRows);
+            setTableRows(updatedRows);
         } catch (error) {
             console.log('ImagePicker Error: ', error);
         }
@@ -495,7 +503,7 @@ const LiveOrders = ({ navigation }) => {
     const HandleSubmitFD = () => {
 
         {
-            beamIn.map((item) => {
+            tableRows.map((item) => {
                 HandleSubmitFD1(item);
             })
         }
@@ -507,18 +515,18 @@ const LiveOrders = ({ navigation }) => {
 
 
     const handleInputChangeRGR = (text, index, field) => {
-        const updatedRows = [...tableRows];
+        const updatedRows = [...remaining_goods_return];
         updatedRows[index][field] = text;
         setRemaining_Goods_Return(updatedRows);
     };
 
     const handleAddRowRGR = () => {
-        const newFormData = [...tableRows, { GpNo: '', YarnCount: '', Weight: '', CutPiece: '', Meter: '' }];
+        const newFormData = [...remaining_goods_return, { GpNo: '', YarnCount: '', Weight: '', CutPiece: '', Meter: '' }];
         setRemaining_Goods_Return(newFormData);
     };
 
     const handleRemoveRowRGR = (index) => {
-        const newFormData = [...tableRows];
+        const newFormData = [...remaining_goods_return];
         newFormData.splice(index, 1);
         setRemaining_Goods_Return(newFormData);
     };
@@ -624,7 +632,7 @@ const LiveOrders = ({ navigation }) => {
                                             <View style={[styles.table, { width: 520 }]}>
                                                 <View style={styles.header1}>
                                                     <Text style={styles.headerText1}>Date</Text>
-                                                    <Text style={[styles.headerText1, { marginRight: 120 }]}>Sizing Tippan Number</Text>
+                                                    <Text style={[styles.headerText1, { marginRight: 180 }]}>Sizing Tippan Number</Text>
 
                                                 </View>
 
@@ -652,8 +660,9 @@ const LiveOrders = ({ navigation }) => {
 
                                                             <View style={styles.row}>
                                                                 <View>
-                                                                    <Text style={{ color: "#000" }}>{currentDate}</Text>
-                                                                    <TouchableOpacity>
+                                                                    <Text style={styles.dateText}>{row.date.toLocaleDateString()}</Text>
+
+                                                                    <TouchableOpacity onPress={() => { setShowDatePickerBI(true); setSelectedDateIndexBI(index); }}>
                                                                         <Image
                                                                             style={{ width: 30, height: 30, marginLeft: 30 }}
                                                                             source={require("../Images/calendar.png")}
@@ -669,7 +678,7 @@ const LiveOrders = ({ navigation }) => {
                                                                     />
                                                                 )}
                                                                 <TextInput
-                                                                    style={[styles.input, { width: "42%" }]}
+                                                                    style={[styles.input, { width: 200 }]}
                                                                     value={row.SizingTippanNo}
                                                                     onChangeText={(text) => handleInputChangeBI(text, index, 'SizingTippanNo')}
                                                                     keyboardType="numeric"
@@ -757,8 +766,9 @@ const LiveOrders = ({ navigation }) => {
                                                     <View key={index} style={styles.rowContainer}>
                                                         <View style={styles.row}>
                                                             <View>
-                                                                <Text style={{ color: "#000" }}>{currentDate}</Text>
-                                                                <TouchableOpacity>
+                                                                <Text style={styles.dateText}>{row.date.toDateString()}</Text>
+
+                                                                <TouchableOpacity onPress={() => { setShowDatePickerWEFT(true); setSelectedDateIndexWEFT(index); }}>
                                                                     <Image
                                                                         style={{ width: 30, height: 30, marginLeft: 30 }}
                                                                         source={require("../Images/calendar.png")}
@@ -775,8 +785,8 @@ const LiveOrders = ({ navigation }) => {
                                                             )}
                                                             <TextInput
                                                                 style={[styles.input, { width: "45%" }]}
-                                                                value={row.gatePassNumber}
-                                                                onChangeText={(text) => handleInputChangeWEFT(text, index, 'gatePassNumber')}
+                                                                value={row.GatePassNo}
+                                                                onChangeText={(text) => handleInputChangeWEFT(text, index, 'GatePassNo')}
                                                                 keyboardType="numeric"
                                                                 placeholder="gatePassNumber"
                                                             />
@@ -791,7 +801,7 @@ const LiveOrders = ({ navigation }) => {
                                                                                 return (
                                                                                     <View>
                                                                                         <Image
-                                                                                            source={row.imageUri}
+                                                                                            source={row.PhotoPathweft}
                                                                                             style={{ width: 40, height: 40, alignSelf: 'flex-start', marginLeft: 20 }}
 
                                                                                         />
@@ -994,38 +1004,31 @@ const LiveOrders = ({ navigation }) => {
 
 */}
 
-                                    {fdFrom ? <View style={{ justifyContent: "space-evenly", width: "100%", }}>
+                                    {fdFrom ? <View style={{ justifyContent: "space-between", width: "100%", }}>
                                         <ScrollView horizontal={true}>
-                                            <View style={styles.table}>
+                                            <View style={[styles.table, { width: 650, justifyContent: "space-between" }]}>
                                                 <View style={styles.header1}>
-                                                    <Text style={styles.headerText1}>Dispatch No.</Text>
                                                     <Text style={styles.headerText1}>Date</Text>
                                                     <Text style={[styles.headerText1, { marginLeft: 0 }]}>Meter</Text>
                                                     <Text style={[styles.headerText1, { marginLeft: 0 }]}>Weight</Text>
-
+                                                    <Text style={[styles.headerText1, { marginRight: 80 }]}>Image</Text>
                                                 </View>
 
                                                 {tableRows.map((row, index) => (
                                                     <View key={index} style={styles.rowContainer}>
                                                         <View style={styles.row}>
 
-                                                        <View style={{flexDirection:"column"}}>
-                                                                    <Text style={{color:"#000"}}>{currentDate}</Text>
-                                                                    <TouchableOpacity>
-                                                                        <Image
-                                                                            style={{ width: 30, height: 30, marginLeft: 30 }}
-                                                                            source={require("../Images/calendar.png")}
-                                                                        />
-                                                                    </TouchableOpacity>
-                                                                </View>
-                                                            <TextInput
-                                                                style={styles.input}
-                                                                value={row.dispatchNumber}
-                                                                onChangeText={(text) => handleInputChangeFD(text, index, 'dispatchNumber')}
-                                                                keyboardType="numeric"
-                                                                placeholder="Dispatch Number"
-                                                            />
-                                                           
+                                                            <View style={styles.headerText1}>
+                                                                <Text style={styles.dateText}>{row.date.toDateString()}</Text>
+
+                                                                <TouchableOpacity onPress={() => { setShowDatePickerFD(true); setSelectedDateIndexFD(index); }}>
+                                                                    <Image
+                                                                        style={{ width: 30, height: 30, marginLeft: 30 }}
+                                                                        source={require("../Images/calendar.png")}
+                                                                    />
+                                                                </TouchableOpacity>
+                                                            </View>
+
                                                             {showDatePickerFD && selectedDateIndexFD === index && (
                                                                 <DateTimePicker
                                                                     value={row.date}
@@ -1035,22 +1038,22 @@ const LiveOrders = ({ navigation }) => {
                                                                 />
                                                             )}
                                                             <TextInput
-                                                                style={styles.input}
+                                                                style={[styles.input, { width: 200 }]}
                                                                 value={row.Meter}
-                                                                onChangeText={(text) => handleInputChangeFD(text, index, 'meterWidth')}
+                                                                onChangeText={(text) => handleInputChangeFD(text, index, 'Meter')}
                                                                 keyboardType="numeric"
                                                                 placeholder="Meter"
                                                             />
                                                             <TextInput
-                                                                style={styles.input}
+                                                                style={[styles.input, { width: 200 }]}
                                                                 value={row.Weight}
-                                                                onChangeText={(text) => handleInputChangeFD(text, index, 'weight')}
+                                                                onChangeText={(text) => handleInputChangeFD(text, index, 'Weight')}
                                                                 keyboardType="numeric"
                                                                 placeholder="Weight"
                                                             />
 
                                                             <View>
-                                                                <TouchableOpacity onPress={() => { handleImagePickerFD(); setShow1(1) }}>
+                                                                <TouchableOpacity onPress={() => { handleImagePickerFD(index); setShow1(1) }}>
 
 
                                                                     {
@@ -1060,7 +1063,7 @@ const LiveOrders = ({ navigation }) => {
                                                                                 return (
                                                                                     <View>
                                                                                         <Image
-                                                                                            source={row.PhotoPath}
+                                                                                            source={row.PhotoPathFFD}
                                                                                             style={{ width: 40, height: 40, alignSelf: 'flex-start', marginLeft: 20 }}
 
                                                                                         />
@@ -1293,14 +1296,14 @@ const styles = StyleSheet.create({
     ordersContainer: {
         flexDirection: 'column',
         alignItems: "center",
-        marginTop:"5%"
+        marginTop: "5%"
     },
     header1: {
         flexDirection: 'row',
         padding: 10,
         backgroundColor: '#e5f2fe',
         borderWidth: 1,
-        justifyContent: "space-around"
+        justifyContent: "space-between"
     },
     headerText1: {
         fontWeight: 'bold',
@@ -1359,6 +1362,7 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         padding: 10,
         borderBottomColor: '#000',
+        width: 500
     },
     table: {
         borderWidth: 1,

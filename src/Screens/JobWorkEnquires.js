@@ -390,7 +390,7 @@ const JobWorkEnquires = ({ navigation }) => {
             {storeEID.length ? storeEID.map(item =>
               <View>
 
-                <Text style={styles.input1}>ENquiry No.: {item.EnquiryId}</Text>
+                <Text style={styles.input1}>ENquiry No.: {item.EnquiryNo}</Text>
 
 
                 <Text style={styles.input1}>Trader Name: {item.Name}</Text>

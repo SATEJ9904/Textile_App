@@ -54,7 +54,7 @@ const Storage = ({ navigation }) => {
                     <TouchableOpacity onPress={() => navigation.navigate("hgf")}>
                         <Text style={{ color: "red", fontSize: 20 }} >Yes</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigation.navigate("Splash")}>
+                    <TouchableOpacity onPress={() => navigation.navigate("Splash2")}>
                         <Text style={{ color: "blue", fontSize: 20 }} >No</Text>
                     </TouchableOpacity>
                 </View>
