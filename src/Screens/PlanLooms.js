@@ -10,25 +10,7 @@ import axios from 'axios'
 
 const { width } = Dimensions.get('window');
 
-const data = [
-  { srNo: 1, enquiryNo: 'ENQ-001', date: '2024-02-26', traderName: 'Trader A' },
-  { srNo: 2, enquiryNo: 'ENQ-002', date: '2024-02-26', traderName: 'Trader B' },
-  { srNo: 3, enquiryNo: 'ENQ-003', date: '2024-02-25', traderName: 'Trader C' },
-  { srNo: 4, enquiryNo: 'ENQ-004', date: '2024-02-25', traderName: 'Trader D' },
-  { srNo: 5, enquiryNo: 'ENQ-005', date: '2024-02-24', traderName: 'Trader E' },
-];
 
-
-const dropdowndata = [
-  { label: 'Item 1', value: '1' },
-  { label: 'Item 2', value: '2' },
-  { label: 'Item 3', value: '3' },
-  { label: 'Item 4', value: '4' },
-  { label: 'Item 5', value: '5' },
-  { label: 'Item 6', value: '6' },
-  { label: 'Item 7', value: '7' },
-  { label: 'Item 8', value: '8' },
-];
 
 const PlanLooms = ({ navigation }) => {
 

@@ -888,7 +888,7 @@ const LiveOrders = ({ navigation }) => {
                                                         value={DrawingIn}
                                                         onValueChange={(newValue) => setDrawingIn(newValue)}
                                                     />
-                                                    <Text style={{ color: "#000", marginLeft: 15, fontSize: 20 }}>Yes</Text>
+                                                    <Text style={{ color: "#000", marginLeft: 15, fontSize: 20 }}>Done</Text>
                                                 </View>
                                                 <Text style={styles.text}>{currentDate}</Text>
                                             </View>
@@ -937,7 +937,7 @@ const LiveOrders = ({ navigation }) => {
                                                         value={beamgetting}
                                                         onValueChange={(newValue) => setBeamGetting(newValue)}
                                                     />
-                                                    <Text style={{ color: "#000", marginLeft: 15, fontSize: 20 }}>Yes</Text>
+                                                    <Text style={{ color: "#000", marginLeft: 15, fontSize: 20 }}>Done</Text>
                                                 </View>
                                                 <Text style={styles.text}>{currentDate}</Text>
                                             </View>
@@ -1006,7 +1006,7 @@ const LiveOrders = ({ navigation }) => {
 
                                     {fdFrom ? <View style={{ justifyContent: "space-between", width: "100%", }}>
                                         <ScrollView horizontal={true}>
-                                            <View style={[styles.table, { width: 650, justifyContent: "space-between" }]}>
+                                            <View style={[styles.table, { width: 700, justifyContent: "space-between" }]}>
                                                 <View style={styles.header1}>
                                                     <Text style={styles.headerText1}>Date</Text>
                                                     <Text style={[styles.headerText1, { marginLeft: 0 }]}>Meter</Text>

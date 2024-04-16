@@ -1,4 +1,4 @@
-import { TouchableOpacity, SafeAreaView, StyleSheet, Text, View, ImageBackground, StatusBar, ScrollView, TextInput, } from 'react-native'
+import { TouchableOpacity, SafeAreaView, StyleSheet, Text, View, ImageBackground, StatusBar, RefreshControl,ScrollView, TextInput, } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Table, Row, Rows } from 'react-native-table-component';
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -10,6 +10,9 @@ import SendSMS from 'react-native-sms'
 import { getAllCountries, getStatesOfCountry, getCitiesOfState, Country, State, City } from 'country-state-city';
 import { Dropdown } from 'react-native-element-dropdown';
 import CheckBox from '@react-native-community/checkbox';
+import NetInfo from "@react-native-community/netinfo";
+import Video from 'react-native-video';
+
 
 const Home = ({ navigation }) => {
 
@@ -38,6 +41,40 @@ const Home = ({ navigation }) => {
 
   const [variables, setVariables] = useState({});
   const [show, setShow] = useState('')
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, []);
+
+  const [showmsg, setShowMsg] = useState(true)
+  const [isConected, setisConnected] = useState(false)
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      console.log('Connection Type', state.type);
+      console.log('Is Connected ? ', state.isConnected);
+      setisConnected(state.isConnected)
+
+
+      if (state.isConnected == true) {
+        setTimeout(() => {
+          setShowMsg(false)
+        }, 5000)
+      } else {
+        setShowMsg(true)
+      }
+    })
+
+
+
+    return () => {
+      unsubscribe();
+    }
+  })
 
 
   handleEmail = () => {
@@ -276,8 +313,8 @@ const Home = ({ navigation }) => {
         <View style={{ alignItems: "center" }}>
           <Text style={{ fontSize: 22, color: "#000", marginLeft: "0%", marginTop: "5%", marginRight: "5%", marginLeft: "5%" }}>Welcome :{Name},{id}</Text>
         </View>
-        
-      
+
+
 
         {/* <ScrollView horizontal={true}>
           <View style={styles.container}>
@@ -448,6 +485,36 @@ const Home = ({ navigation }) => {
 */}
 
       </View>
+
+
+
+      {
+        showmsg ? <View style={{ flex: 1, alignItems: "flex-end", justifyContent: "flex-end" }}>
+          <View style={{
+            bottom: 0,
+            height: 20,
+            width: '100%',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: isConected ? 'green' : 'red'
+
+          }}>
+            <Text style={{ color: "#fff" }}>
+              {isConected ? 'Back Online' : 'no Internet Connection'}
+            </Text>
+
+          </View>
+        </View> : null
+      }
+
+      <ScrollView
+        contentContainerStyle={styles.scrollView}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }>
+        <Text>Pull down to see RefreshControl indicator</Text>
+      </ScrollView>
+
     </SafeAreaView>
   )
 }

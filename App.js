@@ -83,7 +83,7 @@ const LoomDrawerNavigator = () => (
 
       }} />
 
-    <TraderDrawer.Screen
+    <LoomDrawer.Screen
 
       name="LoomDetails"
       component={LoomsDetails}
@@ -121,7 +121,7 @@ const LoomDrawerNavigator = () => (
       }} />
 
 
-    <TraderDrawer.Screen
+    <LoomDrawer.Screen
 
       name="LoomBooking"
       component={LoomBooking}

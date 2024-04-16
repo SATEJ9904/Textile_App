@@ -1,8 +1,7 @@
 import { StyleSheet, TextInput, Text, View, SafeAreaView, Modal, StatusBar, Pressable, TouchableOpacity, ImageBackground, ScrollView, Alert, Image } from 'react-native'
 import React, { useState, useEffect } from 'react'
-import CheckBox from '@react-native-community/checkbox';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import ImagePicker from 'react-native-image-crop-picker';
+import ImageView from "react-native-image-viewing";
 
 
 
@@ -35,175 +34,205 @@ const LiveOrderstrader = ({ navigation }) => {
 
 
   const [orderBeam, setOrderBeam] = useState([]);
-  const [imageSource, setImageSource] = useState(null);
   const [dateBeamIn, setDateBeam] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getorderbeam.php');
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        setOrderBeam(data);
-        data.map((item) => {
-          console.log(item.UpdatedOn.date.substring(0, 10))
-          setDateBeam(item.UpdatedOn.date.substring(0, 10))
 
-          console.log("Latest = ", dateBeamIn)
-          setImageSource(item.PhotoPath);
-        })
 
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-    fetchData();
+    callfuns();
+
   }, []);
 
+  const callfuns = () => {
+    fetch("")
+      .then(fetchData())
+      .then(fetchDataWEFT())
+      .then(fetchDataDI())
+      .then(fetchDataBG())
+      .then(fetchDataFD())
+      .then(fetchDataRGR())
+
+  }
+  useEffect(() => {
+    fetch("")
+      .then(fetchData())
+      .then(fetchDataWEFT())
+      .then(fetchDataDI())
+      .then(fetchDataBG())
+      .then(fetchDataFD())
+      .then(fetchDataRGR())
+
+
+  }, []);
+
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=OrderBeam&Colname=OrderNoId&Colvalue=' + selectedOrderID);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      setOrderBeam(data);
+      data.map((item) => {
+        setDateBeam(item.UpdatedOn.date.substring(0, 10))
+      })
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
   const [orderYarn, setOrderYarn] = useState([]);
   const [dateWEFT, setDatWEFT] = useState(null);
-  const [imageSourceWEFT, setImageSourceWEFT] = useState(null);
+  const [show, setShow] = useState(false)
 
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getorderyarn.php');
-        const json = await response.json();
-        json.map((item) => {
-          console.log(item.UpdatedOn.date.substring(0, 10))
-          setDatWEFT(item.UpdatedOn.date.substring(0, 10))
-
-          console.log("Latest = ", dateBeamIn)
-          setImageSourceWEFT(item.PhotoPath);
-        })
-        setOrderYarn(json);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-
-    fetchData();
-  }, []);
+  const fetchDataWEFT = async () => {
+    try {
+      const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=OrderWeftYarn&Colname=OrderNoId&Colvalue=' + selectedOrderID);
+      const json = await response.json();
+      json.map((item, index) => {
+        key = { index }
+        setDatWEFT(item.UpdatedOn.date.substring(0, 10))
+      })
+      setOrderYarn(json);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
 
 
 
 
   const [req, setreq] = useState([])
-  const [dateDI,setdateDI]= useState(null)
+  const [dateDI, setdateDI] = useState(null)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('https://textileapp.microtechsolutions.co.in/php/gettable.php?table=OrderDrawingIn');
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        data.map((item) => {
-          setdateDI(item.UpdatedOn.date.substring(0,10))
-          setreq(item.Status)
-          console.log(" Status = ", item.Status)
-        })
 
-      } catch (error) {
-        console.error('Error fetching data:', error);
+
+  const fetchDataDI = async () => {
+    try {
+      const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=OrderDrawingIn&Colname=OrderNoId&Colvalue=' + selectedOrderID);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
       }
-    };
-    fetchData();
-  }, []);
+      const data = await response.json();
+      if (data.length === 0) {
+        setreq(0);
+      }
+      else {
+        data.map((item) => {
+          setdateDI(item.UpdatedOn.date.substring(0, 10))
+          setreq(item.Status)
+        })
+      }
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
 
   const [reqBG, setreqBG] = useState([])
-  const [dateBG,setdateBG]= useState(null)
+  const [dateBG, setdateBG] = useState(null)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('https://textileapp.microtechsolutions.co.in/php/gettable.php?table=OrderBeamGetting');
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        data.map((item) => {
-          setdateBG(item.UpdatedOn.date.substring(0,10))
-          setreqBG(item.Status)
-          console.log(" Status = ", item.Status)
-        })
 
-      } catch (error) {
-        console.error('Error fetching data:', error);
+  const fetchDataBG = async () => {
+    try {
+      const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=OrderBeamGetting&Colname=OrderNoId&Colvalue=' + selectedOrderID);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
       }
-    };
-    fetchData();
-  }, []);
+      const data = await response.json();
+      if (data.length === 0) {
+        setreqBG(0);
+      }
+      else {
+        data.map((item) => {
+          setdateBG(item.UpdatedOn.date.substring(0, 10))
+          setreqBG(item.Status)
+        })
+      }
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
 
   const [orderfd, setOrderFD] = useState([]);
   const [imageSourceFD, setImageSourceFD] = useState(null);
   const [dateFD, setDateFD] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('https://textileapp.microtechsolutions.co.in/php/gettable.php?table=OrderFabric');
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        setOrderFD(data);
-        data.map((item) => {
-          console.log(item.UpdatedOn.date.substring(0, 10))
-          setDateFD(item.UpdatedOn.date.substring(0, 10))
 
-          console.log("Latest = ", dateBeamIn)
-          setImageSourceFD(item.Photopath);
-        })
-
-      } catch (error) {
-        console.error('Error fetching data:', error);
+  const fetchDataFD = async () => {
+    try {
+      const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=OrderFabric&Colname=OrderNoId&Colvalue=' + selectedOrderID);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
       }
-    };
-    fetchData();
-  }, []);
+      const data = await response.json();
+      setOrderFD(data);
+      data.map((item) => {
+        setDateFD(item.UpdatedOn.date.substring(0, 10))
+
+        setImageSourceFD(item.Photopath);
+      })
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
 
   const [RGR, setOrderRGR] = useState([]);
   const [dateRGR, setDateRGR] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('https://textileapp.microtechsolutions.co.in/php/gettable.php?table=OrderGoodRemain');
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        setOrderRGR(data);
-        data.map((item) => {
-          console.log(item.UpdatedOn.date.substring(0, 10))
-          setDateRGR(item.UpdatedOn.date.substring(0, 10))
 
-        })
-
-      } catch (error) {
-        console.error('Error fetching data:', error);
+  const fetchDataRGR = async () => {
+    try {
+      const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=OrderGoodRemain&Colname=OrderNoId&Colvalue=' + selectedOrderID);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
       }
-    };
-    fetchData();
-  }, []);
+      const data = await response.json();
+      setOrderRGR(data);
+      data.map((item) => {
+        setDateRGR(item.UpdatedOn.date.substring(0, 10))
+
+      })
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
 
-  const [modalVisible, setModalVisible] = useState(true);
+  // First Piece Approval
+
+  const [first_piece_approval, setFirst_Piece_Approval] = useState(" ")
+
+  const SubmitFPA = () => {
+    console.log(first_piece_approval)
+    setFPAForm(false)
+    setFirst_Piece_Approval(" ")
+  }
+
+  const [enlargedImage, setEnlargedImage] = React.useState(null);
+
+
+  const handleImagePress = (image) => {
+    setEnlargedImage(image);
+    console.log("Selected Image = ", enlargedImage)
+    setShow(true);
+  };
+
+  const [modalVisible, setModalVisible] = useState(false);
   const [modalVisible2, setModalVisible2] = useState(false);
   const [contractsigned, setCOtractSigned] = useState(false);
   const [Name, setName] = useState("");
   const [AppUserId, setAppUserId] = useState("");
-  const [showBlocks, setShowBlocks] = useState(false)
+  const [showBlocks, setShowBlocks] = useState(true)
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [Beaminform, setBeamInForm] = useState(false)
   const [weftform, setWeftform] = useState(false)
@@ -225,14 +254,15 @@ const LiveOrderstrader = ({ navigation }) => {
 
     setName(Name)
     setAppUserId(AppUserId)
-    setShowBlocks(false)
+    setShowBlocks(true)
   }
 
-
+  const [selectedOrderID, setSelectedOrderID] = useState('')
   const handleOrderPress = (order) => {
     setSelectedOrder(order);
     setShowBlocks(false)
-
+    setSelectedOrderID(order.LoomOrderId)
+    callfuns();
   };
 
   const yesbutton2 = () => {
@@ -324,6 +354,7 @@ const LiveOrderstrader = ({ navigation }) => {
     if (selectedOrder) {
       console.log(`Order No: ${selectedOrder.OrderNo}, Party Name: ${selectedOrder.PartyName}, Action: ${action}`);
     }
+    callfuns()
   };
 
   const ToggleScreens = () => {
@@ -335,221 +366,6 @@ const LiveOrderstrader = ({ navigation }) => {
     setremaining_Goods_ReturnForm(false)
 
   }
-
-  // Beam Form 
-
-
-  const [beamIn, setBeamIn] = useState([{ id: 1, date: new Date(), sizingTippanNumber: '' }]);
-
-  const [showDatePickerBI, setShowDatePickerBI] = useState(false);
-  const [selectedDateIndexBI, setSelectedDateIndexBI] = useState(0);
-
-
-  const handleDateChangeBI = (event, date) => {
-    if (date) {
-      const updatedRows = [...beamIn];
-      updatedRows[selectedDateIndexBI].date = date;
-      setBeamIn(updatedRows);
-    }
-    setShowDatePickerBI(false);
-  };
-
-  const handleInputChangeBI = (text, index, field) => {
-    const updatedRows = [...beamIn];
-    updatedRows[index][field] = text;
-    setBeamIn(updatedRows);
-  };
-
-  const handleAddRowBI = () => {
-    const newFormData = [...beamIn, { id: 1, date: new Date(), sizingTippanNumber: '' }];
-    setBeamIn(newFormData);
-  };
-
-  const handleRemoveRowBI = (index) => {
-    const newFormData = [...beamIn];
-    newFormData.splice(index, 1);
-    setBeamIn(newFormData);
-  };
-
-  const HandleSubmitBeamIn = () => {
-    setModalVisible2(true)
-    console.log('Table Data:', beamIn)
-    setBeamInForm(false)
-    setBeamIn([{ id: 1, date: new Date(), sizingTippanNumber: '' }])
-  }
-
-  const handleCameraPickBI = async (index) => {
-    try {
-      const image = await ImagePicker.openCamera({
-        width: 300,
-        height: 300,
-        cropping: true,
-      });
-      const newFormData = [...formData];
-      newFormData[index]['imageUri'] = image.path;
-      setTableRows(newFormData);
-      console.log(tableRows)
-    } catch (error) {
-      console.log('Error capturing image:', error);
-    }
-  };
-
-
-  //WEFT Yard In Form 
-
-
-  const [Weft, setWeft] = useState([{ id: 1, date: new Date(), gatePassNumber: '' }]);
-
-  const [showDatePickerWEFT, setShowDatePickerWEFT] = useState(false);
-  const [selectedDateIndexWEFT, setSelectedDateIndexWEFT] = useState(0);
-
-  const handleDateChangeWEFT = (event, date) => {
-    if (date) {
-      const updatedRows = [...Weft];
-      updatedRows[selectedDateIndexWEFT].date = date;
-      setWeft(updatedRows);
-    }
-    setShowDatePickerWEFT(false);
-  };
-
-  const handleInputChangeWEFT = (text, index, field) => {
-    const updatedRows = [...Weft];
-    updatedRows[index][field] = text;
-    setWeft(updatedRows);
-  };
-
-  const handleAddRowWEFT = () => {
-    setWeft([...Weft, { date: new Date(), gatePassNumber: '' }]);
-  };
-
-  const handleRemoveRowWEFT = (index) => {
-    const updatedRows = [...Weft];
-    updatedRows.splice(index, 1);
-    setWeft(updatedRows);
-  };
-
-  const HandleSubmitWEFT = () => {
-    setModalVisible2(true)
-    console.log('Table Data:', Weft)
-    setWeftform(false)
-    setWeft([{ id: 1, date: new Date(), gatePassNumber: '' }])
-  }
-
-
-  // Drawing In
-
-  const [DrawingIn, setDrawingIn] = useState(false)
-
-  const SubmitDrawingIn = () => {
-    setDrawingInForm(false)
-    setDrawingIn(false)
-    console.log(DrawingIn)
-  }
-
-  // Beam Getting
-
-  const [beamgetting, setBeamGetting] = useState(false)
-
-  const SubmitBeamInGetting = () => {
-    setBeamGettingForm(false)
-    setBeamGetting(false)
-    console.log(beamgetting)
-  }
-
-  // First Piece Approval
-
-  const [first_piece_approval, setFirst_Piece_Approval] = useState(" ")
-
-  const SubmitFPA = () => {
-    console.log(first_piece_approval)
-    setFPAForm(false)
-    setFirst_Piece_Approval(" ")
-  }
-
-
-  // Fabric Dispatch
-
-  const [tableRows, setTableRows] = useState([{ date: new Date(), meterWidth: '', weight: '', dispatchNumber: '' }]);
-  const [showDatePickerFD, setShowDatePickerFD] = useState(false);
-  const [selectedDateIndexFD, setSelectedDateIndexFD] = useState(0);
-  const [beamInCss, setBeamInCss] = useState(styles.BeamInCss)
-
-  const handleDateChangeFD = (event, date) => {
-    if (date) {
-      const updatedRows = [...tableRows];
-      updatedRows[selectedDateIndexFD].date = date;
-      setTableRows(updatedRows);
-    }
-    setShowDatePickerFD(false);
-  };
-
-  const handleInputChangeFD = (text, index, field) => {
-    const updatedRows = [...tableRows];
-    updatedRows[index][field] = text;
-    setTableRows(updatedRows);
-  };
-
-  const handleAddRowFD = () => {
-    setTableRows([...tableRows, { date: new Date(), meterWidth: '', weight: '', dispatchNumber: '' }]);
-  };
-
-  const handleRemoveRowFD = (index) => {
-    const updatedRows = [...tableRows];
-    updatedRows.splice(index, 1);
-    setTableRows(updatedRows);
-  };
-  const HandleSubmitFD = () => {
-    setModalVisible2(true)
-    console.log('Table Data:', tableRows)
-    setTableRows([{ date: new Date(), meterWidth: '', weight: '', dispatchNumber: '' }])
-    setFdForm(false)
-  }
-
-  const handleCameraPickFD = async (index) => {
-    try {
-      const image = await ImagePicker.openCamera({
-        width: 300,
-        height: 300,
-        cropping: true,
-      });
-      const newFormData = [...formData];
-      newFormData[index]['imageUri'] = image.path;
-      setTableRows(newFormData);
-      console.log(tableRows)
-    } catch (error) {
-      console.log('Error capturing image:', error);
-    }
-  };
-
-
-  //REMAINING GOODS RETURN 
-
-  const [remaining_goods_return, setRemaining_Goods_Return] = useState([{ GP_NO: '', Yarn_count: '', weight: '', Cut_piece: '', Meter: '' }]);
-
-  const handleInputChangeRGR = (text, index, field) => {
-    const updatedRows = [...remaining_goods_return];
-    updatedRows[index][field] = text;
-    setRemaining_Goods_Return(updatedRows);
-  };
-
-  const handleAddRowRGR = () => {
-    setRemaining_Goods_Return([...remaining_goods_return, { GP_NO: '', Yarn_count: '', weight: '', Cut_piece: '', Meter: '' }]);
-  };
-
-  const handleRemoveRowRGR = (index) => {
-    const updatedRows = [...remaining_goods_return];
-    updatedRows.splice(index, 1);
-    setRemaining_Goods_Return(updatedRows);
-  };
-
-  const HandleSubmitRGR = () => {
-    setModalVisible2(true)
-    console.log('Table Data:', remaining_goods_return);
-    setRemaining_Goods_Return([{ GP_NO: '', Yarn_count: '', weight: '', Cut_piece: '', Meter: '' }]);
-    setremaining_Goods_ReturnForm(false)
-
-  }
-
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#e5f2fe" }}>
@@ -571,7 +387,7 @@ const LiveOrderstrader = ({ navigation }) => {
               key={index}
               style={styles.orderContainer}
               onPress={() => handleOrderPress(order)}>
-              <Text style={styles.orderText}>{`Order No: ${order.OrderNo}     ${order.PartyName}`}</Text>
+              <Text style={styles.orderText}>{`Order No: ${order.OrderNo}  ${order.LoomOrderId}    ${order.PartyName}`}</Text>
             </TouchableOpacity>
           ))}
         </View> : null}
@@ -579,12 +395,12 @@ const LiveOrderstrader = ({ navigation }) => {
           <View>
             <View style={{ alignItems: "center", justifyContent: "center", marginTop: "10%" }}>
               <View style={{ flexDirection: "row" }}>
-                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Beam in'); FalseOthersBeamIn() }}>
-                  <View style={{ flexDirection: "row" }}>
+                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Beam in'); FalseOthersBeamIn(); fetchData(); }}>
                     <Text style={[styles.buttonText, styles.BeamInCss]}>Beam in</Text>
-                  </View>
+                    <Text style={{ color: "#fff", textDecorationLine: "underline", marginLeft: "10%" }}>{dateBeamIn}</Text>
+
                 </TouchableOpacity>
-                <Text style={{ color: "#ff0000", textDecorationLine: "underline", marginLeft: "5%" }}>{dateBeamIn}</Text>
+
               </View>
 
               {Beaminform ? <View style={{ width: "100%" }}>
@@ -609,14 +425,50 @@ const LiveOrderstrader = ({ navigation }) => {
 
 
                     <View>
+
+                      {
+                        show ?
+
+                          <View style={{ flex: 1 }}>
+                            <TouchableOpacity onPress={() => setShow(false)}>
+                              <Image
+                                source={require('../Images/cross.png')}
+                                style={{ width: 27, height: 27, alignSelf: 'flex-start', backgroundColor: "#DADBDD", borderRadius: 50, marginLeft: 370, marginTop: 10, zIndex: 0 }}
+                                imageStyle={{ borderRadius: 0 }}
+                              />
+                            </TouchableOpacity>
+                            <Image
+                              source={{ uri: enlargedImage }}
+                              style={{
+                                marginTop: 20,
+                                width: 400,
+                                height: 300,
+                              }}
+                            />
+                          </View>
+                          : null
+                      }
+
+
                       {orderBeam.map((item, index) => (
-                        <View key={index} style={{ flexDirection: "row", justifyContent: 'space-between' }}>
-                          <Text style={{ color: "#000", marginHorizontal: 50, margin: 10 }}>{item.Date.date.substring(0, 10)}</Text>
-                          <Text style={{ color: "#000", marginHorizontal: 50, margin: 10 }}>{item.SizingTippanNo}</Text>
-                          <Image
-                            style={{ width: 40, height: 40, marginHorizontal: 50, margin: 10 }}
-                            source={{ uri: imageSource }}
-                          />
+                        <View>
+
+                          <View key={index} style={{ flexDirection: "row", justifyContent: 'space-between' }}>
+                            <Text style={{ color: "#000", marginHorizontal: 50, margin: 10, marginLeft: 10 }}>{item.Date.date.substring(0, 10)}</Text>
+                            <Text style={{ color: "#000", marginHorizontal: 50, margin: 10 }}>{item.SizingTippanNo}</Text>
+
+
+                            <TouchableOpacity onPress={() => handleImagePress(item.PhotoPath)}>
+                              <Image
+                                source={{ uri: item.PhotoPath }} // or require('path/to/img.jpeg')
+                                style={{ width: 40, height: 40, marginRight: 60, backgroundColor: '#A8A9AD', marginLeft: 30, margin: 10 }}
+                              />
+                            </TouchableOpacity>
+
+                          </View>
+                          <View>
+
+                          </View>
                         </View>
                       ))}
                     </View>
@@ -626,10 +478,11 @@ const LiveOrderstrader = ({ navigation }) => {
               </View> : null}
 
               <View style={{ flexDirection: "row" }}>
-                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('WEFT yarn in'); FalseOthersWeft() }}>
+                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('WEFT yarn in'); FalseOthersWeft(); fetchDataWEFT(); }}>
                   <Text style={styles.buttonText}>WEFT YARN IN</Text>
+                  <Text style={{ color: "#fff", textDecorationLine: "underline", marginLeft: "5%" }}>{dateWEFT}</Text>
+
                 </TouchableOpacity>
-                <Text style={{ color: "#ff0000", textDecorationLine: "underline", marginLeft: "5%" }}>{dateWEFT}</Text>
               </View>
 
 
@@ -649,28 +502,56 @@ const LiveOrderstrader = ({ navigation }) => {
                   <View style={styles.table}>
                     <View style={styles.header1}>
                       <Text style={styles.headerText1}>Date</Text>
-                      <Text style={[styles.headerText1, { marginLeft: 70 }]}>Gate Pass Number</Text>
+                      <Text style={[styles.headerText1, { marginLeft: 20 }]}>Gate Pass Number</Text>
                       <Text style={styles.headerText1}>Image </Text>
 
 
                     </View>
                     <View>
+                      {
+                        show ?
+
+                          <View style={{ flex: 1 }}>
+                            <TouchableOpacity onPress={() => setShow(false)}>
+                              <Image
+                                source={require('../Images/cross.png')}
+                                style={{ width: 27, height: 27, alignSelf: 'flex-start', backgroundColor: "#DADBDD", borderRadius: 50, marginLeft: 370, marginTop: 10, zIndex: 0 }}
+                                imageStyle={{ borderRadius: 0 }}
+                              />
+                            </TouchableOpacity>
+                            <Image
+                              source={{ uri: enlargedImage }}
+                              style={{
+                                marginTop: 20,
+                                width: 400,
+                                height: 300,
+                              }}
+                            />
+                          </View>
+                          : null
+                      }
                       {orderYarn.map((item, index) => (
-                        <View key={index} style={{ flexDirection: "row", justifyContent: 'space-between' }}>
-                          <Text style={{ color: "#000", marginHorizontal: 50, margin: 10 }}>{item.Date.date.substring(0, 10)}</Text>
-                          <Text style={{ color: "#000", marginHorizontal: 50, margin: 10 }}>{item.GatePassNo}</Text>
-                          <Image
-                            style={{ width: 40, height: 40, marginHorizontal: 50, margin: 10 }}
-                            source={{ uri: imageSourceWEFT }}
-                          />
+                        <View>
+                          <View key={index} style={{ flexDirection: "row", justifyContent: 'space-between' }}>
+                            <Text style={{ color: "#000", marginHorizontal: 50, margin: 10, marginLeft: 5 }}>{item.Date.date.substring(0, 10)}</Text>
+                            <Text style={{ color: "#000", marginHorizontal: 50, margin: 10, marginLeft: -1 }}>{item.GatePassNo}</Text>
+                            <TouchableOpacity onPress={() => handleImagePress(item.PhotoPath)} >
+                              <Image
+                                source={{ uri: item.PhotoPath }}
+                                style={{ width: 40, height: 40, marginRight: 60, backgroundColor: "grey", margin: 10 }}
+                              />
+
+                            </TouchableOpacity>
+                          </View>
+
                         </View>
+
+
                       ))}
                     </View>
                   </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.submitButton} onPress={() => HandleSubmitWEFT()}>
-                  <Text style={styles.submitButtonText}>Submit</Text>
-                </TouchableOpacity>
+
               </View> : null}
 
 
@@ -683,10 +564,13 @@ const LiveOrderstrader = ({ navigation }) => {
 
 
               <View style={{ flexDirection: "row" }}>
-                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Drawing in'), FalseOthersDI() }}>
+                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Drawing in'), FalseOthersDI(); fetchDataDI(); }}>
                   <Text style={styles.buttonText}>Drawing in</Text>
+                  <Text style={{ color: "#fff", textDecorationLine: "underline", marginLeft: "5%" }}>{dateDI}</Text>
+                  {
+                    req === 1 ? <Text style={{ color: '#fff' }}>Done</Text > : null
+                  }
                 </TouchableOpacity>
-                <Text style={{ color: "#ff0000", textDecorationLine: "underline", marginLeft: "5%" }}>{dateDI}</Text>
               </View>
               {DrawingInForm ? <View style={{ width: "100%" }}>
                 <ScrollView horizontal={true} vertical={true}>
@@ -715,23 +599,22 @@ const LiveOrderstrader = ({ navigation }) => {
 
                     <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "center" }}>
 
-                      {
-                        req === 1 ? <Text style={{color:'blue'}}>Required</Text > : <Text style={{color:"red"}}>not Required</Text>
-                      }
+
                     </View>
                   </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.submitButton} onPress={() => SubmitDrawingIn()}>
-                  <Text style={styles.submitButtonText}>Submit</Text>
-                </TouchableOpacity>
+
               </View> : null}
 
 
               <View style={{ flexDirection: "row" }}>
-                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Beam Getting'), FalseOthersBG() }}>
+                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Beam Getting'), FalseOthersBG(); fetchDataBG(); }}>
                   <Text style={styles.buttonText}>Beam Getting</Text>
+                  <Text style={{ color: "#fff", textDecorationLine: "underline", marginLeft: "5%" }}>{dateBG}</Text>
+                  {
+                    reqBG === 1 ? <Text style={{ color: '#fff' }}>Done</Text > :null
+                  }
                 </TouchableOpacity>
-                <Text style={{ color: "#ff0000", textDecorationLine: "underline", marginLeft: "5%" }}>{dateBG}</Text>
               </View>
 
               {beamGettingForm ? <View style={{ width: "100%" }}>
@@ -765,15 +648,11 @@ const LiveOrderstrader = ({ navigation }) => {
 
 
                     <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "center" }}>
-                    {
-                        reqBG === 1 ? <Text style={{color:'blue'}}>Required</Text > : <Text style={{color:"red"}}>not Required</Text>
-                      }
+
                     </View>
                   </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.submitButton} onPress={() => SubmitBeamInGetting()}>
-                  <Text style={styles.submitButtonText}>Submit</Text>
-                </TouchableOpacity>
+
               </View> : null}
 
 
@@ -781,7 +660,6 @@ const LiveOrderstrader = ({ navigation }) => {
                 <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('First Piece Approval'); FalseOthersFPA() }}>
                   <Text style={styles.buttonText}>First Piece Approval</Text>
                 </TouchableOpacity>
-                <Text style={{ color: "#ff0000", textDecorationLine: "underline", marginLeft: "5%" }}>09-03-2024</Text>
               </View>
 
               {fpaform ? <View style={{ width: "100%" }}>
@@ -814,15 +692,14 @@ const LiveOrderstrader = ({ navigation }) => {
                     </View>
                   </View>
                 </ScrollView>
-                <TouchableOpacity style={styles.submitButton} onPress={() => SubmitFPA()}>
-                  <Text style={styles.submitButtonText}>Submit</Text>
-                </TouchableOpacity>
+
               </View> : null}
               <View style={{ flexDirection: "row" }}>
-                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Fabric Dispatch'), FalseOthersFD() }}>
+                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Fabric Dispatch'), FalseOthersFD(); fetchDataFD(); }}>
                   <Text style={styles.buttonText}>Fabric Dispatch</Text>
+                  <Text style={{ color: "#fff", textDecorationLine: "underline", marginLeft: "5%" }}>{dateFD}</Text>
+
                 </TouchableOpacity>
-                <Text style={{ color: "#ff0000", textDecorationLine: "underline", marginLeft: "5%" }}>{dateFD}</Text>
               </View>
 
 
@@ -845,27 +722,63 @@ const LiveOrderstrader = ({ navigation }) => {
                 <ScrollView horizontal={true}>
                   <View style={styles.table}>
                     <View style={styles.header1}>
-                      <Text style={styles.headerText1}>Date     </Text>
-                      <Text style={styles.headerText1}>Dispatch No.</Text>
-                      <Text style={[styles.headerText1]}>Meter</Text>
-                      <Text style={[styles.headerText1]}>Weight</Text>
-                      <Text style={[styles.headerText1]}>Image</Text>
+                      <View>
+                        <Text style={[styles.headerText1, { marginLeft: -1 }]}>Date</Text>
+                        <Text style={[styles.headerText1, { marginLeft: -1, color: "blue" }]}>Dispatch No.</Text>
+                      </View>
+                      <Text style={[styles.headerText1, { marginLeft: -30 }]}>Meter</Text>
+                      <Text style={[styles.headerText1, { marginLeft: -1 }]}>Weight</Text>
+                      <Text style={[styles.headerText1, { marginLeft: -1 }]}>Image</Text>
 
 
                     </View>
 
                     <View>
+
+
+                      {
+                        show ?
+
+                          <View style={{ flex: 1 }}>
+                            <TouchableOpacity onPress={() => setShow(false)}>
+                              <Image
+                                source={require('../Images/cross.png')}
+                                style={{ width: 27, height: 27, alignSelf: 'flex-start', backgroundColor: "#DADBDD", borderRadius: 50, marginLeft: 370, marginTop: 10, zIndex: 0 }}
+                                imageStyle={{ borderRadius: 0 }}
+                              />
+                            </TouchableOpacity>
+                            <Image
+                              source={{ uri: enlargedImage }}
+                              style={{
+                                marginTop: 20,
+                                width: 400,
+                                height: 300,
+                              }}
+                            />
+                          </View>
+                          : null
+                      }
+
+
                       {orderfd.map((item, index) => (
                         <View key={index} style={styles.header1}>
-                          <Text style={styles.headerText1}>{item.Date.date.substring(0, 10)}</Text>
-                          <Text style={[styles.headerText1]}>{item.DispatchNo}</Text>
-                          <Text style={[styles.headerText1]}>{item.Meter}</Text>
+                          <View>
+                            <Text style={[styles.headerText1, { marginLeft: -1 }]}>{item.Date.date.substring(0, 10)}</Text>
+                            <Text style={[styles.headerText1, { marginLeft: -1, color: "blue" }]}>{item.DispatchNo}</Text>
+                          </View>
+                          <Text style={[styles.headerText1, { marginLeft: -10 }]}>{item.Meter}</Text>
                           <Text style={[styles.headerText1]}>{item.Weight}</Text>
 
-                          <Image
-                            style={{ width: 40, height: 40, marginHorizontal: 10, margin: 10, marginRight: 60 }}
-                            source={{ uri: imageSourceFD }}
-                          />
+
+                          <TouchableOpacity onPress={() => handleImagePress(item.Photopath)} >
+                            <Image
+                              style={{ width: 40, height: 40, marginHorizontal: 10, margin: 10, marginRight: 60 }}
+                              source={{ uri: item.Photopath }}
+                            />
+
+                          </TouchableOpacity>
+
+
                         </View>
                       ))}
                     </View>
@@ -875,17 +788,15 @@ const LiveOrderstrader = ({ navigation }) => {
 
                   <Text style={{ marginRight: 250 }}></Text>
                 </ScrollView>
-                <TouchableOpacity style={styles.submitButton} onPress={() => HandleSubmitFD()}>
-                  <Text style={styles.submitButtonText}>Submit</Text>
-                </TouchableOpacity>
 
               </View> : null}
 
               <View style={{ flexDirection: "row" }}>
-                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Remaining Goods Return'), FalseOthersrgr() }}>
+                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Remaining Goods Return'), FalseOthersrgr(); fetchDataRGR(); }}>
                   <Text style={styles.buttonText}>Remaining Goods Return</Text>
+                  <Text style={{ color: "#fff", textDecorationLine: "underline", marginLeft: "5%" }}>{dateRGR}</Text>
+
                 </TouchableOpacity>
-                <Text style={{ color: "#ff0000", textDecorationLine: "underline", marginLeft: "5%" }}>{dateRGR}</Text>
               </View>
 
 
@@ -895,7 +806,7 @@ const LiveOrderstrader = ({ navigation }) => {
 
 
 
-                                      FABRIC DISPATCH FORM 
+                                      Remaining Goods Return
                                     
                                     
                                     
@@ -925,11 +836,11 @@ const LiveOrderstrader = ({ navigation }) => {
                     {RGR.map((row, index) => (
                       <View key={index} style={styles.rowContainer}>
                         <SafeAreaView style={styles.row}>
-                        <Text style={styles.headerText1}>{row.GpNo}</Text>
-                      <Text style={[styles.headerText1,{marginLeft:50}]}>{row.YarnCount}</Text>
-                      <Text style={[styles.headerText1, { marginLeft: 40 }]}>{row.Weight}</Text>
-                      <Text style={[styles.headerText1, { marginLeft: 10 }]}>{row.CutPiece}</Text>
-                      <Text style={[styles.headerText1, { marginLeft: 10 }]}>{row.Meter}</Text>
+                          <Text style={styles.headerText1}>{row.GpNo}</Text>
+                          <Text style={[styles.headerText1, { marginLeft: 50 }]}>{row.YarnCount}</Text>
+                          <Text style={[styles.headerText1, { marginLeft: 40 }]}>{row.Weight}</Text>
+                          <Text style={[styles.headerText1, { marginLeft: 10 }]}>{row.CutPiece}</Text>
+                          <Text style={[styles.headerText1, { marginLeft: 10 }]}>{row.Meter}</Text>
                         </SafeAreaView>
 
 
@@ -942,9 +853,6 @@ const LiveOrderstrader = ({ navigation }) => {
 
                   {/* <Text style={{ marginRight: 250 }}></Text> */}
                 </ScrollView>
-                <TouchableOpacity style={styles.submitButton} onPress={() => HandleSubmitRGR()}>
-                  <Text style={styles.submitButtonText}>Submit</Text>
-                </TouchableOpacity>
 
               </View> : null}
 
@@ -1072,7 +980,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   button1: {
-
+    flexDirection: "row",
     alignItems: "center",
     backgroundColor: '#71B7E1',
     paddingVertical: 10,
@@ -1080,6 +988,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 10,
     width: "70%",
+    justifyContent:"space-between"
 
 
   },
@@ -1202,9 +1111,4 @@ const styles = StyleSheet.create({
     color: "#000",
     fontSize: 17
   },
-  BeamInCss: {
-
-  }
-
-
 })

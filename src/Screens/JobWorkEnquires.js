@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, Text, View, StatusBar, ImageBackground, TextInput, TouchableOpacity, Dimensions, FlatList, Button, ScrollView, Alert, Pressable, Modal, Image, ActivityIndicator } from 'react-native'
+import { SafeAreaView, StyleSheet, Text, View, StatusBar, ImageBackground, TextInput, RefreshControl, TouchableOpacity, Dimensions, FlatList, Button, ScrollView, Alert, Pressable, Modal, Image, ActivityIndicator } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import CheckBox from '@react-native-community/checkbox';
 import { Dropdown } from 'react-native-element-dropdown';
@@ -86,6 +86,7 @@ const JobWorkEnquires = ({ navigation }) => {
   const [jobRateOffered, setJobRateOffered] = useState('');
   const [counterOffer, setCounterOffer] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible2, setModalVisible2] = useState(false);
   const [data, setData] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -95,6 +96,14 @@ const JobWorkEnquires = ({ navigation }) => {
   const [LoomOrTrader, SetLoomOrTrader] = useState("")
   const [id, setId] = useState("")
 
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, []);
 
   const getData = async () => {
     const Name = await AsyncStorage.getItem("Name");
@@ -112,10 +121,26 @@ const JobWorkEnquires = ({ navigation }) => {
   useEffect(() => {
 
 
-    fetchselectedEnquiryId();
+    const fetchselectedEnquiryId = async () => {
+      setRefreshing(true);
+      setLoading(true)
+      try {
+        const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getjoin.php?EnquiryId=' + EnquiryId);
+        const jsonData = await response.json();
+        setStoreEID(jsonData); // Set the fetched data
+        storeitems(jsonData);
+        console.log("EnquiryId = ", jsonData)
+        console.log("Data To Send = ", machineType, width, rpm, sheddingType, numFrames, numFeeders, selvadgeJacquard, topBeam, cramming, lenoDesign)
+        setLoading(false)
+        setRefreshing(false);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setRefreshing(false);
+      }
+    }
     // const loomNos = arr.map(item => item.LoomNo);
     // console.log(loomNos);
-
+    fetchselectedEnquiryId();
     const callfuns = () => {
       fetch("")
         .then(getData())
@@ -159,6 +184,7 @@ const JobWorkEnquires = ({ navigation }) => {
     console.log(updatedDateFrom, updatedDateTo)
     const qs = require('qs');
     let data = qs.stringify({
+      'LoomDetailId': id,
       'MachineType': machineType,
       'Width': width,
       'RPM': rpm,
@@ -197,6 +223,11 @@ const JobWorkEnquires = ({ navigation }) => {
 
 
   const EnquiryConfirm = () => {
+
+
+    setModalVisible2(true);
+    setShowTable(true);
+    setShowForm(false);
 
     console.log("Enquiry Confirm = ", EnquiryId, id, updatedDateFrom, updatedDateTo, counterOffer, numLoomsPossible)
 
@@ -321,6 +352,13 @@ const JobWorkEnquires = ({ navigation }) => {
     setModalVisible(false)
   }
 
+  const yesbutton2 = () => {
+    setSelectedItem(false)
+    setShowTable(true)
+
+    setModalVisible2(false)
+  }
+
 
   const DateFrom = (event, selectedDate) => {
     const currentDate = selectedDate || datefrom;
@@ -358,7 +396,11 @@ const JobWorkEnquires = ({ navigation }) => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#e5f2fe" }}>
-      <StatusBar backgroundColor={"#0b659a"}></StatusBar>
+     <ScrollView contentContainerStyle={styles.scrollView}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={fetchselectedEnquiryId} />
+      }>
+     <StatusBar backgroundColor={"#0b659a"}></StatusBar>
       <View style={{ backgroundColor: "#71B7E1", flexDirection: "row" }}>
         <TouchableOpacity onPress={() => navigation.openDrawer()}>
           <ImageBackground
@@ -511,11 +553,7 @@ const JobWorkEnquires = ({ navigation }) => {
                       )
                     } else {
                       return (
-                        <View style={styles.checkboxContainer}>
-
-                          <Text style={{ marginRight: "31%", fontSize: 17, color: "#000" }}>Cramming</Text>
-                          <Text style={{ fontSize: 17, color: "red", margin: "3%" }}>Not Required</Text>
-                        </View>
+                        <></>
                       )
 
 
@@ -548,7 +586,7 @@ const JobWorkEnquires = ({ navigation }) => {
                   })()
                 }
               </View>
-            ) : <ActivityIndicator size={70} color="green" />}
+            ) : <Text style={{color:"#000",fontSize:18}}>Swip Down To Load Data...</Text>}
 
 
 
@@ -718,6 +756,34 @@ const JobWorkEnquires = ({ navigation }) => {
         </ScrollView>
       )}
 
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible2}
+        onRequestClose={() => {
+          Alert.alert('Modal has been closed.');
+          setModalVisible2(!modalVisible2);
+        }}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Data Submitted Successfully</Text>
+            <View style={{ flexDirection: "column", alignItems: "center" }}>
+              <Image
+                style={{ width: 50, height: 50 }}
+                source={require("../Images/success.png")}
+              />
+              <Pressable
+                style={[styles.button1, styles.buttonClose1]}
+                onPress={() => yesbutton2(!modalVisible2)}>
+                <Text style={styles.textStyle1}>close</Text>
+              </Pressable>
+
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <Modal
         animationType="slide"
         transparent={true}
@@ -744,6 +810,9 @@ const JobWorkEnquires = ({ navigation }) => {
           </View>
         </View>
       </Modal>
+      <Text>Pull down to see RefreshControl indicator</Text>
+     </ScrollView>
+
     </SafeAreaView>
   )
 }

@@ -58,21 +58,30 @@ const ConfirmEnquires = ({ navigation }) => {
     fetchData();
   }, []);
 
-const handleLoomDetails=(LoomTraderId)=>{
-  setConfirmed((prev) => {
-    const newConfirmed = new Set(prev);
-    if (newConfirmed.has(LoomTraderId)) {
-      newConfirmed.delete(LoomTraderId);
-    } else {
-      newConfirmed.add(LoomTraderId);
-    }
-    return newConfirmed;
-  });
-     
-  const selectedItem = data.find((item) => item.LoomTraderId === LoomTraderId);
-  setSelectedData(selectedItem);
-  setModalVisible(true);
-}
+
+
+  const [selectedRow, setSelectedRow] = useState(null);
+
+  const handleLoomDetails = (item) => {
+    setConfirmed((prev) => {
+      const newConfirmed = new Set(prev);
+      if (newConfirmed.has(item.LoomTraderId)) {
+        newConfirmed.delete(item.LoomTraderId);
+      } else {
+        newConfirmed.add(item.LoomTraderId);
+      }
+      return newConfirmed;
+    });
+
+    const selectedItem = data.find((item) => item.LoomTraderId ===  item.LoomTraderId);
+    setSelectedData(selectedItem);
+    setModalVisible(true);
+   
+    setSelectedRow(selectedRow === item.JobRateExp ? null : item.JobRateExp);
+
+
+
+  }
 
 
   const handleConfirm = (LoomTraderId) => {
@@ -94,6 +103,7 @@ const handleLoomDetails=(LoomTraderId)=>{
       .then((result) => console.log(result))
       .catch((error) => console.error(error));
   }
+
 
 
   if (!data) {
@@ -153,18 +163,27 @@ const handleLoomDetails=(LoomTraderId)=>{
                       styles.confirmButton,
                       confirmed.has(item.LoomTraderId) ? styles.confirmButton : null,
                     ]}
-                    onPress={() => handleLoomDetails(item.LoomTraderId)}
+                    onPress={() => handleLoomDetails(item)}
                   >
-                    <Text style={styles.text}>Confirm</Text>
+                    {selectedRow === item.JobRateExp ?
+                      <Text style={styles.text}>confirm</Text> :
+                      <Text style={styles.text}>View</Text>}
                   </TouchableOpacity>
                 </View>
+
+
               </View>
+
+
             )}
             keyExtractor={(item) => item.LoomTraderId.toString()}
-          />
-        </View>
-      </ScrollView>
 
+          />
+          <Text style={{ marginTop: 20 }}> </Text>
+
+        </View>
+
+      </ScrollView>
       <View>
         <View>
           <Modal
@@ -177,18 +196,18 @@ const handleLoomDetails=(LoomTraderId)=>{
             }}>
             <View style={styles.centeredView}>
               <View style={styles.modalView}>
-                <View style={{flexDirection:"row"}}>
-                <Text style={styles.modalText}>LoomDetails</Text>
-                <TouchableOpacity onPress={()=>setModalVisible(false)} style={{justifyContent:"flex-start",alignItems:"flex-end",marginRight:"-30%"}}>
-                <Image
-                style={{width:22,height:22,marginLeft:100,marginTop:-30}}
-                source={require("../Images/cross.png")}
-                />
-                </TouchableOpacity>
+                <View style={{ flexDirection: "row" }}>
+                  <Text style={styles.modalText}>LoomDetails</Text>
+                  <TouchableOpacity onPress={() => setModalVisible(false)} style={{ justifyContent: "flex-start", alignItems: "flex-end", marginRight: "-30%" }}>
+                    <Image
+                      style={{ width: 22, height: 22, marginLeft: 100, marginTop: -30 }}
+                      source={require("../Images/cross.png")}
+                    />
+                  </TouchableOpacity>
                 </View>
                 <Text style={styles.modalText}>Enquiry ID  : {selectedData?.EnquiryId} , Looms Possible :  {selectedData?.LoomPossible} , Loom Name: {selectedData?.Name} , job rate : {selectedData?.JobRateExp} paise  , From Date:   {selectedData?.DatePossibleFrom.date.substring(0, 10)} , To Date : {selectedData?.DatePossibleTo.date.substring(0, 10)}
-                <Text> , </Text>
-                 Loom Email : {selectedData?.AppUserId}, Loom Address : {selectedData?.Address} , Loom Contact No. {selectedData?.PrimaryContact} </Text>
+                  <Text> , </Text>
+                  Loom Email : {selectedData?.AppUserId}, Loom Address : {selectedData?.Address} , Loom Contact No. {selectedData?.PrimaryContact} </Text>
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
                 </View>
               </View>
