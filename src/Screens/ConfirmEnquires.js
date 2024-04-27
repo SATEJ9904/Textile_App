@@ -1,66 +1,129 @@
+
 import React, { useState, useEffect } from 'react';
-import { View, Text, SafeAreaView, StatusBar, TouchableOpacity, ImageBackground, StyleSheet, FlatList, ScrollView, Modal, Pressable, Image } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Modal, ImageBackground, ScrollView, FlatList, Pressable, Image } from 'react-native';
+import axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
+const { width, height } = Dimensions.get('window');
+
 
 const ConfirmEnquires = ({ navigation }) => {
+  const [enquiries, setEnquiries] = useState([]);
+  const [selectedEnquiry, setSelectedEnquiry] = useState(null);
+  const [enquiryDetails, setEnquiryDetails] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showE, setShowE] = useState(true);
+  const [showEC, setShowEC] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [selectedData, setSelectedData] = useState(null);
+  const [confirmed, setConfirmed] = useState(new Set());
+  const [AppUserId, setAppUserId] = useState("")
+  const [Name, setName] = useState('')
+  const [show, setShow] = useState(true);
+  const [Id, setId] = useState("");
+  const [LoomOrTrader, setLoomOrTrader] = useState("");
+  const [mobileno, setMobileNo] = useState("");
+  const [gstno, setGSTNO] = useState("")
 
 
-  const [data, setData] = useState([]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [Name, setName] = useState("");
-  const [selectedData, setSelectedData] = React.useState(null);
-  const [confirmed, setConfirmed] = React.useState(new Set());
-  const [cancelModalVisible, setCancelModalVisible] = React.useState(false);
+  const getData = async () => {
+    const Email = await AsyncStorage.getItem("AppUserId");
+    const Name = await AsyncStorage.getItem("Name");
+    const LoomOrTrader = await AsyncStorage.getItem("LoomOrTrader")
+    const Id = await AsyncStorage.getItem("Id")
+    const PrimaryContact = await AsyncStorage.getItem("PrimaryContact")
+    const GSTNumber = await AsyncStorage.getItem("GSTNumber")
 
+
+    console.log("ID = ", Id)
+
+    setAppUserId(Email)
+    setName(Name)
+    setLoomOrTrader(LoomOrTrader)
+    setId(Id)
+    setMobileNo(PrimaryContact)
+    setGSTNO(GSTNumber)
+  }
 
 
   useEffect(() => {
     getData();
-  }, [])
-
-  const getData = async () => {
-    const Name = await AsyncStorage.getItem("Name");
-
-
-    setName(Name)
-    setShowBlocks(false)
-  }
-
-  const yesbutton = () => {
-    setModalVisible(false)
-    setCancelModalVisible(true)
-    handleConfirm();
-  }
-
-  const yesbutton2 = () => {
-    UpdateEnquiryConfirm();
-    setCancelModalVisible(false)
-    navigation.navigate("PlanLooms")
-  }
+  }, []);
 
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getjoin2.php');
-      const json = await response.json();
-      setData(json);
-      {
-        data ?
-          data.map((item) => {
-            console.log("LoomId", item.LoomTraderId)
-          }) : null
+      try {
+        const response = await axios.get('https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=Enquiry&Colname=TraderId&Colvalue=' + await AsyncStorage.getItem("Id"));
+        setEnquiries(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching data: ', error);
+        setLoading(false);
       }
-      console.log(json)
     };
 
     fetchData();
   }, []);
 
+  const fetchEnquiryDetails = async (EnquiryId) => {
+    try {
+      const response = await axios.get('https://textileapp.microtechsolutions.co.in/php/getjoin2.php?EnquiryId=' + EnquiryId);
+      setEnquiryDetails(response.data);
+    } catch (error) {
+      console.error('Error fetching enquiry details: ', error);
+    }
+  };
 
+  const confirmEnquiry = () => {
+    setShowModal(false);
+    setShowConfirmModal(true);
+  };
 
-  const [selectedRow, setSelectedRow] = useState(null);
+  const UpdateEnquiryConfirm = () => {
+
+    console.log("Got ID = ", selectedData?.Id)
+
+    const formdata = new FormData();
+    formdata.append("Status", false);
+    formdata.append("Id", selectedData?.Id);
+
+    const requestOptions = {
+      method: "POST",
+      body: formdata,
+      redirect: "follow"
+    };
+
+    fetch("https://textileapp.microtechsolutions.co.in/php/updateenquiryconfirm.php", requestOptions)
+      .then((response) => response.text())
+      .then((result) => console.log(result))
+      .catch((error) => console.error(error));
+  }
+
+  const yesbutton2 = () => {
+    UpdateEnquiryConfirm();
+    setShowConfirmModal(false);
+    navigation.navigate("PlanLooms");
+  }
+
+  const selectEnquiry = (enquiry) => {
+    setSelectedEnquiry(enquiry);
+    fetchEnquiryDetails(enquiry.EnquiryId);
+    setShowE(false);
+    setShowEC(true);
+  };
+
+  const renderEnquiries = () => (
+    enquiries.map((item, index) => (
+      <TouchableOpacity key={index} onPress={() => selectEnquiry(item)}>
+        <View style={styles.itemContainer}>
+          <Text style={styles.itemText}>Enquiry Id: {item.EnquiryId}</Text>
+        </View>
+      </TouchableOpacity>
+    ))
+  );
 
   const handleLoomDetails = (item) => {
     setConfirmed((prev) => {
@@ -73,224 +136,266 @@ const ConfirmEnquires = ({ navigation }) => {
       return newConfirmed;
     });
 
-    const selectedItem = data.find((item) => item.LoomTraderId ===  item.LoomTraderId);
+    const selectedItem = enquiryDetails.find((i) => i.LoomTraderId === item.LoomTraderId);
     setSelectedData(selectedItem);
-    setModalVisible(true);
-   
-    setSelectedRow(selectedRow === item.JobRateExp ? null : item.JobRateExp);
-
-
-
-  }
-
-
-  const handleConfirm = (LoomTraderId) => {
-
-  };
-
-  const UpdateEnquiryConfirm = () => {
-    const formdata = new FormData();
-    formdata.append("Status", true);
-
-    const requestOptions = {
-      method: "POST",
-      body: formdata,
-      redirect: "follow"
-    };
-
-    fetch("https://textileapp.microtechsolutions.co.in/php/updateenquiryconfirm.php?Id=" + selectedData?.Id, requestOptions)
-      .then((response) => response.text())
-      .then((result) => console.log(result))
-      .catch((error) => console.error(error));
-  }
-
-
-
-  if (!data) {
-    return <View>
-      <View style={{ backgroundColor: "#71B7E1", flexDirection: "row" }}>
-        <TouchableOpacity onPress={() => navigation.openDrawer()}>
-          <ImageBackground
-            source={require("../Images/drawer.png")}
-            style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#71B7E1", marginTop: 15, marginRight: 0, marginLeft: 10 }}
-            imageStyle={{ borderRadius: 0 }}
-          />
-        </TouchableOpacity>
-        <Text style={{ fontSize: 22, color: "white", margin: "2.5%", marginLeft: "20%" }}>Confirm Enquires</Text>
-      </View>
-      <Text>Loading....</Text>
-    </View>
-      ;
+    setShowModal(true);
   }
 
 
   return (
-    <SafeAreaView>
-      <StatusBar backgroundColor={"#0b659a"}></StatusBar>
-      <View style={{ backgroundColor: "#71B7E1", flexDirection: "row" }}>
-        <TouchableOpacity onPress={() => navigation.navigate("PlanLooms")}>
-          <ImageBackground
-            source={require("../Images/back.png")}
-            style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#71B7E1", marginTop: 15, marginRight: 0, marginLeft: 10 }}
-            imageStyle={{ borderRadius: 0 }}
-          />
-        </TouchableOpacity>
-        <Text style={{ fontSize: 22, color: "white", margin: "2.5%", marginLeft: "20%" }}>Confirm Enquires</Text>
-      </View>
-      <ScrollView horizontal>
-        <View style={styles.container}>
-          <View style={styles.row}>
-            <Text style={[styles.cell, { fontWeight: "600" }]}>EnquiryId</Text>
-            <Text style={[styles.cell, { fontWeight: "600" }]}>From Date</Text>
-            <Text style={[styles.cell, { fontWeight: "600" }]}>     To Date </Text>
-            <Text style={[styles.cell, { fontWeight: "600" }]}>Loom Assign</Text>
-            <Text style={[styles.cell, { fontWeight: "600" }]}>Job Rate </Text>
-            <Text style={[styles.cell, { fontWeight: "600" }]}>             Status </Text>
-          </View>
-          <FlatList
-            data={data}
-            renderItem={({ item }) => (
+    <View style={styles.container}>
+      {loading ? (
+        <Text>Loading...</Text>
+      ) : (
+        <>
+          {showE ? (
+            <ScrollView style={styles.flatList}>
+              <View style={{ flexDirection: "row", backgroundColor: "#71B7E1",width:"100%",marginBottom:"5%" }}>
+                <TouchableOpacity onPress={() => navigation.navigate('PlanLooms')}>
+                  <ImageBackground
+                    source={require("../Images/back.png")}
+                    style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#71B7E1", marginTop: 8, marginRight: 0, marginLeft: 10 }}
+                    imageStyle={{ borderRadius: 0 }}
+                  />
+                </TouchableOpacity>
+                <Text style={styles.detailsTitle}>Enquiry List </Text>
+
+              </View>
+              {renderEnquiries()}
+            </ScrollView>
+          ) : null}
+          {showEC ? (
+            <View>
               <View>
-                <View style={[styles.row, { marginTop: 20 }]}>
-                  <Text style={styles.cell}>{item.EnquiryId}</Text>
-                  <Text style={[styles.cell, { marginLeft: -10 }]}>{item.DatePossibleFrom.date.substring(0, 10)}</Text>
-                  <Text style={[styles.cell, { marginLeft: -30 }]}>{item.DatePossibleTo.date.substring(0, 10)}</Text>
-                  <Text style={[styles.cell, { marginLeft: -20 }]}>{item.LoomPossible}</Text>
-                  <Text style={[styles.cell, { marginLeft: -20 }]}>    {item.JobRateExp}</Text>
+                {
+                  showE ?
+                    <View style={{ flexDirection: "row", backgroundColor: "#71B7E1" }}>
+                      <TouchableOpacity onPress={() => navigation.openDrawer()}>
+                        <ImageBackground
+                          source={require("../Images/drawer.png")}
+                          style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#71B7E1", marginTop: 15, marginRight: 0, marginLeft: 10 }}
+                          imageStyle={{ borderRadius: 0 }}
+                        />
+                      </TouchableOpacity>
+                      <Text style={styles.detailsTitle}>Enquiry Details:</Text>
 
-                  <TouchableOpacity
-                    style={[
-                      styles.confirmButton,
-                      confirmed.has(item.LoomTraderId) ? styles.confirmButton : null,
-                    ]}
-                    onPress={() => handleLoomDetails(item)}
-                  >
-                    {selectedRow === item.JobRateExp ?
-                      <Text style={styles.text}>confirm</Text> :
-                      <Text style={styles.text}>View</Text>}
-                  </TouchableOpacity>
-                </View>
+                    </View> :
+                    <View style={{ flexDirection: "row", backgroundColor: "#71B7E1", width: "120%", marginLeft: "-8%", marginTop: "-5%" }}>
+                      <TouchableOpacity onPress={() => { setShowE(true); setShowEC(false); }}>
+                        <ImageBackground
+                          source={require("../Images/back.png")}
+                          style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#71B7E1", marginTop: 15, marginRight: 0, marginLeft: 20 }}
+                          imageStyle={{ borderRadius: 0 }}
+                        />
+                      </TouchableOpacity>
+                      <Text style={styles.detailsTitle}>Enquiry Details</Text>
 
-
+                    </View>
+                }
               </View>
+              <ScrollView>
+                <View style={styles.detailsHeaderContainer}>
+                  <ScrollView horizontal>
+                    <Text style={styles.detailsHeaderText}>LoomId</Text>
+                    <Text style={styles.detailsHeaderText}>Date Possible</Text>
+                    <Text style={styles.detailsHeaderText}>Job Rate Exp</Text>
+                    <Text style={[styles.detailsHeaderText]}>Enquiry Id</Text>
+                    <Text style={[styles.detailsHeaderText, { marginRight: 30 }]}>Action</Text>
 
-
-            )}
-            keyExtractor={(item) => item.LoomTraderId.toString()}
-
-          />
-          <Text style={{ marginTop: 20 }}> </Text>
-
-        </View>
-
-      </ScrollView>
-      <View>
-        <View>
+                  </ScrollView>
+                </View>
+                <View>
+                  {
+                    enquiryDetails.map((item, index) => (
+                      <ScrollView key={index} horizontal={true}>
+                        <View style={[styles.detailsItemContainer, index % 2 === 0 ? styles.rowColor1 : styles.rowColor2]}>
+                          <Text style={[styles.detailsItemText, styles.column1]}>{item.LoomTraderId}</Text>
+                          <View style={{ flexDirection: "column" }}>
+                            <Text style={[styles.detailsItemText, styles.column2]}>{item.DatePossibleFrom.date.substring(0, 10)}</Text>
+                            <Text style={[styles.detailsItemText, styles.column2]}>{item.DatePossibleTo.date.substring(0, 10)}</Text>
+                          </View>
+                          <Text style={[styles.detailsItemText, styles.column3]}>{item.JobRateExp}</Text>
+                          <Text style={[styles.detailsItemText, styles.column4]}>{item.EnquiryId}</Text>
+                          <TouchableOpacity
+                            style={[
+                              styles.confirmButton,
+                              confirmed.has(item.LoomTraderId) ? styles.confirmedButton : null,
+                            ]}
+                            onPress={() => handleLoomDetails(item)}
+                          >
+                            <Text style={styles.buttonText}>View</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </ScrollView>
+                    ))
+                  }
+                </View>
+              </ScrollView>
+            </View>
+          ) : null}
           <Modal
             animationType="slide"
             transparent={true}
-            visible={modalVisible}
+            visible={showModal}
             onRequestClose={() => {
-              Alert.alert('Modal has been closed.');
-              setModalVisible(!modalVisible);
-            }}>
+              setShowModal(false);
+            }}
+          >
             <View style={styles.centeredView}>
               <View style={styles.modalView}>
-                <View style={{ flexDirection: "row" }}>
-                  <Text style={styles.modalText}>LoomDetails</Text>
-                  <TouchableOpacity onPress={() => setModalVisible(false)} style={{ justifyContent: "flex-start", alignItems: "flex-end", marginRight: "-30%" }}>
-                    <Image
-                      style={{ width: 22, height: 22, marginLeft: 100, marginTop: -30 }}
-                      source={require("../Images/cross.png")}
-                    />
-                  </TouchableOpacity>
+                <View style={{justifyContent:"space-between",flexDirection:"row",width:"100%"}}>
+                <Text style={styles.modalTitle}>Details</Text>
+                <TouchableOpacity onPress={()=>setShowModal(false)}>
+                  <Image
+                  style={{width:25,height:25}}
+                  source={require("../Images/cross.png")}
+                  />
+                </TouchableOpacity>
                 </View>
-                <Text style={styles.modalText}>Enquiry ID  : {selectedData?.EnquiryId} , Looms Possible :  {selectedData?.LoomPossible} , Loom Name: {selectedData?.Name} , job rate : {selectedData?.JobRateExp} paise  , From Date:   {selectedData?.DatePossibleFrom.date.substring(0, 10)} , To Date : {selectedData?.DatePossibleTo.date.substring(0, 10)}
-                  <Text> , </Text>
-                  Loom Email : {selectedData?.AppUserId}, Loom Address : {selectedData?.Address} , Loom Contact No. {selectedData?.PrimaryContact} </Text>
-                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                </View>
+                <Text style={styles.modalText}>Enquiry ID: {selectedData?.EnquiryId}</Text>
+                <Text style={styles.modalText}>Loom Possible To Assign: {selectedData?.LoomPossible}</Text>
+                <Text style={styles.modalText}>Loom Name: {selectedData?.Name}</Text>
+                <Text style={styles.modalText}>Jobrate (In Paise): {selectedData?.JobRateExp}</Text>
+                <Text style={styles.modalText}>From Date: {selectedData?.DatePossibleFrom.date.substring(0, 10)}</Text>
+                <Text style={styles.modalText}>To Date: {selectedData?.DatePossibleTo.date.substring(0, 10)}</Text>
+                <Text style={styles.modalText}>Email: {selectedData?.AppUserId}</Text>
+                <Text style={styles.modalText}>Contact Number: {selectedData?.PrimaryContact}</Text>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => confirmEnquiry()}
+                >
+                  <Text style={styles.buttonText}>Confirm Order</Text>
+                </TouchableOpacity>
               </View>
-              <View style={{ flexDirection: "column", alignItems: "center" }}>
+            </View>
+          </Modal>
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={showConfirmModal}
+            onRequestClose={() => {
+              setShowConfirmModal(false);
+            }}
+          >
+            <View style={styles.centeredView}>
+              <View style={styles.modalView}>
+                <Text style={styles.modalText}>Congratulations !!! {Name}</Text>
+                <Text style={styles.modalText}>
+                  Your order number {selectedData?.EnquiryId} of {selectedData?.LoomPossible} Looms is confirmed with {selectedData?.AppUserId} .
+                  with the job rate of {selectedData?.JobRateExp} paise from {selectedData?.DatePossibleFrom.date.substring(0, 10)} to {selectedData?.DatePossibleTo.date.substring(0, 10)}.
+                  Please proceed for contract formation. Contact details of ({selectedData?.AppUserId}, {selectedData?.PrimaryContact}, {selectedData?.AppUserId})
+                  Dalal/Agent Name & Contact No.
+                </Text>
                 <Pressable
-                  style={[styles.button1, styles.buttonClose1]}
-                  onPress={() => yesbutton(!modalVisible)}>
-                  <Text style={styles.textStyle1}>OKAY</Text>
+                  style={[styles.button, styles.buttonClose1]}
+                  onPress={() => yesbutton2()}
+                >
+                  <Text style={[styles.textStyle1, { margin: -10 }]}>OKAY</Text>
                 </Pressable>
               </View>
             </View>
           </Modal>
-        </View >
-        <View>
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={cancelModalVisible}
-            onRequestClose={() => {
-              Alert.alert('Modal has been closed.');
-              setModalVisible(!cancelModalVisible);
-            }}>
-            <View style={styles.centeredView}>
-              <View style={styles.modalView}>
-                <Text style={styles.modalText}> !!! {" "} {Name}</Text>
-                <Text style={styles.modalText}>Your order number  {selectedData?.EnquiryId} of {selectedData?.LoomPossible} Looms is Confirmed with {selectedData?.LoomTraderId}  With the job rate of {selectedData?.JobRateExp} paise from  {selectedData?.DatePossibleFrom.date.substring(0, 10)} to  {selectedData?.DatePossibleTo.date.substring(0, 10)}  please proceed for contract formation contact details of {selectedData?.Name} :- (NAME,CONTACT NO., MAIL ID,ADDRESS) Dalal/Agent Name & Contact No. </Text>
-                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-                </View>
-              </View>
-              <View style={{ flexDirection: "column", alignItems: "center" }}>
-                <Pressable
-                  style={[styles.button1, styles.buttonClose1]}
-                  onPress={() => yesbutton2(!cancelModalVisible)}>
-                  <Text style={styles.textStyle1}>OKAY</Text>
-                </Pressable>
-              </View>
-            </View>
-          </Modal>
-        </View >
-      </View>
-
-    </SafeAreaView>
+        </>
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    backgroundColor: '#F5FCFF',
-  },
-  table: {
-    borderWidth: 1,
-    borderColor: '#000',
-    borderRadius: 4,
-    backgroundColor: '#fff',
-    padding: 8,
-    marginBottom: 16,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#000',
-  },
-  cell: {
     flex: 1,
-    paddingHorizontal: 8,
-    color: "#000"
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#ecf0f1',
   },
-  confirmButton: {
+  flatList: {
+    width: width * 0.9,
+    marginBottom: height * 0.02,
+  },
+  itemContainer: {
+    backgroundColor: '#ffffff',
+    padding: width * 0.04,
+    marginVertical: height * 0.01,
+    marginHorizontal: width * 0.02,
+    borderRadius: width * 0.02,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: height * 0.005,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: height * 0.005,
+    elevation: 4,
+  },
+  itemText: {
+    fontSize: width * 0.04,
+    marginBottom: height * 0.01,
+    color: '#2c3e50',
+  },
+  detailsHeaderContainer: {
+    width: width * 1,
+    flexDirection: 'row',
+    backgroundColor: '#71B7E1',
+    marginBottom: height * 0.01,
+    alignItems: 'center',
+    height: height * 0.06,
+    marginTop: "5%"
+  },
+  detailsHeaderText: {
+    flex: 1,
+    fontSize: width * 0.04,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#ffffff',
+    paddingHorizontal: width * 0.02,
+    width: width * 0.2
+  },
+  detailsItemContainer: {
+    width: width * 1,
+    flexDirection: 'row',
     backgroundColor: '#0909ff',
-    padding: 8,
-    borderRadius: 4,
-    marginLeft: 16,
+    padding: width * 0.02,
+    marginBottom: height * 0.01,
+    borderRadius: width * 0.02,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#bdc3c7',
   },
-  confirmedButton: {
-    backgroundColor: 'green',
+  detailsItemText: {
+    flex: 1,
+    fontSize: width * 0.04,
+    textAlign: 'center',
+    color: '#333333',
+    paddingHorizontal: width * 0.02,
   },
-  text: {
+  column1: {
+    flex: 1,
+  },
+  column2: {
+    flex: 1.5,
+    flexDirection: "column"
+  },
+  column3: {
+    flex: 1,
+  },
+  column4: {
+    flex: 1,
+  },
+  detailsTitle: {
+    fontSize: width * 0.05,
+    fontWeight: 'bold',
+    paddingTop: height * -0.01,
+    marginTop: height * 0.012,
+    marginBottom: height * 0.01,
     color: '#fff',
-    fontSize: 16,
+    marginLeft: "20%",
+    height:height*0.035
+  },
+  rowColor1: {
+    backgroundColor: '#f9f9f9',
+  },
+  rowColor2: {
+    backgroundColor: '#ffffff',
   },
   centeredView: {
     flex: 1,
@@ -300,7 +405,7 @@ const styles = StyleSheet.create({
   },
   modalView: {
     margin: 20,
-    backgroundColor: 'white',
+    backgroundColor: '#ffffff',
     borderRadius: 20,
     padding: 35,
     alignItems: 'center',
@@ -313,23 +418,101 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
+
+  container: {
+    padding: 16,
+    backgroundColor: '#F5FCFF',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#000',
+    height: 60,
+  },
+  dateColumn: {
+    flexDirection: "column",
+  },
+  tableCell: {
+    flex: 1,
+    paddingHorizontal: 8,
+    color: "#000",
+    fontFamily: 'Courier',
+  },
+  confirmButton: {
+    backgroundColor: '#0909ff',
+    padding: 8,
+    borderRadius: 4,
+    marginLeft: 16,
+  },
+  confirmedButton: {
+    backgroundColor: 'green',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'Courier',
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalView: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'flex-start',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    width: '80%',
+  },
+  modalTitle: {
+    marginBottom: 15,
+    fontWeight: '600',
+    color: "#000",
+    fontSize: 20,
+    fontFamily: 'Courier',
+  },
+  modalText: {
+    marginBottom: 10,
+    color: "#000",
+    fontSize: 17,
+    fontFamily: 'Courier',
+    margin:15
+  },
+  button: {
+    backgroundColor: "#2196F3",
+    borderRadius: 5,
+    padding: 10,
+    elevation: 2,
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 10,
+  },
   buttonClose1: {
     backgroundColor: "green",
-    margin: "5%",
+    margin: 20,
     width: 200,
+    height: 30,
+    alignItems: 'center',
   },
   textStyle1: {
     color: 'white',
     fontWeight: 'bold',
     textAlign: 'center',
-    backgroundColor: "green"
+    fontSize: 20,
+    fontFamily: 'Courier',
   },
-  modalText: {
-    marginBottom: 15,
-    textAlign: 'center',
-    color: "#000",
-    fontSize: 17
-  },
-})
+});
 
 export default ConfirmEnquires;

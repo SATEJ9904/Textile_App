@@ -6,11 +6,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios'
 
-
-
 const { width } = Dimensions.get('window');
-
-
 
 const PlanLooms = ({ navigation }) => {
 
@@ -24,8 +20,6 @@ const PlanLooms = ({ navigation }) => {
   const [isFocus6, setIsFocus6] = useState(false);
   const [showDateFrom, setShowDateFrom] = useState(false)
   const [showDateTo, setShowDateTo] = useState(false)
-
-
   const [enquiryNo, setEnquiryNo] = useState('');
   const [traderName, setTraderName] = useState('');
   const [fromDate, setFromDate] = useState('');
@@ -56,23 +50,16 @@ const PlanLooms = ({ navigation }) => {
   const [jobRateOffered, setJobRateOffered] = useState('');
   const [counterOffer, setCounterOffer] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
-
-
   const [Name, setName] = useState("");
   const [AppUserId, setAppUserId] = useState("")
   const [LoomOrTrader, SetLoomOrTrader] = useState("")
   const [id, setId] = useState("")
-
   const [data, setData] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-
-
     fetchselectedEnquiryId();
-
-
     const callfuns = () => {
       fetch("")
         .then(getData())
@@ -82,8 +69,6 @@ const PlanLooms = ({ navigation }) => {
 
   }, [])
 
-
-  
   const fetchselectedEnquiryId = async () => {
     try {
       const response = await axios.get('https://textileapp.microtechsolutions.co.in/php/getidenquiry.php?Colname=TraderId&Colvalue=' + id);
@@ -207,9 +192,6 @@ const PlanLooms = ({ navigation }) => {
     callfuns();
   }, [])
 
-
-
-
   const handleItemPress = (item) => {
     setSelectedItem(item);
   };
@@ -309,6 +291,10 @@ const PlanLooms = ({ navigation }) => {
   const [EnquiryId, setEnquiryId] = useState("")
 
   const handleSubmit = () => {
+    calculateResult();
+
+    console.log("Fabric Quality = ", fabricQuality)
+
     const formdata = new FormData();
     formdata.append("EnquiryDate", formattedDate);
     formdata.append("TraderId", id);
@@ -336,8 +322,6 @@ const PlanLooms = ({ navigation }) => {
     console.log(formattedDate, id, Name, updatedDateFrom, updatedDateTo, fabricQuality, fabricLength, dalalAgent, loomNo, machineType, width, rpm, sheddingType, numFrames, numFeeders, selvadgeJacquard, topBeam, cramming, lenoDesign, availableLoomDates, numLoomsRequired, numLoomsPossible, jobRateOffered, counterOffer);
 
   };
-
-
 
   const SubmitEnquiryDetails = (result) => {
     const formdata = new FormData();
@@ -367,6 +351,29 @@ const PlanLooms = ({ navigation }) => {
     setShowForm(false)
     setShowTable(true)
   }
+
+
+  const [epi, setEpi] = useState('');
+  const [ppi, setPpi] = useState('');
+  const [warpCount, setWarpCount] = useState('');
+  const [weftCount, setWeftCount] = useState('');
+  const [panna, setPanna] = useState('');
+  const [result, setResult] = useState('');
+
+  const calculateResult = () => {
+    const epiValue = parseFloat(epi);
+    const ppiValue = parseFloat(ppi);
+    const warpCountValue = parseFloat(warpCount);
+    const weftCountValue = parseFloat(weftCount);
+    const pannaValue = parseFloat(panna);
+
+    if (epiValue && ppiValue && warpCountValue && weftCountValue && pannaValue) {
+      const calculatedResult = (epiValue + "*" + ppiValue + "/" + warpCountValue + "*" + weftCountValue + ":" + pannaValue);
+      setFabricQuality(calculatedResult);
+    } else {
+      setResult('Invalid Input');
+    }
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#e5f2fe" }}>
@@ -412,35 +419,6 @@ const PlanLooms = ({ navigation }) => {
           {
 
             showTable ? <View style={styles.container}>
-              <View style={styles.header}>
-                <View style={[styles.cell, { flex: 2 }]}>
-                  <Text style={styles.headerText}>Enquiry No.</Text>
-                </View>
-                <View style={[styles.cell, { flex: 2 }]}>
-                  <Text style={styles.headerText}>Date</Text>
-                </View>
-                <View style={[styles.cell, { flex: 3 }]}>
-                  <Text style={styles.headerText}>Trader Name</Text>
-                </View>
-              </View>
-
-              {data ?
-                data.map(item => (
-                  <TouchableOpacity key={item.id} onPress={() => handleItemPress(item)}>
-                    <View key={item.EnquiryId} style={[styles.header, { justifyContent: "space-evenly" }]}>
-                      <View style={[styles.cell, { flex: 2 }]}>
-                        <Text style={styles.headerText1}>{item.EnquiryNo}</Text>
-                      </View>
-                      <View style={[styles.cell, { flex: 2 }]}>
-                        <Text style={styles.headerText1}>{item.EnquiryDate.date.substring(0, 10)}</Text>
-                      </View>
-                      <View style={[styles.cell, { flex: 3 }]}>
-                        <Text style={styles.headerText1}>{Name}</Text>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-
-                )) : null}
 
               <TouchableOpacity onPress={() => Toggle()} style={{ backgroundColor: '#71B7E1', padding: 10, alignItems: 'center', marginTop: "10%" }}>
                 <Text style={{ color: 'white' }}>NEW</Text>
@@ -557,15 +535,57 @@ const PlanLooms = ({ navigation }) => {
                 <Text style={{ fontSize: 20, color: "#000", marginLeft: "5%", marginTop: "2.5%" }}>Paisa</Text>
               </View>
 
+              <Text style={{ color: "#000", fontSize: 18, marginLeft: "2%" }}>Fabric Quality :- </Text>
+              <View style={{ flexDirection: "row", marginLeft: "10%", marginTop: "5%" }}>
 
-              <TextInput
-                style={styles.input}
-                value={fabricQuality}
-                onChangeText={setFabricQuality}
-                placeholder="Fabric Quality"
-                placeholderTextColor={"#000"}
+                <TextInput
+                  style={{ height: 40, borderColor: 'gray', borderBottomWidth: 1, marginBottom: 10 }}
+                  placeholder="EPI"
+                  keyboardType="numeric"
+                  placeholderTextColor={"#000"}
+                  value={epi}
+                  onChangeText={setEpi}
+                />
+                <Text style={{ marginTop: "3%", fontSize: 20 }}> * </Text>
+                <TextInput
+                  style={{ height: 40, borderColor: 'gray', borderBottomWidth: 1, marginBottom: 10 }}
+                  placeholder="PPI"
+                  keyboardType="numeric"
+                  placeholderTextColor={"#000"}
+                  value={ppi}
+                  onChangeText={setPpi}
+                />
+                <Text style={{ marginTop: "3%", fontSize: 20 }}> / </Text>
+                <TextInput
+                  style={{ height: 40, borderColor: 'gray', borderBottomWidth: 1, marginBottom: 10 }}
+                  placeholder="WC"
+                  keyboardType="numeric"
+                  placeholderTextColor={"#000"}
+                  value={warpCount}
+                  onChangeText={setWarpCount}
+                />
+                <Text style={{ marginTop: "3%", fontSize: 20 }}> * </Text>
+                <TextInput
+                  style={{ height: 40, borderColor: 'gray', borderBottomWidth: 1, marginBottom: 10 }}
+                  placeholder="WC"
+                  keyboardType="numeric"
+                  placeholderTextColor={"#000"}
+                  value={weftCount}
+                  onChangeText={setWeftCount}
+                />
+                <Text style={{ marginTop: "3%", fontSize: 20 }}> : </Text>
+                <TextInput
+                  style={{ height: 40, borderColor: 'gray', borderBottomWidth: 1, marginBottom: 10 }}
+                  placeholder="Width"
+                  keyboardType="numeric"
+                  placeholderTextColor={"#000"}
+                  value={panna}
+                  onChangeText={setPanna}
+                />
 
-              />
+
+              </View>
+
               <TextInput
                 style={styles.input}
                 value={fabricLength}
@@ -607,15 +627,7 @@ const PlanLooms = ({ navigation }) => {
                   setIsFocus3(false);
                 }} />
 
-              <TextInput
-                style={styles.input}
-                value={width}
-                onChangeText={setWidth}
-                placeholder="Width"
-                keyboardType="numeric"
-                placeholderTextColor={"#000"}
 
-              />
               <TextInput
                 style={styles.input}
                 value={rpm}
@@ -626,7 +638,18 @@ const PlanLooms = ({ navigation }) => {
 
               />
 
+              <View style={{ flexDirection: "row", marginTop: "5%" }}>
+                <TextInput
+                  style={[styles.input, { width: "80%" }]}
+                  value={width}
+                  onChangeText={setWidth}
+                  placeholder="Width"
+                  keyboardType="numeric"
+                  placeholderTextColor={"#000"}
 
+                />
+                <Text style={{ color: "#000", fontSize: 17 }}>In cm</Text>
+              </View>
               <Dropdown
                 style={[styles.input, isFocus4 && { borderColor: 'blue' }]}
                 placeholderStyle={styles.placeholderStyle}
@@ -671,8 +694,6 @@ const PlanLooms = ({ navigation }) => {
                   setNumFrames(item.value);
                   setIsFocus5(false);
                 }} />
-
-
 
               <Dropdown
                 style={[styles.input, isFocus6 && { borderColor: 'blue' }]}
@@ -747,10 +768,6 @@ const PlanLooms = ({ navigation }) => {
                 <Text style={{ fontSize: 17, color: "#000" }}>yes</Text>
 
               </View>
-
-
-
-
 
               <View style={{ flexDirection: "row", justifyContent: "space-evenly" }}>
                 <TouchableOpacity style={[styles.button]} onPress={() => { handleSubmit() }}>

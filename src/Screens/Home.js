@@ -55,8 +55,6 @@ const Home = ({ navigation }) => {
   const [isConected, setisConnected] = useState(false)
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
-      console.log('Connection Type', state.type);
-      console.log('Is Connected ? ', state.isConnected);
       setisConnected(state.isConnected)
 
 
@@ -311,7 +309,7 @@ const Home = ({ navigation }) => {
           <Text style={{ fontSize: 22, color: "white", margin: "2.5%", marginLeft: "30%" }}>Home</Text>
         </View>
         <View style={{ alignItems: "center" }}>
-          <Text style={{ fontSize: 22, color: "#000", marginLeft: "0%", marginTop: "5%", marginRight: "5%", marginLeft: "5%" }}>Welcome :{Name},{id}</Text>
+          <Text style={{ fontSize: 22, color: "#000", marginLeft: "0%", marginTop: "5%", marginRight: "5%", marginLeft: "5%" }}>Welcome :{Name},{LoomOrTrader}</Text>
         </View>
 
 
@@ -487,7 +485,13 @@ const Home = ({ navigation }) => {
       </View>
 
 
-
+      <ScrollView
+        contentContainerStyle={styles.scrollView}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }>
+        
+      </ScrollView>
       {
         showmsg ? <View style={{ flex: 1, alignItems: "flex-end", justifyContent: "flex-end" }}>
           <View style={{
@@ -507,13 +511,7 @@ const Home = ({ navigation }) => {
         </View> : null
       }
 
-      <ScrollView
-        contentContainerStyle={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }>
-        <Text>Pull down to see RefreshControl indicator</Text>
-      </ScrollView>
+     
 
     </SafeAreaView>
   )

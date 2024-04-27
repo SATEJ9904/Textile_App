@@ -154,7 +154,8 @@ const Login = ({ navigation }) => {
                     borderWidth: 1.5,
                     borderColor: "#fff",
                     borderRadius: 20,
-                    marginTop: "30%"
+                    marginTop: "30%",
+                   
                 }}>
 
                     <Image
@@ -163,7 +164,7 @@ const Login = ({ navigation }) => {
                     />
 
                     <TextInput
-                        style={{ marginLeft: "5%", color: "#fff" }}
+                        style={{ marginLeft: "5%", color: "#fff",width:"70%"}}
                         placeholder='Email'
                         placeholderTextColor={"#fff"}
                         onChangeText={(txt) => setEmail(txt)}
@@ -187,7 +188,7 @@ const Login = ({ navigation }) => {
                     />
 
                     <TextInput
-                        style={{ marginLeft: "5%", color: "#fff" }}
+                        style={{ marginLeft: "5%", color: "#fff",width:"70%"}}
                         placeholder='Password'
                         placeholderTextColor={"#fff"}
                         onChangeText={(txt) => setPassword(txt)}

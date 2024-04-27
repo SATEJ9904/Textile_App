@@ -25,6 +25,7 @@ import LoomBooking from './src/Screens/LoomBooking';
 import CompletedOrders from './src/Screens/CompletedOrders';
 import GetYarnRates from './src/Screens/GetYarnRates';
 import LiveOrders from './src/Screens/LiveOrders';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -60,9 +61,9 @@ const LoomDrawerNavigator = () => (
       drawerActiveTintColor: '#FFF',
       drawerInactiveTintColor: '#033E3E',
       drawerLabelStyle: {
-        marginLeft: 10,
+        marginLeft: 0,
         fontFamily: 'Roboto-Medium',
-        fontSize: 15,
+        fontSize: 18,
       },
     }}>
     <LoomDrawer.Screen
@@ -70,16 +71,20 @@ const LoomDrawerNavigator = () => (
       name="Home"
       component={Home}
       options={{
-        drawerActiveBackgroundColor: '#71B7E1',
-        drawerActiveTintColor: '#FFF',
-        drawerInactiveTintColor: '#71B7E1',
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'home' : 'home'} size={25} color={'grey'} />
+        ),
         title: 'Home',
         drawerLabelStyle: {
-          marginLeft: 10,
+          marginLeft: 0,
           fontFamily: 'Roboto-Medium',
-          fontSize: 15,
+          fontSize: 18,
 
         },
+
 
       }} />
 
@@ -88,14 +93,17 @@ const LoomDrawerNavigator = () => (
       name="LoomDetails"
       component={LoomsDetails}
       options={{
-        drawerActiveBackgroundColor: '#71B7E1',
-        drawerActiveTintColor: '#FFF',
-        drawerInactiveTintColor: '#71B7E1',
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'address-card' : 'address-card'} size={25} color={'grey'} />
+        ),
         title: 'Looms Details',
         drawerLabelStyle: {
-          marginLeft: 10,
+          marginLeft: 0,
           fontFamily: 'Roboto-Medium',
-          fontSize: 15,
+          fontSize: 18,
 
         },
 
@@ -107,14 +115,17 @@ const LoomDrawerNavigator = () => (
       name="JobWorkEnquires"
       component={JobWorkEnquires}
       options={{
-        drawerActiveBackgroundColor: '#71B7E1',
-        drawerActiveTintColor: '#FFF',
-        drawerInactiveTintColor: '#71B7E1',
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'briefcase' : 'briefcase'} size={25} color={'grey'} />
+        ),
         title: 'Job Work Enquires',
         drawerLabelStyle: {
-          marginLeft: 10,
+          marginLeft: 0,
           fontFamily: 'Roboto-Medium',
-          fontSize: 15,
+          fontSize: 18,
 
         },
 
@@ -126,14 +137,17 @@ const LoomDrawerNavigator = () => (
       name="LoomBooking"
       component={LoomBooking}
       options={{
-        drawerActiveBackgroundColor: '#71B7E1',
-        drawerActiveTintColor: '#FFF',
-        drawerInactiveTintColor: '#71B7E1',
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'shopping-cart' : 'shopping-cart'} size={25} color={'grey'} />
+        ),
         title: 'LoomBooking',
         drawerLabelStyle: {
-          marginLeft: 10,
+          marginLeft: 0,
           fontFamily: 'Roboto-Medium',
-          fontSize: 15,
+          fontSize: 18,
 
         },
 
@@ -145,14 +159,18 @@ const LoomDrawerNavigator = () => (
       name="CompletedOrders"
       component={CompletedOrders}
       options={{
-        drawerActiveBackgroundColor: '#71B7E1',
-        drawerActiveTintColor: '#FFF',
-        drawerInactiveTintColor: '#71B7E1',
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'check' : 'check'} size={25} color={'grey'} />
+        ),
+
         title: 'Completed Orders',
         drawerLabelStyle: {
-          marginLeft: 10,
+          marginLeft: 0,
           fontFamily: 'Roboto-Medium',
-          fontSize: 15,
+          fontSize: 18,
 
         },
 
@@ -163,14 +181,17 @@ const LoomDrawerNavigator = () => (
       name="GetYarnRates"
       component={GetYarnRates}
       options={{
-        drawerActiveBackgroundColor: '#71B7E1',
-        drawerActiveTintColor: '#FFF',
-        drawerInactiveTintColor: '#71B7E1',
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'rupee' : 'rupee'} size={25} color={'grey'} />
+        ),
         title: 'Get Yarn Rates',
         drawerLabelStyle: {
           marginLeft: 10,
           fontFamily: 'Roboto-Medium',
-          fontSize: 15,
+          fontSize: 18,
 
         },
 
@@ -181,14 +202,17 @@ const LoomDrawerNavigator = () => (
       name="Live orders"
       component={LiveOrders}
       options={{
-        drawerActiveBackgroundColor: '#71B7E1',
-        drawerActiveTintColor: '#FFF',
-        drawerInactiveTintColor: '#71B7E1',
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'truck' : 'truck'} size={25} color={'grey'} />
+        ),
         title: 'Live Orders',
         drawerLabelStyle: {
-          marginLeft: 10,
+          marginLeft: 0,
           fontFamily: 'Roboto-Medium',
-          fontSize: 15,
+          fontSize: 18,
 
         },
 
@@ -200,14 +224,17 @@ const LoomDrawerNavigator = () => (
       name="Storage"
       component={Storage}
       options={{
-        drawerActiveBackgroundColor: '#71B7E1',
-        drawerActiveTintColor: '#FFF',
-        drawerInactiveTintColor: '#71B7E1',
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'sign-out' : 'sign-out'} size={25} color={'grey'} />
+        ),
         title: 'Exit',
         drawerLabelStyle: {
-          marginLeft: 10,
+          marginLeft: 0,
           fontFamily: 'Roboto-Medium',
-          fontSize: 15,
+          fontSize: 18,
 
         },
 
@@ -238,9 +265,12 @@ const TraderDrawerNavigator = () => (
       name="Home"
       component={Home}
       options={{
-        drawerActiveBackgroundColor: '#71B7E1',
-        drawerActiveTintColor: '#FFF',
-        drawerInactiveTintColor: '#71B7E1',
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'home' : 'home'} size={25} color={'grey'} />
+        ),
         title: 'Home',
         drawerLabelStyle: {
           marginLeft: 10,
@@ -257,9 +287,12 @@ const TraderDrawerNavigator = () => (
       name="LiveOrderstrader"
       component={LiveOrderstrader}
       options={{
-        drawerActiveBackgroundColor: '#71B7E1',
-        drawerActiveTintColor: '#FFF',
-        drawerInactiveTintColor: '#71B7E1',
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'truck' : 'truck'} size={25} color={'grey'} />
+        ),
         title: 'Live Orders',
         drawerLabelStyle: {
           marginLeft: 10,
@@ -275,9 +308,12 @@ const TraderDrawerNavigator = () => (
       name="PlanLooms"
       component={PlanLooms}
       options={{
-        drawerActiveBackgroundColor: '#71B7E1',
-        drawerActiveTintColor: '#FFF',
-        drawerInactiveTintColor: '#71B7E1',
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000', 
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'briefcase' : 'briefcase'} size={25} color={'grey'} />
+        ),
         title: 'PlanLooms',
         drawerLabelStyle: {
           marginLeft: 10,
@@ -293,9 +329,12 @@ const TraderDrawerNavigator = () => (
       name="GetYarnRatesTrader"
       component={GetYarnRatesTrader}
       options={{
-        drawerActiveBackgroundColor: '#71B7E1',
-        drawerActiveTintColor: '#FFF',
-        drawerInactiveTintColor: '#71B7E1',
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000', 
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'rupee' : 'rupee'} size={25} color={'grey'} />
+        ),
         title: 'Get Yarn Rates',
         drawerLabelStyle: {
           marginLeft: 10,
@@ -311,12 +350,15 @@ const TraderDrawerNavigator = () => (
       name="CalculationsTrader"
       component={CalculationsTrader}
       options={{
-        drawerActiveBackgroundColor: '#71B7E1',
-        drawerActiveTintColor: '#FFF',
-        drawerInactiveTintColor: '#71B7E1',
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000', 
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'calculator' : 'calculator'} size={25} color={'grey'} />
+        ),
         title: 'Calculations',
         drawerLabelStyle: {
-          marginLeft: 10,
+          marginLeft: 5,
           fontFamily: 'Roboto-Medium',
           fontSize: 15,
 
@@ -329,9 +371,12 @@ const TraderDrawerNavigator = () => (
       name="IncompleteOrders"
       component={IncompleteOrders}
       options={{
-        drawerActiveBackgroundColor: '#71B7E1',
-        drawerActiveTintColor: '#FFF',
-        drawerInactiveTintColor: '#71B7E1',
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000', 
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'exclamation-circle' : 'exclamation-circle'} size={25} color={'grey'} />
+        ),
         title: 'Incomplete Orders',
         drawerLabelStyle: {
           marginLeft: 10,
@@ -347,9 +392,12 @@ const TraderDrawerNavigator = () => (
       name="CompletedOrdersTrader"
       component={CompletedOrdersTrader}
       options={{
-        drawerActiveBackgroundColor: '#71B7E1',
-        drawerActiveTintColor: '#FFF',
-        drawerInactiveTintColor: '#71B7E1',
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000', 
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'check-circle' : 'check-circle'} size={25} color={'grey'} />
+        ),
         title: 'Completed Orders',
         drawerLabelStyle: {
           marginLeft: 10,
@@ -365,10 +413,13 @@ const TraderDrawerNavigator = () => (
       name="Storage"
       component={Storage}
       options={{
-        drawerActiveBackgroundColor: '#71B7E1',
-        drawerActiveTintColor: '#FFF',
-        drawerInactiveTintColor: '#71B7E1',
-        title: 'Storage',
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000', 
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'sign-out' : 'sign-out'} size={25} color={'grey'} />
+        ),
+        title: 'Exit',
         drawerLabelStyle: {
           marginLeft: 10,
           fontFamily: 'Roboto-Medium',

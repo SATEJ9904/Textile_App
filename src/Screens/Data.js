@@ -13,6 +13,8 @@ const Data = ({ navigation }) => {
     const [show, setShow] = useState(true);
     const [Id, setId] = useState("");
     const [LoomOrTrader, setLoomOrTrader] = useState("");
+    const [mobileno,setMobileNo]=useState("");
+    const [gstno,setGSTNO]=useState("")
 
 
 
@@ -33,12 +35,16 @@ const Data = ({ navigation }) => {
         const Name = await AsyncStorage.getItem("Name");
         const LoomOrTrader = await AsyncStorage.getItem("LoomOrTrader")
         const Id = await AsyncStorage.getItem("Id")
+        const PrimaryContact = await AsyncStorage.getItem("PrimaryContact")
+        const GSTNumber = await AsyncStorage.getItem("GSTNumber")
+
 
         setAppUserId(Email)
         setName(Name)
         setLoomOrTrader(LoomOrTrader)
         setId(Id)
-
+        setMobileNo(PrimaryContact)
+        setGSTNO(GSTNumber)
     }
 
     const fetchData = async () => {
@@ -55,6 +61,12 @@ const Data = ({ navigation }) => {
                     ),
                     await AsyncStorage.setItem(
                         "Id", item.Id.toString(),
+                    ),
+                    await AsyncStorage.setItem(
+                        "PrimaryContact", item.PrimaryContact.toString(),
+                    ),
+                    await AsyncStorage.setItem(
+                        "GSTNumber", item.GSTNumber.toString(),
                     ),
                     getData()
                 ))

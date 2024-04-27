@@ -137,7 +137,7 @@ const NewLogin = () => {
                     />
 
                     <TextInput
-                        style={{ marginLeft: "5%", color: "#fff" }}
+                        style={{ marginLeft: "5%", color: "#fff",width:"70%" }}
                         placeholder='Email'
                         placeholderTextColor={"#fff"}
                         onChangeText={(txt) => setEmail(txt)}
@@ -161,12 +161,12 @@ const NewLogin = () => {
                     />
 
                     <TextInput
-                        style={{ marginLeft: "5%",color:"#fff" }}
+                        style={{ marginLeft: "5%",color:"#fff" ,width:"70%"}}
                         placeholder='Password'
                         placeholderTextColor={"#fff"}
                         onChangeText={(txt) => setPassword(txt)}
                         value={Password}
-
+secureTextEntry
                     />
                 </View>
                 

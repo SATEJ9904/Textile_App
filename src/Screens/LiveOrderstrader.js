@@ -1,4 +1,4 @@
-import { StyleSheet, TextInput, Text, View, SafeAreaView, Modal, StatusBar, Pressable, TouchableOpacity, ImageBackground, ScrollView, Alert, Image } from 'react-native'
+import { StyleSheet, TextInput, Text, View, SafeAreaView, Modal, RefreshControl, StatusBar, Pressable, TouchableOpacity, ImageBackground, ScrollView, Alert, Image } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ImageView from "react-native-image-viewing";
@@ -8,10 +8,29 @@ import ImageView from "react-native-image-viewing";
 
 const LiveOrderstrader = ({ navigation }) => {
 
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    fetchDataWEFT();
+    fetchDataDI();
+    fetchDataBG();
+    fetchDataFD();
+    fetchDataFPAD();
+    fetchDataRGR();
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, []);
+
+
   const [orders, setOrders] = useState([]);
 
 
   useEffect(() => {
+
+    onRefresh();
+
     const fetchData = async () => {
       try {
         const response = await fetch('https://textileapp.microtechsolutions.co.in/php/gettable.php?table=LoomOrder');
@@ -50,7 +69,6 @@ const LiveOrderstrader = ({ navigation }) => {
       .then(fetchDataDI())
       .then(fetchDataBG())
       .then(fetchDataFD())
-      .then(fetchDataRGR())
 
   }
   useEffect(() => {
@@ -60,7 +78,6 @@ const LiveOrderstrader = ({ navigation }) => {
       .then(fetchDataDI())
       .then(fetchDataBG())
       .then(fetchDataFD())
-      .then(fetchDataRGR())
 
 
   }, []);
@@ -192,14 +209,10 @@ const LiveOrderstrader = ({ navigation }) => {
   const fetchDataRGR = async () => {
     try {
       const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=OrderGoodRemain&Colname=OrderNoId&Colvalue=' + selectedOrderID);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.json();
-      setOrderRGR(data);
-      data.map((item) => {
+      const json = await response.json();
+      setOrderRGR(json);
+      json.map((item)=>{
         setDateRGR(item.UpdatedOn.date.substring(0, 10))
-
       })
 
     } catch (error) {
@@ -208,15 +221,61 @@ const LiveOrderstrader = ({ navigation }) => {
   };
 
 
-  // First Piece Approval
+  // First Piece Approval sending
 
-  const [first_piece_approval, setFirst_Piece_Approval] = useState(" ")
+  const [first_piece_approval, setFirst_Piece_Approval] = useState(" ");
+  const [dateFPA,setdateFPA] = useState(null)
 
-  const SubmitFPA = () => {
+
+  const SubmitFPA = async () => {
+
+
+    console.log("Submitted Data = ", "User Id = ", id, "Order No = ", getOrderNo, "Comment = ", first_piece_approval)
+
+    const formdata = new FormData();
+    formdata.append("LoomTraderId", id);
+    formdata.append("OrderNoId", getOrderNo);
+    formdata.append("Comment", first_piece_approval);
+
+    const requestOptions = {
+      method: "POST",
+      body: formdata,
+      redirect: "follow"
+    };
+
+    fetch("https://textileapp.microtechsolutions.co.in/php/postorderfirstpiece.php", requestOptions)
+      .then((response) => response.text())
+      .then((result) => console.log(result))
+      .catch((error) => console.error(error));
     console.log(first_piece_approval)
     setFPAForm(false)
     setFirst_Piece_Approval(" ")
   }
+
+
+  // First Piece Approval Display
+
+  const [FPAD, setFPAD] = useState([]);
+
+
+  const fetchDataFPAD = async (order) => {
+
+    console.log("Got Id = ", order.LoomOrderId)
+
+    try {
+      const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getname.php?OrderNoId=' + order.LoomOrderId);
+      const json = await response.json();
+      setFPAD(json);
+      json.map((item)=>{
+        setdateFPA(item.UpdatedOn.date.substring(0, 10))
+      })
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+
+  };
+
 
   const [enlargedImage, setEnlargedImage] = React.useState(null);
 
@@ -262,6 +321,7 @@ const LiveOrderstrader = ({ navigation }) => {
     setSelectedOrder(order);
     setShowBlocks(false)
     setSelectedOrderID(order.LoomOrderId)
+    fetchDataFPAD(order)
     callfuns();
   };
 
@@ -282,6 +342,7 @@ const LiveOrderstrader = ({ navigation }) => {
     setDrawingInForm(false)
     setBeamGettingForm(false)
     setFPAForm(false)
+    setShow(false);
   }
 
   const FalseOthersWeft = () => {
@@ -292,7 +353,7 @@ const LiveOrderstrader = ({ navigation }) => {
     setDrawingInForm(false)
     setBeamGettingForm(false)
     setFPAForm(false)
-
+    setShow(false);
   }
 
   const FalseOthersFD = () => {
@@ -303,7 +364,7 @@ const LiveOrderstrader = ({ navigation }) => {
     setDrawingInForm(false)
     setBeamGettingForm(false)
     setFPAForm(false)
-
+    setShow(false);
   }
 
   const FalseOthersrgr = () => {
@@ -314,7 +375,7 @@ const LiveOrderstrader = ({ navigation }) => {
     setDrawingInForm(false)
     setBeamGettingForm(false)
     setFPAForm(false)
-
+    setShow(false);
   }
 
   const FalseOthersDI = () => {
@@ -325,7 +386,7 @@ const LiveOrderstrader = ({ navigation }) => {
     setremaining_Goods_ReturnForm(false);
     setBeamGettingForm(false)
     setFPAForm(false)
-
+    setShow(false);
   }
 
   const FalseOthersBG = () => {
@@ -336,7 +397,7 @@ const LiveOrderstrader = ({ navigation }) => {
     setFdForm(false);
     setremaining_Goods_ReturnForm(false);
     setFPAForm(false)
-
+    setShow(false);
   }
 
   const FalseOthersFPA = () => {
@@ -347,14 +408,17 @@ const LiveOrderstrader = ({ navigation }) => {
     setWeftform(false);
     setFdForm(false);
     setremaining_Goods_ReturnForm(false);
+    setShow(false);
   }
 
+  const [Action, setAction] = useState("")
 
   const handleButtonPress = (action) => {
     if (selectedOrder) {
       console.log(`Order No: ${selectedOrder.OrderNo}, Party Name: ${selectedOrder.PartyName}, Action: ${action}`);
+      setAction("Order No. : " + selectedOrder.OrderNo + "\nParty Name : " + selectedOrder.PartyName + "\nQuality : " + selectedOrder.Quality)
     }
-    callfuns()
+    callfuns();
   };
 
   const ToggleScreens = () => {
@@ -380,14 +444,21 @@ const LiveOrderstrader = ({ navigation }) => {
         </TouchableOpacity>
         <Text style={{ fontSize: 25, color: "white", margin: "2.5%", marginLeft: "25%" }}>Live Orders</Text>
       </View>
-      <ScrollView style={{ marginTop: "25%" }}>
+      <ScrollView style={{ marginTop: "25%" }} contentContainerStyle={styles.scrollView}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }>
+
+        <Text style={{ color: "#000", fontSize: 22 }}>{Action}</Text>
+
+
         {showBlocks ? <View style={styles.ordersContainer}>
           {orders.map((order, index) => (
             <TouchableOpacity
               key={index}
               style={styles.orderContainer}
               onPress={() => handleOrderPress(order)}>
-              <Text style={styles.orderText}>{`Order No: ${order.OrderNo}  ${order.LoomOrderId}    ${order.PartyName}`}</Text>
+              <Text style={styles.orderText}>{`Order No: ${order.OrderNo}     party Name : ${order.PartyName}   \n\n    Quality :${order.Quality}`}</Text>
             </TouchableOpacity>
           ))}
         </View> : null}
@@ -396,8 +467,8 @@ const LiveOrderstrader = ({ navigation }) => {
             <View style={{ alignItems: "center", justifyContent: "center", marginTop: "10%" }}>
               <View style={{ flexDirection: "row" }}>
                 <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Beam in'); FalseOthersBeamIn(); fetchData(); }}>
-                    <Text style={[styles.buttonText, styles.BeamInCss]}>Beam in</Text>
-                    <Text style={{ color: "#fff", textDecorationLine: "underline", marginLeft: "10%" }}>{dateBeamIn}</Text>
+                  <Text style={[styles.buttonText, styles.BeamInCss]}>Beam in</Text>
+                  <Text style={{ color: "#fff", textDecorationLine: "underline", marginLeft: "10%" }}>{dateBeamIn}</Text>
 
                 </TouchableOpacity>
 
@@ -568,7 +639,7 @@ const LiveOrderstrader = ({ navigation }) => {
                   <Text style={styles.buttonText}>Drawing in</Text>
                   <Text style={{ color: "#fff", textDecorationLine: "underline", marginLeft: "5%" }}>{dateDI}</Text>
                   {
-                    req === 1 ? <Text style={{ color: '#fff' }}>Done</Text > : null
+                    req === 1 ? <Text style={{ color: '#0909ff' }}>Done</Text > : null
                   }
                 </TouchableOpacity>
               </View>
@@ -612,7 +683,7 @@ const LiveOrderstrader = ({ navigation }) => {
                   <Text style={styles.buttonText}>Beam Getting</Text>
                   <Text style={{ color: "#fff", textDecorationLine: "underline", marginLeft: "5%" }}>{dateBG}</Text>
                   {
-                    reqBG === 1 ? <Text style={{ color: '#fff' }}>Done</Text > :null
+                    reqBG === 1 ? <Text style={{ color: '#0909ff' }}>Done</Text > : null
                   }
                 </TouchableOpacity>
               </View>
@@ -659,41 +730,57 @@ const LiveOrderstrader = ({ navigation }) => {
               <View style={{ flexDirection: "row" }}>
                 <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('First Piece Approval'); FalseOthersFPA() }}>
                   <Text style={styles.buttonText}>First Piece Approval</Text>
+                  <Text style={{ color: "#fff", textDecorationLine: "underline", marginLeft: "5%" }}>{dateFPA}</Text>
                 </TouchableOpacity>
               </View>
 
-              {fpaform ? <View style={{ width: "100%" }}>
-                <ScrollView horizontal={true} vertical={true}>
-                  <View style={[{ marginLeft: 10, width: 500 }, styles.table]}>
-                    <View style={styles.header1}>
-                      <Text style={styles.headerText1}>Description</Text>
-
-                    </View>
-
-
-
-
-
-                    {/*First Piece Approval FORM  */}
-
-
-
-
-
-
-                    <View style={{ flexDirection: "row", width: "100%" }}>
-                      <TextInput
-                        style={{ width: "80%", borderRadius: 15 }}
-                        placeholder='Description'
-                        placeholderTextColor={"#000"}
-                        value={first_piece_approval}
-                        onChangeText={(txt) => setFirst_Piece_Approval(txt)}
-                      />
-                    </View>
+              {fpaform ?
+                <View style={{ borderWidth: 1 }}>
+                  <View style={{justifyContent:"center"}}>
+                    <Text style={styles.headerText}>Messages</Text>
                   </View>
-                </ScrollView>
 
-              </View> : null}
+
+                  {FPAD.map((item, index) => (
+                    <View key={index} style={{ padding: 10, alignItems: "flex-start", justifyContent: "center", width: 400, borderBottomWidth: 1 }}>
+                      <Text style={{ color: "#000" }}>{item.UpdatedOn.date.substring(0, 10)}</Text>
+                      <Text style={{ color: "#000" }}>{item.Name} : {item.Comment}</Text>
+                    </View>
+                  ))}
+
+
+                  <View style={{ width: "100%", marginTop: 15 }}>
+                    <ScrollView horizontal={true} vertical={true}>
+                      <View style={[{ marginLeft: 10, width: 500 }, styles.table]}>
+                        <View style={styles.tableHeader}>
+                          <Text style={{color:"#000",fontSize:17}}>Any Comments...</Text>
+                        </View>
+
+
+
+                        {/*First Piece Approval FORM  */}
+
+
+
+
+
+
+                        <View style={{ flexDirection: "row", width: "100%" }}>
+                          <TextInput
+                            style={{ width: "80%", borderRadius: 15 }}
+                            placeholder='Any Coments....'
+                            placeholderTextColor={"#000"}
+                            value={first_piece_approval}
+                            onChangeText={(txt) => setFirst_Piece_Approval(txt)}
+                          />
+                        </View>
+                      </View>
+                    </ScrollView>
+                    <TouchableOpacity style={styles.submitButton} onPress={() => SubmitFPA()}>
+                      <Text style={styles.submitButtonText}>Submit</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View> : null}
               <View style={{ flexDirection: "row" }}>
                 <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Fabric Dispatch'), FalseOthersFD(); fetchDataFD(); }}>
                   <Text style={styles.buttonText}>Fabric Dispatch</Text>
@@ -988,7 +1075,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 10,
     width: "70%",
-    justifyContent:"space-between"
+    justifyContent: "space-between"
 
 
   },
@@ -1110,5 +1197,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: "#000",
     fontSize: 17
+  },
+  headerText: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    color: "#000"
   },
 })

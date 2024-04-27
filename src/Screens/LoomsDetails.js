@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput, ScrollView, Button } from 'react-native'
+import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput, ScrollView, Button, RefreshControl } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import CheckBox from '@react-native-community/checkbox';
@@ -9,6 +9,17 @@ import axios from 'axios';
 
 const LoomsDetails = ({ navigation }) => {
 
+    const [refreshing, setRefreshing] = React.useState(false);
+
+    const onRefresh = React.useCallback(() => {
+        setRefreshing(true)
+        getData()
+        setTimeout(() => {
+            setRefreshing(false);
+        }, 2000);
+    }, []);
+
+
 
     const [Name, setName] = useState("");
     const [AppUserId, setAppUserId] = useState("")
@@ -16,6 +27,7 @@ const LoomsDetails = ({ navigation }) => {
     const [id, setId] = useState("")
 
     useEffect(() => {
+        onRefresh();
         getData();
         console.log(Name, AppUserId, LoomOrTrader, id)
     }, [])
@@ -32,6 +44,10 @@ const LoomsDetails = ({ navigation }) => {
         setAppUserId(AppUserId)
         SetLoomOrTrader(LoomOrTrader)
         setId(Id)
+        console.log('ID', id)
+        setRows((prevRows) =>
+            prevRows.map((row) => ({ ...row, LoomTraderId: id }))
+        );
 
     }
 
@@ -41,10 +57,10 @@ const LoomsDetails = ({ navigation }) => {
     const [isFocus6, setIsFocus6] = useState(false);
 
 
-    const [rows, setRows] = useState([{ LoomTraderId: 69, LoomNo: null, MachineType: '', Width: '', RPM: '', SheddingType: '', NoofFrames: '', NoofFeeders: '', SelvageJacquard: false, TopBeam: false, Cramming: false, LenoDesignEquipment: false, Available: false }]);
+    const [rows, setRows] = useState([{ LoomTraderId: null, NoOfLooms: null, MachineType: '', Width: '', RPM: '', SheddingType: '', NoofFrames: '', NoofFeeders: '', SelvageJacquard: false, TopBeam: false, Cramming: false, LenoDesignEquipment: false, Available: false, Fromdate: '', ToDate: '', NoOfLooms: null }]);
 
     const addRow = () => {
-        setRows([...rows, { LoomTraderId: 69, LoomNo: null, MachineType: '', Width: '', RPM: '', SheddingType: '', NoofFrames: '', NoofFeeders: '', SelvageJacquard: false, TopBeam: false, Cramming: false, LenoDesignEquipment: false, Available: false }]);
+        setRows([...rows, { LoomTraderId: null, NoOfLooms: null, MachineType: '', Width: '', RPM: '', SheddingType: '', NoofFrames: '', NoofFeeders: '', SelvageJacquard: false, TopBeam: false, Cramming: false, LenoDesignEquipment: false, Available: false, Fromdate: '', ToDate: '', NoOfLooms: null }]);
     };
 
     const removeRow = (index) => {
@@ -59,12 +75,12 @@ const LoomsDetails = ({ navigation }) => {
         const newRows = [...rows];
         newRows[index][fieldName] = text;
         setRows(newRows);
-    
+
     };
 
     const handleSubmit = () => {
         const formdata = new FormData();
-        formdata.append("Value", rows);
+
 
         const requestOptions = {
             method: "POST",
@@ -77,45 +93,11 @@ const LoomsDetails = ({ navigation }) => {
             .then((result) => console.log(result))
             .catch((error) => console.error(error));
         // // setRows([{ loomNo: '', machineType: '', width: '', rpm: '', sheddingType: '', noOfFrames: '', noOfFeeders: '', selvageJacquard: '', topBeam: '', cramming: '', lenoDesignEquipment: '', available: '' }]);
-         console.log('Form submitted:', rows);
+        console.log('Form submitted:', rows);
     };
 
 
-    const postAPI = () => {
-     
-        let config = {
-            method: 'post',
-            maxBodyLength: Infinity,
-            url: 'https://textileapp.microtechsolutions.co.in/php/postloomdetail.php',
-            headers: { 
-              'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            data : {
-                'Value': rows,
-            }
-          };
-          
-          axios.request(config)
-          .then((response) => {
-            console.log(JSON.stringify(response.data));
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-         // console.log('Form submitted:', rows);
-
-    }
-
-
-    const Submit = () => {
-
-
-        
-
-        const qs = require('qs');
-        let data = qs.stringify({
-            'Value': rows
-        });
+    const postAPI = async(item) => {
 
         let config = {
             method: 'post',
@@ -124,7 +106,22 @@ const LoomsDetails = ({ navigation }) => {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
-            data: data
+            data: {
+                'LoomTraderId': await AsyncStorage.getItem("Id"),
+                'LoomNo': item.LoomNo,
+                'MachineType': item.MachineType,
+                'Width': item.Width,
+                'RPM': item.RPM,
+                'SheddingType': item.SheddingType,
+                'NoofFrames': item.NoofFrames,
+                'NoofFeeders': item.NoofFeeders,
+                'SelvageJacquard': item.SelvageJacquard,
+                'TopBeam': item.TopBeam,
+                'Cramming': item.Cramming,
+                'LenoDesignEquipment': item.LenoDesignEquipment,
+                'NoOfLooms':item.NoOfLooms,
+                'Available': item.Available
+            }
         };
 
         axios.request(config)
@@ -134,6 +131,18 @@ const LoomsDetails = ({ navigation }) => {
             .catch((error) => {
                 console.log(error);
             });
+        console.log('Form submitted:', rows);
+
+    }
+
+
+    const HandleSubmitRows = () => {
+
+        {
+            rows.map((item) => {
+                postAPI(item);
+            })
+        }
     }
 
 
@@ -248,11 +257,12 @@ const LoomsDetails = ({ navigation }) => {
                 <Text style={styles.headerText1}>Loom Details</Text>
             </View>
             <View style={styles.container}>
-                <Text style={{ color: "#000", fontSize: 25 }}>Loom Id : {id}</Text>
-                <ScrollView horizontal={true}>
+                <ScrollView horizontal={true} contentContainerStyle={styles.scrollView}
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                    }>
                     <View style={styles.table}>
                         <View style={styles.headerRow}>
-                            <Text style={[styles.header, styles.fieldName]}>Loom No</Text>
                             <Text style={[styles.header, styles.fieldName]}>Machine Type</Text>
                             <Text style={[styles.header, styles.fieldName]}>Width</Text>
                             <Text style={[styles.header, styles.fieldName]}>RPM</Text>
@@ -264,12 +274,14 @@ const LoomsDetails = ({ navigation }) => {
                             <Text style={[styles.header, styles.fieldName]}>Cramming</Text>
                             <Text style={[styles.header, styles.fieldName]}>Leno Design</Text>
                             <Text style={[styles.header, styles.fieldName]}>Available</Text>
+                            <Text style={[styles.header, styles.fieldName]}>Loom No</Text>
+                            <Text style={[styles.header, styles.fieldName]}>No Of Looms</Text>
+
+
                         </View>
                         {rows.map((row, index) => (
                             <View style={styles.row} key={index}>
-                                <View style={styles.field}>
-                                    <TextInput style={styles.input} value={row.LoomNo} keyboardType='number-pad' onChangeText={(text) => handleChange(text, index, 'LoomNo')} />
-                                </View>
+
                                 <View style={[styles.field, {}]}>
                                     <Dropdown
                                         style={[styles.dropdown, isFocus3 && { borderColor: 'blue', width: 150 }]}
@@ -292,10 +304,10 @@ const LoomsDetails = ({ navigation }) => {
 
                                 </View>
                                 <View style={styles.field}>
-                                    <TextInput style={styles.input} value={row.Width} onChangeText={(text) => handleChange(text, index, 'Width')} />
+                                    <TextInput style={styles.input} placeholder='Width' value={row.Width} onChangeText={(text) => handleChange(text, index, 'Width')} />
                                 </View>
                                 <View style={styles.field}>
-                                    <TextInput style={styles.input} value={row.RPM} onChangeText={(text) => handleChange(text, index, 'RPM')} />
+                                    <TextInput style={styles.input} placeholder='RPM' value={row.RPM} onChangeText={(text) => handleChange(text, index, 'RPM')} />
                                 </View>
                                 <View style={styles.field}>
                                     <Dropdown
@@ -418,6 +430,13 @@ const LoomsDetails = ({ navigation }) => {
                                         <Text style={{ fontSize: 17, color: "#000", marginLeft: 0 }}>yes</Text>
                                     </View>
                                 </View>
+                                <View style={styles.field}>
+
+
+                                    <TextInput style={styles.input} placeholder='Loom No' value={row.LoomNo} keyboardType='number-pad' onChangeText={(text) => handleChange(text, index, 'LoomNo')} />
+                                    <TextInput style={styles.input} placeholder='No Of Looms'  value={row.NoOfLooms} keyboardType='number-pad' onChangeText={(text) => handleChange(text, index, 'NoOfLooms')} />
+
+                                </View>
                                 {/* <View style={styles.field}>
                                     <TextInput style={styles.input} value={row.Available} onChangeText={(text) => handleChange(text, index, 'Available')} />
                                 </View> */}
@@ -434,7 +453,7 @@ const LoomsDetails = ({ navigation }) => {
                 <TouchableOpacity onPress={addRow} style={styles.addButton}>
                     <Text style={styles.addButtonText}>+</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={postAPI} style={styles.submitButton}>
+                <TouchableOpacity onPress={HandleSubmitRows} style={styles.submitButton}>
                     <Text style={styles.submitButtonText}>Submit</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={getData} style={styles.submitButton}>
@@ -503,7 +522,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     fieldName: {
-        marginRight: 10,
+        marginRight: 50,
         fontWeight: 'bold',
         minWidth: 100, // Adjust this value as needed
     },

@@ -1,46 +1,95 @@
-import { SafeAreaView, StyleSheet, Text, View, Modal, Pressable, StatusBar, Platform, TouchableOpacity, ImageBackground, TextInput, ScrollView, Image, Button } from 'react-native'
+import { SafeAreaView, StyleSheet, Text, View, Modal, Pressable, StatusBar, FlatList, RefreshControl, TouchableOpacity, ImageBackground, TextInput, ScrollView, Image, Button } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import DateTimePicker from '@react-native-community/datetimepicker';
 import CheckBox from '@react-native-community/checkbox';
 import ImageCropPicker from 'react-native-image-crop-picker';
 import { PermissionsAndroid } from 'react-native';
 import moment from 'moment';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 
 const LiveOrders = ({ navigation }) => {
 
-    const [orders, setOrders] = useState([]);
+    const [username, setUserName] = useState("");
+    const [AppUserId, setAppUserId] = useState("")
+    const [LoomOrTrader, SetLoomOrTrader] = useState("")
+    const [id, setId] = useState("")
 
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch('https://textileapp.microtechsolutions.co.in/php/gettable.php?table=LoomOrder');
-                const json = await response.json();
-                setOrders(json);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
-        };
+        getData();
+        console.log(username, AppUserId, LoomOrTrader, id)
+    }, [])
 
+
+
+    const getData = async () => {
+        const Name = await AsyncStorage.getItem("Name");
+        const AppUserId = await AsyncStorage.getItem("AppUserId");
+        const LoomOrTrader = await AsyncStorage.getItem("LoomOrTrader")
+        const Id = await AsyncStorage.getItem("Id")
+
+        setUserName(Name)
+        setAppUserId(AppUserId)
+        SetLoomOrTrader(LoomOrTrader)
+        setId(Id)
+
+    }
+
+
+    const [refreshing, setRefreshing] = React.useState(false);
+
+    const onRefresh = React.useCallback(() => {
+        setRefreshing(true);
+        fetchData();
+        getCurrentDate();
+        fetchDataFPAD();
+        getData();
+        setTimeout(() => {
+            setRefreshing(false);
+        }, 2000);
+    }, []);
+
+
+
+    useEffect(() => {
+        onRefresh();
         fetchData();
         handleButtonPress();
     }, []);
 
+
+    const [orders, setOrders] = useState([]);
+
+
+    const fetchData = async () => {
+        try {
+            const response = await fetch('https://textileapp.microtechsolutions.co.in/php/gettable.php?table=LoomOrder');
+            const json = await response.json();
+            setOrders(json);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    };
+
     const [currentDate, setCurrentDate] = useState('');
 
     useEffect(() => {
-        const getCurrentDate = () => {
-            const date = new Date();
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-
-            setCurrentDate(`${year}-${month}-${day}`);
-        };
 
         getCurrentDate();
     }, []);
+
+    const getCurrentDate = () => {
+        const date = new Date();
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+
+        setCurrentDate(`${year}-${month}-${day}`);
+    };
+
 
     const [showBlocks, setShowBlocks] = useState(true)
     const [selectedOrder, setSelectedOrder] = useState(null);
@@ -136,13 +185,14 @@ const LiveOrders = ({ navigation }) => {
         setremaining_Goods_ReturnForm(false);
     }
 
-    const [getOrderNo, setGetOrderNo] = useState("")
+    const [getOrderNo, setGetOrderNo] = useState(null)
 
     const handleOrderPress = (order) => {
         setGetOrderNo(order.LoomOrderId)
         console.log(order.LoomOrderId)
         setSelectedOrder(order);
         setShowBlocks(false);
+        fetchDataFPAD(order)
     };
 
     const [Action, setAction] = useState("")
@@ -167,7 +217,7 @@ const LiveOrders = ({ navigation }) => {
     // Beam Form 
 
 
-    const [beamIn, setBeamIn] = useState([{ date: new Date(), SizingTippanNo: null, PhotoPath: null }]);
+    const [beamIn, setBeamIn] = useState([{ date: new Date(), SizingTippanNo: null, PhotoPath: BIImage }]);
 
     const [showDatePickerBI, setShowDatePickerBI] = useState(false);
     const [selectedDateIndexBI, setSelectedDateIndexBI] = useState(0);
@@ -188,8 +238,10 @@ const LiveOrders = ({ navigation }) => {
         setBeamIn(updatedRows);
     };
 
+      const BIImage = require('../Images/camera.png')
+
     const handleAddRowBI = () => {
-        const newFormData = [...beamIn, { date: new Date(), SizingTippanNo: '', PhotoPath: null }];
+        const newFormData = [...beamIn, { date: new Date(), SizingTippanNo: '', PhotoPath: BIImage }];
         setBeamIn(newFormData);
     };
 
@@ -259,9 +311,9 @@ const LiveOrders = ({ navigation }) => {
 
     //WEFT Yard In Form 
 
-
-    const [Weft, setWeft] = useState([{ date: new Date(), GatePassNo: '', PhotoPathweft: null }]);
-
+    const WEFTImage = require('../Images/camera.png')
+    const [Weft, setWeft] = useState([{ date: new Date(), GatePassNo: '', PhotoPathweft: require("../Images/camera.png") }]);
+   
     const [showDatePickerWEFT, setShowDatePickerWEFT] = useState(false);
     const [selectedDateIndexWEFT, setSelectedDateIndexWEFT] = useState(0);
 
@@ -283,7 +335,7 @@ const LiveOrders = ({ navigation }) => {
     };
 
     const handleAddRowWEFT = () => {
-        const newFormData = [...Weft, { date: new Date(), GatePassNo: '', PhotoPathweft: null }];
+        const newFormData = [...Weft, { date: new Date(), GatePassNo: '', PhotoPathweft: require("../Images/camera.png") }];
         setWeft(newFormData);
     };
 
@@ -295,10 +347,10 @@ const LiveOrders = ({ navigation }) => {
 
     const HandleSubmitWEFT1 = (itemweft) => {
 
-       const integerNumber = parseInt(itemweft.GatePassNo);
+        const integerNumber = parseInt(itemweft.GatePassNo);
         console.log("Converted to Integer = ", integerNumber)
         let formatteddate = itemweft.date.toISOString().split('T')[0]
-        
+
 
 
         const formdata = new FormData();
@@ -401,23 +453,63 @@ const LiveOrders = ({ navigation }) => {
         console.log(beamgetting)
     }
 
-    // First Piece Approval
+    // First Piece Approval sending
 
     const [first_piece_approval, setFirst_Piece_Approval] = useState(" ")
-    
 
-    const SubmitFPA = () => {
+
+    const SubmitFPA = async () => {
+
+
+        console.log("Submitted Data = ", "User Id = ", id, "Order No = ", getOrderNo, "Comment = ", first_piece_approval)
+
+        const formdata = new FormData();
+        formdata.append("LoomTraderId", id);
+        formdata.append("OrderNoId", getOrderNo);
+        formdata.append("Comment", first_piece_approval);
+
+        const requestOptions = {
+            method: "POST",
+            body: formdata,
+            redirect: "follow"
+        };
+
+        fetch("https://textileapp.microtechsolutions.co.in/php/postorderfirstpiece.php", requestOptions)
+            .then((response) => response.text())
+            .then((result) => console.log(result))
+            .catch((error) => console.error(error));
         console.log(first_piece_approval)
         setFPAForm(false)
         setFirst_Piece_Approval(" ")
     }
 
 
+    // First Piece Approval Display
+
+    const [FPAD, setFPAD] = useState([]);
+
+
+    const fetchDataFPAD = async (order) => {
+
+        console.log("Got Id = ", order.LoomOrderId)
+
+        try {
+            const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getname.php?OrderNoId=' + order.LoomOrderId);
+            const json = await response.json();
+            setFPAD(json);
+
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+
+    };
+
     // Fabric Dispatch
 
-    const [tableRows, setTableRows] = useState([{ date: new Date(), Meter: '', Weight: '', PhotoPathFFD: null }]);
+    const [tableRows, setTableRows] = useState([{ date: new Date(), Meter: '', Weight: '', PhotoPathFFD: require("../Images/camera.png") }]);
     const [showDatePickerFD, setShowDatePickerFD] = useState(false);
     const [selectedDateIndexFD, setSelectedDateIndexFD] = useState(0);
+    const FDImage = require('../Images/camera.png')
 
 
 
@@ -437,7 +529,7 @@ const LiveOrders = ({ navigation }) => {
     };
 
     const handleAddRowFD = () => {
-        const newFormData = [...tableRows, { date: new Date(), Meter: '', weight: '', PhotoPathFFD: null }];
+        const newFormData = [...tableRows, { date: new Date(), Meter: '', weight: '', PhotoPathFFD: require("../Images/camera.png") }];
         setTableRows(newFormData);
     };
 
@@ -455,7 +547,7 @@ const LiveOrders = ({ navigation }) => {
         const integerNumber2 = parseInt(item.Weight, 10);
         console.log("Converted to Integer", integerNumber, integerNumber2, item.PhotoPathFFD.uri)
 
-
+````
         const formdata = new FormData();
         formdata.append("OrderNoId", getOrderNo);
         formdata.append("Date", formatteddate);
@@ -539,7 +631,7 @@ const LiveOrders = ({ navigation }) => {
         const integerNumber4 = parseInt(item.CutPiece, 10);
         const integerNumber5 = parseInt(item.Meter, 10);
 
-        console.log("Converted to Integer", integerNumber)
+        console.log("Converted to Integer", integerNumber,integerNumber2,integerNumber3,integerNumber4,integerNumber5)
 
 
         const formdata = new FormData();
@@ -557,7 +649,7 @@ const LiveOrders = ({ navigation }) => {
             redirect: "follow"
         };
 
-        fetch("https://textileapp.microtechsolutions.co.in/php/getorderreturn.php ", requestOptions)
+        fetch("https://textileapp.microtechsolutions.co.in/php/postorderreturn.php ", requestOptions)
             .then((response) => response.text())
             .then((result) => console.log(result))
             .catch((error) => console.error(error));
@@ -570,7 +662,7 @@ const LiveOrders = ({ navigation }) => {
     const HandleSubmitRGR = () => {
 
         {
-            beamIn.map((item) => {
+            remaining_goods_return.map((item) => {
                 HandleSubmiRGR1(item);
             })
         }
@@ -590,7 +682,10 @@ const LiveOrders = ({ navigation }) => {
                 </TouchableOpacity>
                 <Text style={{ fontSize: 25, color: "white", margin: "2.5%", marginLeft: "25%" }}>Live Orders</Text>
             </View>
-            <ScrollView>
+            <ScrollView contentContainerStyle={styles.scrollView}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                }>
                 <View>
                     <View style={styles.container}>
                         <View style={{ flexDirection: "row", marginBottom: "8%" }}>
@@ -632,7 +727,8 @@ const LiveOrders = ({ navigation }) => {
                                             <View style={[styles.table, { width: 520 }]}>
                                                 <View style={styles.header1}>
                                                     <Text style={styles.headerText1}>Date</Text>
-                                                    <Text style={[styles.headerText1, { marginRight: 180 }]}>Sizing Tippan Number</Text>
+                                                    <Text style={[styles.headerText1, { marginRight: 80 }]}>Sizing Tippan Number</Text>
+                                                    <Text style={[styles.headerText1,{marginRight:40}]}>Image</Text>
 
                                                 </View>
 
@@ -759,7 +855,9 @@ const LiveOrders = ({ navigation }) => {
                                             <View style={[styles.table, { width: 520 }]}>
                                                 <View style={styles.header1}>
                                                     <Text style={styles.headerText1}>Date</Text>
-                                                    <Text style={[styles.headerText1, { marginRight: 90 }]}>Gate Pass Number</Text>
+                                                    <Text style={[styles.headerText1, { marginRight: 30 }]}>Gate Pass Number</Text>
+                                                    <Text style={[styles.headerText1,{marginRight:20}]}>Image</Text>
+
 
                                                 </View>
                                                 {Weft.map((row, index) => (
@@ -951,14 +1049,24 @@ const LiveOrders = ({ navigation }) => {
                                     <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('First Piece Approval'); FalseOthersFPA() }}>
                                         <Text style={styles.buttonText}>First Piece Approval</Text>
                                     </TouchableOpacity>
-                                    {fpaform ? <View style={{ width: "100%" }}>
+                                    {fpaform ?
+                                   <View style={{borderWidth:1}}>
+                                   <View style={styles.tableHeader}>
+                                        <Text style={styles.headerText}>Messages</Text>
+                                    </View>
+
+
+                                    {FPAD.map((item, index) => (
+                                        <View key={index} style={{ padding: 10,alignItems:"flex-start",justifyContent:"center",width:400,borderBottomWidth:1 }}>
+                                            <Text style={{color:"#000"}}>{item.UpdatedOn.date.substring(0, 10)}</Text>
+                                            <Text style={{color:"#000"}}>{item.Name} : {item.Comment}</Text>
+                                        </View>
+                                    ))}
+
+
+                                   <View style={{ width: "100%",marginTop:15 }}>
                                         <ScrollView horizontal={true} vertical={true}>
                                             <View style={[{ marginLeft: 10, width: 500 }, styles.table]}>
-                                                <View style={styles.header1}>
-                                                    <Text style={styles.headerText1}>Description</Text>
-
-                                                </View>
-
 
 
 
@@ -973,7 +1081,7 @@ const LiveOrders = ({ navigation }) => {
                                                 <View style={{ flexDirection: "row", width: "100%" }}>
                                                     <TextInput
                                                         style={{ width: "80%", borderRadius: 15 }}
-                                                        placeholder='Description'
+                                                        placeholder='Any Coments....'
                                                         placeholderTextColor={"#000"}
                                                         value={first_piece_approval}
                                                         onChangeText={(txt) => setFirst_Piece_Approval(txt)}
@@ -984,7 +1092,8 @@ const LiveOrders = ({ navigation }) => {
                                         <TouchableOpacity style={styles.submitButton} onPress={() => SubmitFPA()}>
                                             <Text style={styles.submitButtonText}>Submit</Text>
                                         </TouchableOpacity>
-                                    </View> : null}
+                                    </View> 
+                                   </View> : null}
                                     <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Fabric Dispatch'), FalseOthersFD() }}>
                                         <Text style={styles.buttonText}>Fabric Dispatch</Text>
                                     </TouchableOpacity>
@@ -1008,10 +1117,10 @@ const LiveOrders = ({ navigation }) => {
                                         <ScrollView horizontal={true}>
                                             <View style={[styles.table, { width: 700, justifyContent: "space-between" }]}>
                                                 <View style={styles.header1}>
-                                                    <Text style={styles.headerText1}>Date</Text>
-                                                    <Text style={[styles.headerText1, { marginLeft: 0 }]}>Meter</Text>
+                                                    <Text style={[styles.headerText1,{marginLeft: -70}]}>Date</Text>
+                                                    <Text style={[styles.headerText1, { marginRight: 50 }]}>Meter</Text>
                                                     <Text style={[styles.headerText1, { marginLeft: 0 }]}>Weight</Text>
-                                                    <Text style={[styles.headerText1, { marginRight: 80 }]}>Image</Text>
+                                                    <Text style={[styles.headerText1, { marginRight: -50 }]}>Image</Text>
                                                 </View>
 
                                                 {tableRows.map((row, index) => (
@@ -1139,7 +1248,7 @@ const LiveOrders = ({ navigation }) => {
                                                     <Text style={styles.headerText1}>Yarn Count</Text>
                                                     <Text style={[styles.headerText1, { marginLeft: 0 }]}>Weight</Text>
                                                     <Text style={[styles.headerText1, { marginLeft: 0 }]}>Cut Piece</Text>
-                                                    <Text style={[styles.headerText1, { marginRight: 110 }]}>Weight</Text>
+                                                    <Text style={[styles.headerText1, { marginRight: 110 }]}>Meter</Text>
 
                                                 </View>
 
@@ -1303,7 +1412,7 @@ const styles = StyleSheet.create({
         padding: 10,
         backgroundColor: '#e5f2fe',
         borderWidth: 1,
-        justifyContent: "space-between"
+        justifyContent: 'space-evenly'
     },
     headerText1: {
         fontWeight: 'bold',
@@ -1330,7 +1439,6 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     button1: {
-
         alignItems: "center",
         backgroundColor: '#71B7E1',
         paddingVertical: 10,
@@ -1338,7 +1446,6 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         marginBottom: 10,
         width: "70%",
-
     },
     buttonText: {
         color: '#fff',
@@ -1466,5 +1573,93 @@ const styles = StyleSheet.create({
         color: "#000",
         marginLeft: "18%"
     },
+    tableHeader: {
+        width: 400,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        padding: 10,
+        backgroundColor: '#0909ff',
+        marginBottom:15
+    },
+    headerText: {
+        fontWeight: 'bold',
+        fontSize: 16,
+        color:"#fff"
+    },
+    tableRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        padding: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+    },
+    tableCell: {
+        flex: 1,
+        fontSize: 16,
+    },
+    '@media (max-width: 768px)': {
+        container: {
+            padding: 10,
+        },
+        heading: {
+            fontSize: 20,
+        },
+        orderContainer: {
+            width: '95%',
+        },
+        button1: {
+            width: "80%",
+        },
+        input: {
+            width: '30%',
+        },
+        button: {
+            fontSize: 20,
+        },
+        table: {
+            width: '100%',
+        },
+        tableHeader: {
+            width: '100%',
+        },
+        row: {
+            width: '100%',
+        },
+    },
+    '@media (max-width: 480px)': {
+        heading: {
+            fontSize: 18,
+        },
+        orderContainer: {
+            width: '100%',
+        },
+        button1: {
+            width: "100%",
+        },
+        input: {
+            width: '40%',
+        },
+        button: {
+            fontSize: 18,
+        },
+    },
+    '@media (max-width: 320px)': {
+        heading: {
+            fontSize: 16,
+        },
+        orderContainer: {
+            width: '100%',
+        },
+        button1: {
+            width: "100%",
+        },
+        input: {
+            width: '50%',
+        },
+        button: {
+            fontSize: 16,
+        },
+    }
+    
 
 })
