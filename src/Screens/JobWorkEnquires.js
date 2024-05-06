@@ -3,6 +3,7 @@ import { View, StyleSheet, Text, ScrollView, Dimensions, TouchableOpacity, TextI
 import axios from 'axios';
 import DatePicker from '@react-native-community/datetimepicker'; // Import the DatePicker component
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import NetInfo from "@react-native-community/netinfo";
 
 const { width } = Dimensions.get('window');
 
@@ -26,6 +27,29 @@ const JobWorkEnquires = ({ navigation }) => {
   const [gstno, setGSTNO] = useState("")
 
   const tableHead = ['Enquiry ID', 'Enquiry Date', 'Trader ID'];
+
+  const [showmsg, setShowMsg] = useState(true)
+  const [isConected, setisConnected] = useState(false)
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setisConnected(state.isConnected)
+
+
+      if (state.isConnected == true) {
+        setTimeout(() => {
+          setShowMsg(false)
+        }, 5000)
+      } else {
+        setShowMsg(true)
+      }
+    })
+
+
+
+    return () => {
+      unsubscribe();
+    }
+  })
 
 
   const [refreshing, setRefreshing] = React.useState(false);
@@ -378,12 +402,7 @@ const JobWorkEnquires = ({ navigation }) => {
               <Text style={styles.detailLabel}>Selvadge Jacquard</Text>
               <Text style={[styles.detailValue, { color: '#007bff' }]}>Required</Text>
             </View>
-          ) : (
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Selvadge Jacquard</Text>
-              <Text style={[styles.detailValue, { color: '#dc3545' }]}>Not Required</Text>
-            </View>
-          )}
+          ) : null}
           {selectedEnquiry.TopBeam === 1 ? (
             <View style={styles.detailItem}>
               <Text style={styles.detailLabel}>Top Beam</Text>
@@ -412,6 +431,7 @@ const JobWorkEnquires = ({ navigation }) => {
                 value={selectedEnquiry.BookingFrom.date.substring(0, 10)}
                 onChangeText={setFromDate}
                 keyboardType="numeric"
+                placeholderTextColor={'#000'} 
               />
               <TouchableOpacity onPress={() => setFromDatePickerVisible(true)}>
                 <ImageBackground
@@ -428,6 +448,7 @@ const JobWorkEnquires = ({ navigation }) => {
                   mode="date"
                   is24Hour={true}
                   display="default"
+                  minimumDate={new Date()}
                   onChange={handleFromDateChange}
                 />
               )}
@@ -439,6 +460,7 @@ const JobWorkEnquires = ({ navigation }) => {
                 value={selectedEnquiry.BookingTo.date.substring(0, 10)}
                 onChangeText={setToDate}
                 keyboardType="numeric"
+                placeholderTextColor={'#000'} 
               />
               <TouchableOpacity onPress={() => setToDatePickerVisible(true)}>
                 <ImageBackground
@@ -454,6 +476,7 @@ const JobWorkEnquires = ({ navigation }) => {
                   mode="date"
                   is24Hour={true}
                   display="default"
+                  minimumDate={new Date()}
                   onChange={handleToDateChange}
                 />
               )}
@@ -461,7 +484,6 @@ const JobWorkEnquires = ({ navigation }) => {
             <TouchableOpacity style={styles.checkAvailabilityButton} onPress={() => postLoomData()}>
               <Text style={styles.checkAvailabilityText}>Check Availability</Text>
             </TouchableOpacity>
-
 
             <View style={{ flexDirection: 'row', marginTop: 20, width: "50%", marginBottom: 20 }}>
               <Text style={{ fontSize: 16, color: "#000" }}>Available Loom No : </Text>
@@ -543,12 +565,6 @@ const JobWorkEnquires = ({ navigation }) => {
               </TouchableOpacity>
           }
           <Text style={{ fontSize: 25, color: "white", margin: "2.5%", marginLeft: "25%" }}>Job Enquiry</Text>
-          <TouchableOpacity>
-            <Image
-              style={{ width: 40, height: 40, marginLeft: "28%", marginTop: "5.5%" }}
-              source={require("../Images/refresh2.png")}
-            />
-          </TouchableOpacity>
         </View>
 
 
@@ -562,6 +578,30 @@ const JobWorkEnquires = ({ navigation }) => {
           <View style={styles.dataWrapper}>{renderEnquiryDetails()}</View>
         ) : null}
       </ScrollView>
+      {
+        showmsg ? <View style={{ flex: 1, alignItems: "flex-end", justifyContent: "flex-end" }}>
+          <View style={{
+            bottom: 0,
+            height: 20,
+            width: '100%',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: isConected ? 'green' : 'red'
+
+          }}>
+          <Text style={{ color: "#fff" }}>
+              {(()=>{
+                if(isConected === true) {
+                  'Back Online'
+                }else{
+                  navigation.navigate("NoInternet")
+                }
+              })}
+            </Text>
+
+          </View>
+        </View> : null
+      }
     </View>
   );
 };

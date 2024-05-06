@@ -39,6 +39,7 @@ import IncompleteOrders from './src/Screens/IncompleteOrders';
 import HomeTrader from './src/Screens/HomeTrader';
 import LoomsDetails from './src/Screens/LoomsDetails';
 import ConfirmEnquires from './src/Screens/ConfirmEnquires';
+import NoInternetScreen from './src/Screens/NoInternet';
 
 
 
@@ -84,8 +85,6 @@ const LoomDrawerNavigator = () => (
           fontSize: 18,
 
         },
-
-
       }} />
 
     <LoomDrawer.Screen
@@ -104,9 +103,7 @@ const LoomDrawerNavigator = () => (
           marginLeft: 0,
           fontFamily: 'Roboto-Medium',
           fontSize: 18,
-
         },
-
       }} />
 
 
@@ -126,9 +123,7 @@ const LoomDrawerNavigator = () => (
           marginLeft: 0,
           fontFamily: 'Roboto-Medium',
           fontSize: 18,
-
         },
-
       }} />
 
 
@@ -148,9 +143,7 @@ const LoomDrawerNavigator = () => (
           marginLeft: 0,
           fontFamily: 'Roboto-Medium',
           fontSize: 18,
-
         },
-
       }} />
 
 
@@ -165,15 +158,12 @@ const LoomDrawerNavigator = () => (
         drawerIcon: ({ focused }) => (
           <Icon name={focused ? 'check' : 'check'} size={25} color={'grey'} />
         ),
-
         title: 'Completed Orders',
         drawerLabelStyle: {
           marginLeft: 0,
           fontFamily: 'Roboto-Medium',
           fontSize: 18,
-
         },
-
       }} />
 
     <LoomDrawer.Screen
@@ -192,9 +182,7 @@ const LoomDrawerNavigator = () => (
           marginLeft: 10,
           fontFamily: 'Roboto-Medium',
           fontSize: 18,
-
         },
-
       }} />
 
     <LoomDrawer.Screen
@@ -212,10 +200,8 @@ const LoomDrawerNavigator = () => (
         drawerLabelStyle: {
           marginLeft: 0,
           fontFamily: 'Roboto-Medium',
-          fontSize: 18,
-
+          fontSize: 18
         },
-
       }} />
 
 
@@ -235,9 +221,7 @@ const LoomDrawerNavigator = () => (
           marginLeft: 0,
           fontFamily: 'Roboto-Medium',
           fontSize: 18,
-
         },
-
       }} />
 
   </LoomDrawer.Navigator>
@@ -490,6 +474,8 @@ const App = () => {
         <Stack.Screen name="Data" component={Data} />
         <Stack.Screen name="LoomBooking" component={LoomBooking} />
         <Stack.Screen name="ConfirmEnquires" component={ConfirmEnquires} />
+        <Stack.Screen name="NoInternet" component={NoInternetScreen} />
+
 
       </Stack.Navigator>
     </NavigationContainer>

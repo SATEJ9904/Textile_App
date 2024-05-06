@@ -57,6 +57,8 @@ const CustomDrawer = (props) => {
         .then(await AsyncStorage.removeItem('LoomOrTrader'))
         .then(await AsyncStorage.removeItem('AppUserId'))
         .then(await AsyncStorage.removeItem("Id"))
+        .then(await AsyncStorage.removeItem("PrimaryContact"))
+        .then(await AsyncStorage.removeItem("GSTNumber"))
       console.log("data deleted")
       navigation.navigate("Splash")
     } catch (err) {
@@ -119,9 +121,9 @@ const CustomDrawer = (props) => {
             </View>
 
             <View>
-              <Text style={{ color: "#fff", fontSize: 25, marginLeft: "5%", marginTop: "-15%",fontWeight:"700" }}>{Name}</Text>
-              <Text style={{ color: "#fff", fontSize: 20, marginLeft: "5%", marginTop: "2%",fontWeight:"700"  }}>{mobileno}</Text>
-              <Text style={{ color: "#fff", fontSize: 20, marginLeft: "5%", marginTop: "2%" ,fontWeight:"700" }}>{gstno}</Text>
+              <Text style={{ color: "#fff", fontSize: 22, marginLeft: "5%", marginTop: "-7%",fontWeight:"700" }}>{Name}</Text>
+              <Text style={{ color: "#fff", fontSize: 17, marginLeft: "5%", marginTop: "2%" }}>{mobileno}</Text>
+              <Text style={{ color: "#fff", fontSize: 17, marginLeft: "5%", marginTop: "2%" }}>{gstno}</Text>
             </View>
 
 

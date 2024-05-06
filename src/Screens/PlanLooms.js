@@ -6,6 +6,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios'
 
+
 const { width } = Dimensions.get('window');
 
 const PlanLooms = ({ navigation }) => {
@@ -77,7 +78,6 @@ const PlanLooms = ({ navigation }) => {
       console.error(error);
     }
   };
-
 
 
 
@@ -474,6 +474,7 @@ const PlanLooms = ({ navigation }) => {
                         value={datefrom}
                         mode={modefrom}
                         is24Hour={false}
+                        minimumDate={new Date()}
                         display='default'
                         onChange={(DateFrom)} />
                     )
@@ -505,6 +506,7 @@ const PlanLooms = ({ navigation }) => {
                         value={dateto}
                         mode={modeto}
                         is24Hour={false}
+                        minimumDate={new Date()}
                         display='default'
                         onChange={(DateTo)} />
                     )
@@ -783,6 +785,7 @@ const PlanLooms = ({ navigation }) => {
           </ScrollView>
           : null
       }
+     
       <Modal
         animationType="slide"
         transparent={true}

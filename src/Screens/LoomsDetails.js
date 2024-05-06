@@ -5,6 +5,7 @@ import CheckBox from '@react-native-community/checkbox';
 import { Dropdown } from 'react-native-element-dropdown';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import NetInfo from "@react-native-community/netinfo";
 
 
 const LoomsDetails = ({ navigation }) => {
@@ -19,7 +20,28 @@ const LoomsDetails = ({ navigation }) => {
         }, 2000);
     }, []);
 
-
+    const [showmsg, setShowMsg] = useState(true)
+    const [isConected, setisConnected] = useState(false)
+    useEffect(() => {
+      const unsubscribe = NetInfo.addEventListener(state => {
+        setisConnected(state.isConnected)
+  
+  
+        if (state.isConnected == true) {
+          setTimeout(() => {
+            setShowMsg(false)
+          }, 5000)
+        } else {
+          setShowMsg(true)
+        }
+      })
+  
+  
+  
+      return () => {
+        unsubscribe();
+      }
+    })
 
     const [Name, setName] = useState("");
     const [AppUserId, setAppUserId] = useState("")
@@ -97,7 +119,7 @@ const LoomsDetails = ({ navigation }) => {
     };
 
 
-    const postAPI = async(item) => {
+    const postAPI = async (item) => {
 
         let config = {
             method: 'post',
@@ -119,7 +141,7 @@ const LoomsDetails = ({ navigation }) => {
                 'TopBeam': item.TopBeam,
                 'Cramming': item.Cramming,
                 'LenoDesignEquipment': item.LenoDesignEquipment,
-                'NoOfLooms':item.NoOfLooms,
+                'NoOfLooms': item.NoOfLooms,
                 'Available': item.Available
             }
         };
@@ -246,7 +268,7 @@ const LoomsDetails = ({ navigation }) => {
     }, [])
 
     return (
-        <SafeAreaView>
+        <SafeAreaView style={{height:"100%"}}>
             <View style={styles.header2}>
                 <TouchableOpacity style={styles.header1} onPress={() => navigation.openDrawer()}>
                     <Image
@@ -304,10 +326,10 @@ const LoomsDetails = ({ navigation }) => {
 
                                 </View>
                                 <View style={styles.field}>
-                                    <TextInput style={styles.input} placeholder='Width' value={row.Width} onChangeText={(text) => handleChange(text, index, 'Width')} />
+                                    <TextInput style={styles.input} placeholder='Width' placeholderTextColor={'#000'} value={row.Width} onChangeText={(text) => handleChange(text, index, 'Width')} />
                                 </View>
                                 <View style={styles.field}>
-                                    <TextInput style={styles.input} placeholder='RPM' value={row.RPM} onChangeText={(text) => handleChange(text, index, 'RPM')} />
+                                    <TextInput style={styles.input} placeholder='RPM' placeholderTextColor={'#000'}  value={row.RPM} onChangeText={(text) => handleChange(text, index, 'RPM')} />
                                 </View>
                                 <View style={styles.field}>
                                     <Dropdown
@@ -433,8 +455,8 @@ const LoomsDetails = ({ navigation }) => {
                                 <View style={styles.field}>
 
 
-                                    <TextInput style={styles.input} placeholder='Loom No' value={row.LoomNo} keyboardType='number-pad' onChangeText={(text) => handleChange(text, index, 'LoomNo')} />
-                                    <TextInput style={styles.input} placeholder='No Of Looms'  value={row.NoOfLooms} keyboardType='number-pad' onChangeText={(text) => handleChange(text, index, 'NoOfLooms')} />
+                                    <TextInput style={styles.input} placeholder='Loom No' placeholderTextColor={'#000'}  value={row.LoomNo} keyboardType='number-pad' onChangeText={(text) => handleChange(text, index, 'LoomNo')} />
+                                    <TextInput style={styles.input} placeholder='No Of Looms' placeholderTextColor={'#000'}  value={row.NoOfLooms} keyboardType='number-pad' onChangeText={(text) => handleChange(text, index, 'NoOfLooms')} />
 
                                 </View>
                                 {/* <View style={styles.field}>
@@ -460,6 +482,30 @@ const LoomsDetails = ({ navigation }) => {
                     <Text style={styles.submitButtonText}>refresh</Text>
                 </TouchableOpacity>
             </View>
+            {
+                showmsg ? <View style={{ flex:2, alignItems: "flex-end", justifyContent: "flex-end"}}>
+                    <View style={{
+                        bottom: 0,
+                        height: 20,
+                        width: '100%',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        backgroundColor: isConected ? 'green' : 'red'
+
+                    }}>
+                        <Text style={{ color: "#fff" }}>
+              {(()=>{
+                if(isConected === true) {
+                  'Back Online'
+                }else{
+                  navigation.navigate("NoInternet")
+                }
+              })}
+            </Text>
+
+                    </View>
+                </View> : null
+            }
         </SafeAreaView>
     )
 }
@@ -524,7 +570,8 @@ const styles = StyleSheet.create({
     fieldName: {
         marginRight: 50,
         fontWeight: 'bold',
-        minWidth: 100, // Adjust this value as needed
+        minWidth: 100, 
+        color:"#000"// Adjust this value as needed
     },
     inputLabel: {
         flex: 0,

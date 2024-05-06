@@ -2,6 +2,7 @@ import { StyleSheet, TextInput, Text, View, SafeAreaView, Modal, RefreshControl,
 import React, { useState, useEffect } from 'react'
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ImageView from "react-native-image-viewing";
+import NetInfo from "@react-native-community/netinfo";
 
 
 
@@ -22,6 +23,30 @@ const LiveOrderstrader = ({ navigation }) => {
       setRefreshing(false);
     }, 2000);
   }, []);
+
+
+  const [showmsg, setShowMsg] = useState(true)
+  const [isConected, setisConnected] = useState(false)
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setisConnected(state.isConnected)
+
+
+      if (state.isConnected == true) {
+        setTimeout(() => {
+          setShowMsg(false)
+        }, 5000)
+      } else {
+        setShowMsg(true)
+      }
+    })
+
+
+
+    return () => {
+      unsubscribe();
+    }
+  })
 
 
   const [orders, setOrders] = useState([]);
@@ -946,6 +971,34 @@ const LiveOrderstrader = ({ navigation }) => {
               <TouchableOpacity style={[styles.button1, { backgroundColor: "red", alignItems: "center", marginTop: 20 }]} onPress={() => ToggleScreens()}>
                 <Text style={[styles.buttonText, { color: "#fff" }]}>Back</Text>
               </TouchableOpacity>
+
+
+
+              {
+        showmsg ? <View style={{ flex: 1, alignItems: "flex-end", justifyContent: "flex-end" }}>
+          <View style={{
+            bottom: 0,
+            height: 20,
+            width: '100%',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: isConected ? 'green' : 'red'
+
+          }}>
+           <Text style={{ color: "#fff" }}>
+              {(()=>{
+                if(isConected === true) {
+                  'Back Online'
+                }else{
+                  navigation.navigate("NoInternet")
+                }
+              })}
+            </Text>
+
+          </View>
+        </View> : null
+      }
+
 
             </View>
             <Modal

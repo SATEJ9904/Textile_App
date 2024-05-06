@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Modal, ImageBackground, ScrollView, FlatList, Pressable, Image } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import NetInfo from "@react-native-community/netinfo";
 
 
 const { width, height } = Dimensions.get('window');
@@ -26,6 +27,29 @@ const ConfirmEnquires = ({ navigation }) => {
   const [LoomOrTrader, setLoomOrTrader] = useState("");
   const [mobileno, setMobileNo] = useState("");
   const [gstno, setGSTNO] = useState("")
+
+  const [showmsg, setShowMsg] = useState(true)
+  const [isConected, setisConnected] = useState(false)
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setisConnected(state.isConnected)
+
+
+      if (state.isConnected == true) {
+        setTimeout(() => {
+          setShowMsg(false)
+        }, 5000)
+      } else {
+        setShowMsg(true)
+      }
+    })
+
+
+
+    return () => {
+      unsubscribe();
+    }
+  })
 
 
   const getData = async () => {
@@ -150,7 +174,7 @@ const ConfirmEnquires = ({ navigation }) => {
         <>
           {showE ? (
             <ScrollView style={styles.flatList}>
-              <View style={{ flexDirection: "row", backgroundColor: "#71B7E1",width:"100%",marginBottom:"5%" }}>
+              <View style={{ flexDirection: "row", backgroundColor: "#71B7E1", width: "100%", marginBottom: "5%" }}>
                 <TouchableOpacity onPress={() => navigation.navigate('PlanLooms')}>
                   <ImageBackground
                     source={require("../Images/back.png")}
@@ -233,6 +257,30 @@ const ConfirmEnquires = ({ navigation }) => {
               </ScrollView>
             </View>
           ) : null}
+          {
+            showmsg ? <View style={{ flex: 2, alignItems: "flex-end", justifyContent: "flex-end" }}>
+              <View style={{
+                bottom: 0,
+                height: 20,
+                width: '100%',
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: isConected ? 'green' : 'red'
+
+              }}>
+                <Text style={{ color: "#fff" }}>
+                  {(() => {
+                    if (isConected === true) {
+                      'Back Online'
+                    } else {
+                      navigation.navigate("NoInternet")
+                    }
+                  })}
+                </Text>
+
+              </View>
+            </View> : null
+          }
           <Modal
             animationType="slide"
             transparent={true}
@@ -243,14 +291,14 @@ const ConfirmEnquires = ({ navigation }) => {
           >
             <View style={styles.centeredView}>
               <View style={styles.modalView}>
-                <View style={{justifyContent:"space-between",flexDirection:"row",width:"100%"}}>
-                <Text style={styles.modalTitle}>Details</Text>
-                <TouchableOpacity onPress={()=>setShowModal(false)}>
-                  <Image
-                  style={{width:25,height:25}}
-                  source={require("../Images/cross.png")}
-                  />
-                </TouchableOpacity>
+                <View style={{ justifyContent: "space-between", flexDirection: "row", width: "100%" }}>
+                  <Text style={styles.modalTitle}>Details</Text>
+                  <TouchableOpacity onPress={() => setShowModal(false)}>
+                    <Image
+                      style={{ width: 25, height: 25 }}
+                      source={require("../Images/cross.png")}
+                    />
+                  </TouchableOpacity>
                 </View>
                 <Text style={styles.modalText}>Enquiry ID: {selectedData?.EnquiryId}</Text>
                 <Text style={styles.modalText}>Loom Possible To Assign: {selectedData?.LoomPossible}</Text>
@@ -389,7 +437,7 @@ const styles = StyleSheet.create({
     marginBottom: height * 0.01,
     color: '#fff',
     marginLeft: "20%",
-    height:height*0.035
+    height: height * 0.035
   },
   rowColor1: {
     backgroundColor: '#f9f9f9',
@@ -488,7 +536,7 @@ const styles = StyleSheet.create({
     color: "#000",
     fontSize: 17,
     fontFamily: 'Courier',
-    margin:15
+    margin: 15
   },
   button: {
     backgroundColor: "#2196F3",

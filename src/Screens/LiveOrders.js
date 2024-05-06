@@ -7,6 +7,7 @@ import { PermissionsAndroid } from 'react-native';
 import moment from 'moment';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from "@react-native-community/netinfo";
 
 
 
@@ -23,6 +24,28 @@ const LiveOrders = ({ navigation }) => {
         console.log(username, AppUserId, LoomOrTrader, id)
     }, [])
 
+    const [showmsg, setShowMsg] = useState(true)
+    const [isConected, setisConnected] = useState(false)
+    useEffect(() => {
+        const unsubscribe = NetInfo.addEventListener(state => {
+            setisConnected(state.isConnected)
+
+
+            if (state.isConnected == true) {
+                setTimeout(() => {
+                    setShowMsg(false)
+                }, 5000)
+            } else {
+                setShowMsg(true)
+            }
+        })
+
+
+
+        return () => {
+            unsubscribe();
+        }
+    })
 
 
     const getData = async () => {
@@ -238,7 +261,7 @@ const LiveOrders = ({ navigation }) => {
         setBeamIn(updatedRows);
     };
 
-      const BIImage = require('../Images/camera.png')
+    const BIImage = require('../Images/camera.png')
 
     const handleAddRowBI = () => {
         const newFormData = [...beamIn, { date: new Date(), SizingTippanNo: '', PhotoPath: BIImage }];
@@ -313,7 +336,7 @@ const LiveOrders = ({ navigation }) => {
 
     const WEFTImage = require('../Images/camera.png')
     const [Weft, setWeft] = useState([{ date: new Date(), GatePassNo: '', PhotoPathweft: require("../Images/camera.png") }]);
-   
+
     const [showDatePickerWEFT, setShowDatePickerWEFT] = useState(false);
     const [selectedDateIndexWEFT, setSelectedDateIndexWEFT] = useState(0);
 
@@ -547,7 +570,7 @@ const LiveOrders = ({ navigation }) => {
         const integerNumber2 = parseInt(item.Weight, 10);
         console.log("Converted to Integer", integerNumber, integerNumber2, item.PhotoPathFFD.uri)
 
-````
+            ````
         const formdata = new FormData();
         formdata.append("OrderNoId", getOrderNo);
         formdata.append("Date", formatteddate);
@@ -631,7 +654,7 @@ const LiveOrders = ({ navigation }) => {
         const integerNumber4 = parseInt(item.CutPiece, 10);
         const integerNumber5 = parseInt(item.Meter, 10);
 
-        console.log("Converted to Integer", integerNumber,integerNumber2,integerNumber3,integerNumber4,integerNumber5)
+        console.log("Converted to Integer", integerNumber, integerNumber2, integerNumber3, integerNumber4, integerNumber5)
 
 
         const formdata = new FormData();
@@ -728,7 +751,7 @@ const LiveOrders = ({ navigation }) => {
                                                 <View style={styles.header1}>
                                                     <Text style={styles.headerText1}>Date</Text>
                                                     <Text style={[styles.headerText1, { marginRight: 80 }]}>Sizing Tippan Number</Text>
-                                                    <Text style={[styles.headerText1,{marginRight:40}]}>Image</Text>
+                                                    <Text style={[styles.headerText1, { marginRight: 40 }]}>Image</Text>
 
                                                 </View>
 
@@ -770,6 +793,7 @@ const LiveOrders = ({ navigation }) => {
                                                                         value={row.date}
                                                                         mode="date"
                                                                         display="default"
+                                                                        minimumDate={new Date()}
                                                                         onChange={handleDateChangeBI}
                                                                     />
                                                                 )}
@@ -778,6 +802,7 @@ const LiveOrders = ({ navigation }) => {
                                                                     value={row.SizingTippanNo}
                                                                     onChangeText={(text) => handleInputChangeBI(text, index, 'SizingTippanNo')}
                                                                     keyboardType="numeric"
+                                                                    placeholderTextColor={"#000"}
                                                                     placeholder="sizing Tippan Number"
                                                                 />
                                                                 <View>
@@ -856,7 +881,7 @@ const LiveOrders = ({ navigation }) => {
                                                 <View style={styles.header1}>
                                                     <Text style={styles.headerText1}>Date</Text>
                                                     <Text style={[styles.headerText1, { marginRight: 30 }]}>Gate Pass Number</Text>
-                                                    <Text style={[styles.headerText1,{marginRight:20}]}>Image</Text>
+                                                    <Text style={[styles.headerText1, { marginRight: 20 }]}>Image</Text>
 
 
                                                 </View>
@@ -877,7 +902,9 @@ const LiveOrders = ({ navigation }) => {
                                                                 <DateTimePicker
                                                                     value={row.date}
                                                                     mode="date"
+                                                                    minimumDate={new Date()}
                                                                     display="default"
+                                                                    placeholderTextColor={"#000"}
                                                                     onChange={handleDateChangeWEFT}
                                                                 />
                                                             )}
@@ -1050,50 +1077,50 @@ const LiveOrders = ({ navigation }) => {
                                         <Text style={styles.buttonText}>First Piece Approval</Text>
                                     </TouchableOpacity>
                                     {fpaform ?
-                                   <View style={{borderWidth:1}}>
-                                   <View style={styles.tableHeader}>
-                                        <Text style={styles.headerText}>Messages</Text>
-                                    </View>
-
-
-                                    {FPAD.map((item, index) => (
-                                        <View key={index} style={{ padding: 10,alignItems:"flex-start",justifyContent:"center",width:400,borderBottomWidth:1 }}>
-                                            <Text style={{color:"#000"}}>{item.UpdatedOn.date.substring(0, 10)}</Text>
-                                            <Text style={{color:"#000"}}>{item.Name} : {item.Comment}</Text>
-                                        </View>
-                                    ))}
-
-
-                                   <View style={{ width: "100%",marginTop:15 }}>
-                                        <ScrollView horizontal={true} vertical={true}>
-                                            <View style={[{ marginLeft: 10, width: 500 }, styles.table]}>
-
-
-
-
-                                                {/*First Piece Approval FORM  */}
-
-
-
-
-
-
-                                                <View style={{ flexDirection: "row", width: "100%" }}>
-                                                    <TextInput
-                                                        style={{ width: "80%", borderRadius: 15 }}
-                                                        placeholder='Any Coments....'
-                                                        placeholderTextColor={"#000"}
-                                                        value={first_piece_approval}
-                                                        onChangeText={(txt) => setFirst_Piece_Approval(txt)}
-                                                    />
-                                                </View>
+                                        <View style={{ borderWidth: 1 }}>
+                                            <View style={styles.tableHeader}>
+                                                <Text style={styles.headerText}>Messages</Text>
                                             </View>
-                                        </ScrollView>
-                                        <TouchableOpacity style={styles.submitButton} onPress={() => SubmitFPA()}>
-                                            <Text style={styles.submitButtonText}>Submit</Text>
-                                        </TouchableOpacity>
-                                    </View> 
-                                   </View> : null}
+
+
+                                            {FPAD.map((item, index) => (
+                                                <View key={index} style={{ padding: 10, alignItems: "flex-start", justifyContent: "center", width: 400, borderBottomWidth: 1 }}>
+                                                    <Text style={{ color: "#000" }}>{item.UpdatedOn.date.substring(0, 10)}</Text>
+                                                    <Text style={{ color: "#000" }}>{item.Name} : {item.Comment}</Text>
+                                                </View>
+                                            ))}
+
+
+                                            <View style={{ width: "100%", marginTop: 15 }}>
+                                                <ScrollView horizontal={true} vertical={true}>
+                                                    <View style={[{ marginLeft: 10, width: 500 }, styles.table]}>
+
+
+
+
+                                                        {/*First Piece Approval FORM  */}
+
+
+
+
+
+
+                                                        <View style={{ flexDirection: "row", width: "100%" }}>
+                                                            <TextInput
+                                                                style={{ width: "80%", borderRadius: 15 }}
+                                                                placeholder='Any Coments....'
+                                                                placeholderTextColor={"#000"}
+                                                                value={first_piece_approval}
+                                                                onChangeText={(txt) => setFirst_Piece_Approval(txt)}
+                                                            />
+                                                        </View>
+                                                    </View>
+                                                </ScrollView>
+                                                <TouchableOpacity style={styles.submitButton} onPress={() => SubmitFPA()}>
+                                                    <Text style={styles.submitButtonText}>Submit</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </View> : null}
                                     <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Fabric Dispatch'), FalseOthersFD() }}>
                                         <Text style={styles.buttonText}>Fabric Dispatch</Text>
                                     </TouchableOpacity>
@@ -1117,7 +1144,7 @@ const LiveOrders = ({ navigation }) => {
                                         <ScrollView horizontal={true}>
                                             <View style={[styles.table, { width: 700, justifyContent: "space-between" }]}>
                                                 <View style={styles.header1}>
-                                                    <Text style={[styles.headerText1,{marginLeft: -70}]}>Date</Text>
+                                                    <Text style={[styles.headerText1, { marginLeft: -70 }]}>Date</Text>
                                                     <Text style={[styles.headerText1, { marginRight: 50 }]}>Meter</Text>
                                                     <Text style={[styles.headerText1, { marginLeft: 0 }]}>Weight</Text>
                                                     <Text style={[styles.headerText1, { marginRight: -50 }]}>Image</Text>
@@ -1142,6 +1169,7 @@ const LiveOrders = ({ navigation }) => {
                                                                 <DateTimePicker
                                                                     value={row.date}
                                                                     mode="date"
+                                                                    minimumDate={new Date()}
                                                                     display="default"
                                                                     onChange={handleDateChangeFD}
                                                                 />
@@ -1151,6 +1179,7 @@ const LiveOrders = ({ navigation }) => {
                                                                 value={row.Meter}
                                                                 onChangeText={(text) => handleInputChangeFD(text, index, 'Meter')}
                                                                 keyboardType="numeric"
+                                                                placeholderTextColor={"#000"}
                                                                 placeholder="Meter"
                                                             />
                                                             <TextInput
@@ -1158,6 +1187,7 @@ const LiveOrders = ({ navigation }) => {
                                                                 value={row.Weight}
                                                                 onChangeText={(text) => handleInputChangeFD(text, index, 'Weight')}
                                                                 keyboardType="numeric"
+                                                                placeholderTextColor={"#000"}
                                                                 placeholder="Weight"
                                                             />
 
@@ -1338,25 +1368,38 @@ const LiveOrders = ({ navigation }) => {
                             </View>
                         )}
 
-
-
-
-
-
-
-
-
-
-
-
-
                     </View >
-                    <View style={{ justifyContent: "flex-end", marginTop: "35%" }}>
+                    <View style={{ marginTop: "35%" }}>
                         <TouchableOpacity style={styles.submitButton} onPress={() => console.log('Table Data:', Weft)}>
                             <Text style={styles.submitButtonText}>Order Completed</Text>
                         </TouchableOpacity>
                     </View>
+
                     <Text style={{ marginTop: "18%" }}></Text>
+                    {
+                        showmsg ? <View style={{ flex: 1, alignItems: "flex-end", justifyContent: "flex-end" }}>
+                            <View style={{
+                                bottom: 0,
+                                height: 20,
+                                width: '100%',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                backgroundColor: isConected ? 'green' : 'red'
+
+                            }}>
+                                <Text style={{ color: "#fff" }}>
+                                    {(() => {
+                                        if (isConected === true) {
+                                            'Back Online'
+                                        } else {
+                                            navigation.navigate("NoInternet")
+                                        }
+                                    })}
+                                </Text>
+
+                            </View>
+                        </View> : null
+                    }
                     <Modal
                         animationType="slide"
                         transparent={true}
@@ -1579,12 +1622,12 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         padding: 10,
         backgroundColor: '#0909ff',
-        marginBottom:15
+        marginBottom: 15
     },
     headerText: {
         fontWeight: 'bold',
         fontSize: 16,
-        color:"#fff"
+        color: "#fff"
     },
     tableRow: {
         flexDirection: 'row',
@@ -1660,6 +1703,6 @@ const styles = StyleSheet.create({
             fontSize: 16,
         },
     }
-    
+
 
 })
