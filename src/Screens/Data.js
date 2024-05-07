@@ -117,6 +117,7 @@ const Data = ({ navigation }) => {
             {
                 show ? <ActivityIndicator size={70} color="green" /> : null
             }
+        
             {/* <Text>Email : {AppUserId}</Text>
             <Text>Loom Or Trader : {LoomOrTrader}</Text>
             <Button title="Click" onPress={() => fetchData()} /> */}
