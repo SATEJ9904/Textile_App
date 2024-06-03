@@ -294,7 +294,7 @@ const JobWorkEnquires = ({ navigation }) => {
         onPress={() => {
           fetchEnquiryDetails(enquiry.EnquiryId);
         }}>
-        <Text style={[styles.text, styles.cell, { width: width * 0.3 }]}>{enquiry.EnquiryId}</Text>
+        <Text style={[styles.text, styles.cell, { width: width * 0.3 }]}>{enquiry.EnquiryNo}</Text>
         <Text style={[styles.text, styles.cell, { width: width * 0.35 }]}>{enquiry.EnquiryDate.date.substring(0, 10)}</Text>
         <Text style={[styles.text, styles.cell, { width: width * 0.35 }]}>{enquiry.TraderId}</Text>
       </TouchableOpacity>
@@ -431,7 +431,7 @@ const JobWorkEnquires = ({ navigation }) => {
                 value={selectedEnquiry.BookingFrom.date.substring(0, 10)}
                 onChangeText={setFromDate}
                 keyboardType="numeric"
-                placeholderTextColor={'#000'} 
+                placeholderTextColor={'#000'}
               />
               <TouchableOpacity onPress={() => setFromDatePickerVisible(true)}>
                 <ImageBackground
@@ -460,7 +460,7 @@ const JobWorkEnquires = ({ navigation }) => {
                 value={selectedEnquiry.BookingTo.date.substring(0, 10)}
                 onChangeText={setToDate}
                 keyboardType="numeric"
-                placeholderTextColor={'#000'} 
+                placeholderTextColor={'#000'}
               />
               <TouchableOpacity onPress={() => setToDatePickerVisible(true)}>
                 <ImageBackground
@@ -496,7 +496,7 @@ const JobWorkEnquires = ({ navigation }) => {
             </View>
           </View>
         </View>
-        <View style={[styles.detailItem, { marginTop: "7%", width: "70%" }]}>
+        <View style={[styles.detailItem, { marginTop: "7%", width: "70%", marginLeft: 15 }]}>
           <Text style={styles.detailLabel}>Loom Possible To Assign</Text>
           <TextInput
             style={[styles.textInput, { borderWidth: 1, borderColor: "#000", marginTop: "5%" }]}
@@ -507,12 +507,12 @@ const JobWorkEnquires = ({ navigation }) => {
           />
         </View>
 
-        <View style={[styles.detailItem, { marginTop: "7%" }]}>
+        <View style={[styles.detailItem, { marginTop: "7%", marginLeft: 15 }]}>
           <Text style={styles.detailLabel}>Offered Job Rate:</Text>
           <Text style={styles.detailValue}>{selectedEnquiry.OfferedJobRate}</Text>
         </View>
 
-        <View style={[styles.detailItem, { marginTop: "7%", width: "100%" }]}>
+        <View style={[styles.detailItem, { marginTop: "7%", width: "100%", marginLeft: 15 }]}>
           <Text style={styles.detailLabel}>Counter Offer</Text>
           <View style={{ flexDirection: "row" }}>
             <TextInput
@@ -528,13 +528,22 @@ const JobWorkEnquires = ({ navigation }) => {
         </View>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={[styles.checkAvailabilityButton, { backgroundColor: "blue" }]} onPress={() => EnquiryConfirm()}>
-            <Text style={styles.checkAvailabilityText}>Submit</Text>
+
+          <TouchableOpacity
+            style={[styles.checkAvailabilityButton, { backgroundColor: "#135D66", borderWidth: 0 }]}
+            onPress={() => EnquiryConfirm()}
+          >
+            <Text style={styles.checkAvailabilityText1}> Submit </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.checkAvailabilityButton, { backgroundColor: "red" }]} onPress={() => NotInterested()}>
-            <Text style={styles.checkAvailabilityText}>Not Interested</Text>
+
+          <TouchableOpacity
+            style={[styles.checkAvailabilityButton, { backgroundColor: "#FF7722", borderColor: '#FF7722' }]}
+            onPress={() => NotInterested()}
+          >
+            <Text style={styles.checkAvailabilityText1}> Not Interested </Text>
           </TouchableOpacity>
         </View>
+
       </ScrollView>
     );
   };
@@ -546,25 +555,32 @@ const JobWorkEnquires = ({ navigation }) => {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
-        <View style={{ backgroundColor: "#71B7E1", flexDirection: "row" }}>
+        <View style={{ backgroundColor: "#003C43", flexDirection: "row", alignItems: 'center', height: 50 }}>
           {
             showE ?
-              <TouchableOpacity onPress={() => navigation.openDrawer()}>
-                <ImageBackground
-                  source={require("../Images/drawer.png")}
-                  style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#71B7E1", marginTop: 15, marginRight: 0, marginLeft: 10 }}
-                  imageStyle={{ borderRadius: 0 }}
+              <TouchableOpacity
+                onPress={() => navigation.openDrawer()}
+              >
+                <Image
+                  source={require("../Images/drawer1.png")}
+                  style={{ width: 28, height: 22, marginLeft: 10, }}
+
                 />
-              </TouchableOpacity> :
+              </TouchableOpacity>
+              :
               <TouchableOpacity onPress={() => { setShowE(true); setShowED(false); setLoomdata([]) }}>
                 <ImageBackground
                   source={require("../Images/back.png")}
-                  style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#71B7E1", marginTop: 15, marginRight: 0, marginLeft: 10 }}
+                  style={{ width: 32, height: 28, alignSelf: 'flex-start', marginLeft: 10 }}
                   imageStyle={{ borderRadius: 0 }}
                 />
               </TouchableOpacity>
           }
-          <Text style={{ fontSize: 25, color: "white", margin: "2.5%", marginLeft: "25%" }}>Job Enquiry</Text>
+
+          <View style={{ flex: 0.9, alignItems: 'center' }}>
+            <Text style={{ fontSize: 26, color: "white", fontWeight: 500 }}> Job Enquiry </Text>
+          </View>
+
         </View>
 
 
@@ -589,11 +605,11 @@ const JobWorkEnquires = ({ navigation }) => {
             backgroundColor: isConected ? 'green' : 'red'
 
           }}>
-          <Text style={{ color: "#fff" }}>
-              {(()=>{
-                if(isConected === true) {
+            <Text style={{ color: "#fff" }}>
+              {(() => {
+                if (isConected === true) {
                   'Back Online'
-                }else{
+                } else {
                   navigation.navigate("NoInternet")
                 }
               })}
@@ -611,20 +627,21 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', borderBottomWidth: 2, borderBottomColor: '#007bff', paddingBottom: 10, marginBottom: 10 },
   headerText: { fontWeight: 'bold', textAlign: 'center', color: '#333', fontSize: 16 },
   row: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#ccc', paddingTop: 10, paddingBottom: 10 },
-  rowEven: { backgroundColor: '#e6f7ff' },
+  rowEven: { backgroundColor: 'rgba(19, 93, 102, 0.3)' },
   rowOdd: { backgroundColor: '#fff' },
   text: { textAlign: 'center', color: '#333', fontSize: 14 },
   cell: { padding: 5 },
   dataWrapper: { marginTop: 10 },
-  detailsContainer: { paddingHorizontal: 16, paddingTop: 20 },
+  detailsContainer: { paddingHorizontal: 5, paddingTop: 20, backgroundColor: 'white' },
   detailGroup: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20, marginLeft: "10%" },
   detailItem: { flex: 1, marginTop: "2%" },
   detailLabel: { fontWeight: 'bold', color: '#555', fontSize: 16 },
   detailValue: { color: '#333', fontSize: 16 },
   textInput: { borderColor: '#ccc', paddingLeft: 10, fontSize: 16, borderRadius: 5, height: 40 },
   buttonContainer: { flexDirection: 'row', justifyContent: "space-evenly", marginTop: 20, marginBottom: "40%" },
-  checkAvailabilityButton: { backgroundColor: '#007bff', padding: 15, alignItems: 'center', borderRadius: 5, marginTop: 20, marginBottom: 10 },
-  checkAvailabilityText: { color: '#fff', fontSize: 16 },
+  checkAvailabilityButton: { backgroundColor: 'white', padding: 10, alignItems: 'center', borderRadius: 10, marginTop: 20, marginBottom: 10, borderColor: '#003C43', borderWidth: 2 },
+  checkAvailabilityText: { color: '#003C43', fontSize: 20, },
+  checkAvailabilityText1: { color: '#fff', fontSize: 20, fontWeight: '500' },
 });
 
 export default JobWorkEnquires;

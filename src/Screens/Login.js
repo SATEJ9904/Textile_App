@@ -3,13 +3,21 @@ import { ToastAndroid, Text, ActivityIndicator, TextInput, Alert, StyleSheet, Im
 import LinearGradient from 'react-native-linear-gradient';
 import AnimatedLoader from 'react-native-animated-loader';
 import axios from 'axios';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
 
 const Login = ({ navigation }) => {
     const [Email, setEmail] = useState('');
     const [Password, setPassword] = useState('');
     const [show, setShow] = useState(false);
+    const [show1, setShow1] = useState(0);
     const [visible, setVisible] = useState(false)
     const dataArray = [Email, Password];
+    const [otp, setOtp] = useState('');
+    const [newpassword, setNewpassword] = useState('');
+
+
+
 
     const clear = () => {
         setEmail(""),
@@ -60,30 +68,51 @@ const Login = ({ navigation }) => {
     const NewLogin = () => {
         const qs = require('qs');
         let data = qs.stringify({
-          'AppUserId': Email,
-          'Password': Password,
+            'AppUserId': Email,
+            'Password': Password,
         });
-    
+
         let config = {
-          method: 'post',
-          maxBodyLength: Infinity,
-          url: 'https://textileapp.microtechsolutions.co.in/php/postlogin.php',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          data: data
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: 'https://textileapp.microtechsolutions.co.in/php/postlogin.php',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            data: data
         };
-    
+
         axios.request(config)
-          .then((response) =>{
-            console.log(response.data.Name)
-            let item = response.data
-            navigation.navigate("Data", { item1: item })
-            console.log("Login Name",item.AppUserId)
-    })
-          .catch((error) => {
-            console.log(error);
-          });
+            .then((response) => {
+                console.log(response.data.Name)
+                let item = response.data
+                navigation.navigate("Data", { item1: item })
+                console.log("Login Name", item.AppUserId)
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    }
+
+
+    const verifyotp = async () => {
+
+        let config = {
+            method: 'get',
+            maxBodyLength: Infinity,
+            url: 'https://textileapp.microtechsolutions.co.in/php/verifyotp.php?otp=' + otp,
+            headers: {}
+        };
+
+        axios.request(config)
+            .then((response) => {
+                console.log(JSON.stringify(response.data));
+                setShow1(2);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+
     }
 
 
@@ -100,113 +129,245 @@ const Login = ({ navigation }) => {
         }
     };
 
+    const reset = () => {
+        const qs = require('qs');
+        let data = qs.stringify({
+            'AppUserId': Email,
+            'Password': newpassword,
+        });
+
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: 'https://textileapp.microtechsolutions.co.in/php/updatepassword.php',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            data: data
+        };
+
+        axios.request(config)
+            .then((response) => {
+                console.log(response.data)
+                setShow1(0)
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    }
+
+
+
 
     return (
         <SafeAreaView style={styles.container}>
 
-            <StatusBar backgroundColor={"#16E2F5"}></StatusBar>
+
+            <LinearGradient
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 0.8 }}
+                style={{ flex: 1, }}
+                colors={["#003C43", "#77B0AA"]}>
 
 
-            {/*  */}
-
-            <LinearGradient style={{
-                flex: 1,
-                width: "100%",
-                justifyContent: "center",
-                alignItems: "center"
-            }}
-                colors={["#16E2F5", "#16E2F5", "#0059FF", "#0059FF", "#0000A0",]}>
-                <Text style={{
-                    textShadowRadius: 10,
-                    textShadowColor: "#0059FF",
-                    fontSize: 35,
-                    color: "#fff",
-                    marginTop: "-0%",
-                    marginLeft: "5%",
-                    fontWeight: "800"
-                }}>Login </Text>
-
-
-                <Image
-                    style={{
-                        height: "25%",
-                        width: "80%",
-                        borderRadius: 20,
-                        marginLeft: "0%",
-                        marginTop: "10%"
-                    }}
-                    source={require("../Images/logoweave.png")}
-
-                />
-
-                {
-                    show ? <AnimatedLoader
-                        visible={true}
-                        overlayColor="rgba(255,255,255,0.75)"
-                        animationStyle={styles.lottie}
-                        speed={5}
-                    /> : null
-                }
-
-                <View style={{
-                    width: "80%",
-                    flexDirection: "row",
-                    borderWidth: 1.5,
-                    borderColor: "#fff",
-                    borderRadius: 20,
-                    marginTop: "30%",
-                   
-                }}>
-
+                <View style={{ flex: 0.7, alignItems: 'center', justifyContent: 'center' }}>
                     <Image
-                        style={{ width: "10%", height: "55%", marginTop: "3%", margin: "5%" }}
-                        source={require("../Images/email2.png")}
-                    />
-
-                    <TextInput
-                        style={{ marginLeft: "5%", color: "#fff",width:"70%"}}
-                        placeholder='Email'
-                        placeholderTextColor={"#fff"}
-                        onChangeText={(txt) => setEmail(txt)}
-                        value={Email}
+                        style={{
+                            height: "100%",
+                            width: "120%",
+                            marginLeft: 20,
+                            // backgroundColor: '#003C43',
+                        }}
+                        source={require("../Images/company.png")}
 
                     />
+
+                    {
+                        show ? <AnimatedLoader
+                            visible={true}
+                            overlayColor="rgba(255,255,255,0.75)"
+                            animationStyle={styles.lottie}
+                            speed={5}
+                        /> : null
+                    }
                 </View>
 
-                <View style={{
-                    width: "80%",
-                    flexDirection: "row",
-                    borderWidth: 1.5,
-                    borderColor: "#fff",
-                    borderRadius: 20,
-                    marginTop: "5%"
-                }}>
+                <View style={{ flex: 1.5, backgroundColor: 'white', borderTopLeftRadius: 60, borderTopRightRadius: 60 }}>
 
-                    <Image
-                        style={{ width: "10%", height: "65%", marginTop: "3%", margin: "5%" }}
-                        source={require("../Images/lock-128.png")}
-                    />
+                    {(() => {
 
-                    <TextInput
-                        style={{ marginLeft: "5%", color: "#fff",width:"70%"}}
-                        placeholder='Password'
-                        placeholderTextColor={"#fff"}
-                        onChangeText={(txt) => setPassword(txt)}
-                        value={Password}
-                        secureTextEntry={true}
+                        if (show1 === 1) {
+                            return (
+                                <View>
+                                    <View style={{ alignItems: 'center' }}>
+                                        <Text style={{
+                                            fontSize: 35,
+                                            color: "#003C43",
+                                            marginTop: '15%',
+                                            fontWeight: "700"
+                                        }}> Verify OTP </Text>
 
-                    />
+                                        <View style={styles.input}>
+
+
+                                            <Icon name="form-textbox-password" color="#003C43" size={32} padding={8} marginLeft={8} />
+
+                                            <TextInput
+                                                style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                                placeholder='OTP'
+                                                placeholderTextColor={"#003C43"}
+                                                onChangeText={(txt) => setOtp(txt)}
+                                                value={otp}
+
+                                            />
+                                        </View>
+
+
+                                        <TouchableOpacity
+                                            style={{ width: "70%", marginTop: "8%", borderRadius: 20, backgroundColor: "#003C43", justifyContent: "center", alignItems: "center" }}
+                                            onPress={() => verifyotp()}>
+                                            <Text style={{ color: "#fff", fontSize: 25, padding: 8, marginLeft: "3%", fontWeight: "500" }}> Verify </Text>
+
+                                        </TouchableOpacity>
+
+                                    </View>
+                                </View>
+                            )
+                        }
+                        if (show1 === 2) {
+                            return (
+                                <View>
+                                    <View style={{ alignItems: 'center' }}>
+                                        <Text style={{
+                                            fontSize: 30,
+                                            color: "#003C43",
+                                            marginTop: '15%',
+                                            fontWeight: "700"
+                                        }}> Reset Password </Text>
+
+                                        <View style={styles.input}>
+
+
+                                            <Icon name="lock-open-outline" color="#003C43" size={32} padding={8} marginLeft={8} />
+
+                                            <TextInput
+                                                style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                                placeholder='New password'
+                                                placeholderTextColor={"#003C43"}
+                                                onChangeText={(txt) => setNewpassword(txt)}
+                                                value={newpassword}
+
+                                            />
+                                        </View>
+
+
+                                        <TouchableOpacity
+                                            style={{ width: "70%", marginTop: "10%", borderRadius: 20, backgroundColor: "#FF7722", justifyContent: "center", alignItems: "center" }}
+                                            onPress={() => reset()}>
+                                            <Text style={{ color: "#fff", fontSize: 25, padding: 8, marginLeft: "3%", fontWeight: "500" }}> Confirm </Text>
+
+                                        </TouchableOpacity>
+
+                                    </View>
+                                </View>
+                            )
+                        }
+
+                        else {
+                            return (
+                                <View>
+                                    <View style={{ alignItems: 'center' }}>
+                                        <Text style={{
+                                            fontSize: 35,
+                                            color: "#003C43",
+                                            marginTop: 20,
+                                            fontWeight: "700"
+                                        }}> Login </Text>
+
+                                        <View style={{
+                                            width: "85%",
+                                            flexDirection: "row",
+                                            borderWidth: 2,
+                                            borderColor: "#003C43",
+                                            borderRadius: 20,
+                                            marginTop: "10%",
+
+                                        }}>
+
+
+                                            <Icon name="email-outline" color="#003C43" size={32} padding={8} marginLeft={8} />
+
+                                            <TextInput
+                                                style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                                placeholder='Email'
+                                                placeholderTextColor={"#003C43"}
+                                                onChangeText={(txt) => setEmail(txt)}
+                                                value={Email}
+
+                                            />
+                                        </View>
+
+                                        <View style={{
+                                            width: "85%",
+                                            flexDirection: "row",
+                                            borderWidth: 1.5,
+                                            borderColor: "#003C43",
+                                            borderRadius: 20,
+                                            marginTop: "5%"
+                                        }}>
+
+
+                                            <Icon name="lock-open-outline" color="#003C43" size={30} padding={8} marginLeft={8} />
+
+                                            <TextInput
+                                                style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                                placeholder='Password'
+                                                placeholderTextColor={"#003C43"}
+                                                onChangeText={(txt) => setPassword(txt)}
+                                                value={Password}
+                                                secureTextEntry={true}
+
+                                            />
+                                        </View>
+                                    </View>
+
+                                    <View style={{ alignItems: 'flex-end', marginTop: 2, paddingRight: 45 }}>
+                                        <TouchableOpacity
+                                            onPress={() => setShow1(1)}
+                                        >
+                                            <Text style={{ color: "#FF7722", fontSize: 15, fontWeight: "500" }}> Forgot password ? </Text>
+
+                                        </TouchableOpacity>
+
+                                    </View>
+
+                                    <View style={{ alignItems: 'center' }}>
+
+                                        <TouchableOpacity
+                                            style={{ width: "70%", marginTop: "8%", borderRadius: 20, backgroundColor: "#003C43", justifyContent: "center", alignItems: "center" }}
+                                            onPress={() => NewLogin()}
+                                            >
+                                            <Text style={{ color: "#fff", fontSize: 25, padding: 8, marginLeft: "3%", fontWeight: "500" }}>Log In</Text>
+
+                                        </TouchableOpacity>
+
+                                        <View style={{ marginTop: "20%", marginBottom: 10 }}>
+                                            <Text style={{ color: "#FF7722", fontSize: 15, fontWeight: "500" }}> Don't have an account ? </Text>
+                                        </View>
+
+                                        <TouchableOpacity
+                                            style={{ width: "70%", borderRadius: 20, justifyContent: "center", alignItems: "center", borderWidth: 2, borderColor: "#003C43" }}
+                                            onPress={() => navigation.navigate("LoginOptions")}>
+                                            <Text style={{ color: "#003C43", fontSize: 25, padding: 7, marginLeft: "3%", fontWeight: "500" }}>Sign Up</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            );
+                        }
+                    })()}
+
+
                 </View>
-
-
-                <TouchableOpacity style={{ width: "70%", marginTop: "9%", borderRadius: 20, backgroundColor: "#fff", justifyContent: "center", alignItems: "center" }} onPress={() => NewLogin()}>
-                    <Text style={{ color: "#0000A0", fontSize: 25, padding: 7, marginLeft: "3%", fontWeight: "400" }}>Log In</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={{ width: "70%", marginTop: "20%", borderRadius: 20, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "#fff" }} onPress={() => navigation.navigate("Signup")}>
-                    <Text style={{ color: "#fff", fontSize: 25, padding: 7, marginLeft: "3%", fontWeight: "400" }}>Sign Up</Text>
-                </TouchableOpacity>
-
 
             </LinearGradient>
 
@@ -218,44 +379,17 @@ const Login = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginHorizontal: 20,
-        backgroundColor: '#16E2F5',
-        width: '100%',
-        marginLeft: '-0%',
     },
     input: {
-        borderBottomWidth: 1.5,
-        borderBottomColor: '#fff',
-        borderColor: '#E2A76F',
-        borderRadius: 5,
-        padding: 10,
+        width: "83%",
+        flexDirection: "row",
+        borderWidth: 2,
+        borderColor: "#003C43",
+        borderRadius: 20,
+        marginTop: '10%',
         marginBottom: 10,
-        width: '80%',
-    },
-    input1: {
-        marginTop: '5%',
-    },
-    loginButton: {
-        width: '40%',
-        height: 50,
-        backgroundColor: '#E2A76F',
-        borderRadius: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 20,
-        marginLeft: '0%',
-        marginTop: '15%',
-    },
-    loginText: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 21,
-    },
-    lottie: {
-        width: 100,
-        height: 100,
+        padding: 2
+
     },
 });
 

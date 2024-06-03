@@ -65,7 +65,8 @@ const Splash2 = ({ navigation }) => {
 
   return (
     <View style={{ flex: 1 }}>
-      <StatusBar backgroundColor={"#16E2F5"}></StatusBar>
+         <StatusBar backgroundColor={"#003C43"}></StatusBar>
+
 
       <LinearGradient style={{
         flex: 1,

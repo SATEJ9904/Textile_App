@@ -269,15 +269,26 @@ const LoomsDetails = ({ navigation }) => {
 
     return (
         <SafeAreaView style={{height:"100%"}}>
-            <View style={styles.header2}>
-                <TouchableOpacity style={styles.header1} onPress={() => navigation.openDrawer()}>
-                    <Image
-                        style={{ width: "60%", height: "60%" }}
-                        source={require("../Images/drawer.png")}
-                    />
-                </TouchableOpacity>
-                <Text style={styles.headerText1}>Loom Details</Text>
-            </View>
+
+        <View style={{ backgroundColor: "#003C43", flexDirection: "row", alignItems: 'center', height: 50 }}>
+
+        <TouchableOpacity
+          onPress={() => navigation.openDrawer()}
+        >
+          <Image
+            source={require("../Images/drawer1.png")}
+            style={{ width: 28, height: 22, marginLeft: 10, }}
+
+          />
+        </TouchableOpacity>
+
+
+        <View style={{ flex: 0.9, alignItems: 'center' }}>
+          <Text style={{ fontSize: 26, color: "white", fontWeight: 500 }}> Loom Details </Text>
+        </View>
+
+      </View>
+
             <View style={styles.container}>
                 <ScrollView horizontal={true} contentContainerStyle={styles.scrollView}
                     refreshControl={

@@ -9,39 +9,38 @@ import {
 import { PermissionsAndroid } from 'react-native';
 
 
-import Login from './src/Screens/Login';
-import Home from './src/Screens/Home';
-import CustomDrawer from './src/Screens/CustomDrawer';
-import Signup from './src/Screens/Signup';
-import Splash from './src/Screens/Splash';
-import SignupTrader from './src/Screens/SignupTrader';
-import LoginTrader from './src/Screens/LoginTrader';
-import LoginOptions from './src/Screens/LoginOptions';
-import Storage from './src/Screens/Storage';
-import Data from './src/Screens/Data';
-import Splash2 from './src/Screens/Splash2';
-import JobWorkEnquires from './src/Screens/JobWorkEnquires';
-import LoomBooking from './src/Screens/LoomBooking';
-import CompletedOrders from './src/Screens/CompletedOrders';
-import GetYarnRates from './src/Screens/GetYarnRates';
-import LiveOrders from './src/Screens/LiveOrders';
+import Login from '../Screens/Login';
+import Home from '../Screens/Home';
+import CustomDrawer from '../Screens/CustomDrawer';
+import Signup from '../Screens/Signup';
+import Splash from '../Screens/Splash';
+import SignupTrader from '../Screens/SignupTrader';
+import LoginTrader from '../Screens/LoginTrader';
+import LoginOptions from '../Screens/LoginOptions';
+import Storage from '../Screens/Storage';
+import Data from '../Screens/Data';
+import Splash2 from '../Screens/Splash2';
+import JobWorkEnquires from '../Screens/JobWorkEnquires';
+import LoomBooking from '../Screens/LoomBooking';
+import CompletedOrders from '../Screens/CompletedOrders';
+import GetYarnRates from '../Screens/GetYarnRates';
+import LiveOrders from '../Screens/LiveOrders';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import LiveOrderstrader from './src/Screens/LiveOrderstrader';
-import PlanLooms from './src/Screens/PlanLooms';
-import GetYarnRatesTrader from './src/Screens/GetYarnRatesTrader';
-import CalculationsTrader from './src/Screens/CalculationsTrader';
-import CompletedOrdersTrader from './src/Screens/CompletedOrdersTrader';
-import Difference from './src/Screens/Difference';
-import IncompleteOrders from './src/Screens/IncompleteOrders';
-import HomeTrader from './src/Screens/HomeTrader';
-import LoomsDetails from './src/Screens/LoomsDetails';
-import ConfirmEnquires from './src/Screens/ConfirmEnquires';
-import NoInternetScreen from './src/Screens/NoInternet';
-import LTDIFF from './src/Screens/Difference';
-import Navigator from './src/Screens/Navigator';
+import LiveOrderstrader from '../Screens/LiveOrderstrader';
+import PlanLooms from '../Screens/PlanLooms';
+import GetYarnRatesTrader from '../Screens/GetYarnRatesTrader';
+import CalculationsTrader from '../Screens/CalculationsTrader';
+import CompletedOrdersTrader from '../Screens/CompletedOrdersTrader';
+import Difference from '../Screens/Difference';
+import IncompleteOrders from '../Screens/IncompleteOrders';
+import HomeTrader from '../Screens/HomeTrader';
+import LoomsDetails from '../Screens/LoomsDetails';
+import ConfirmEnquires from '../Screens/ConfirmEnquires';
+import NoInternetScreen from '../Screens/NoInternet';
+import LTDIFF from '../Screens/Difference';
 
 
 
@@ -249,6 +248,7 @@ const LoomDrawerNavigator = () => (
 // Define drawer navigator for trader
 const TraderDrawer = createDrawerNavigator();
 const TraderDrawerNavigator = () => (
+
   <TraderDrawer.Navigator initialRouteName='Storage' drawerContent={props => <CustomDrawer {...props} />}
     screenOptions={{
       headerShown: false,
@@ -432,10 +432,11 @@ const TraderDrawerNavigator = () => (
 
       }} />
   </TraderDrawer.Navigator>
+  
 );
 
 
-const App = () => {
+const Navigator = () => {
 
 
 
@@ -475,13 +476,12 @@ const App = () => {
 
 
 
-  const DrawerNavigator = loomOrtrader == 'L' ? LoomDrawerNavigator : TraderDrawerNavigator;
+  const DrawerNavigator = loomOrtrader == 'L' ? LoomDrawerNavigator  : TraderDrawerNavigator ;
 
   return (
-    <NavigationContainer>
+    <NavigationContainer independent={true}>
       <Stack.Navigator screenOptions={{ headerShown: false }}  >
         <Stack.Screen name="DrawerNavigator" component={DrawerNavigator} />
-        <Stack.Screen name="Navigator" component={Navigator} />
         <Stack.Screen name="Difference" component={LTDIFF} />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Splash" component={Splash} />
@@ -501,7 +501,7 @@ const App = () => {
   );
 }
 
-export default App;
+export default Navigator;
 
 
 

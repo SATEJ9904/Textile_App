@@ -59,13 +59,13 @@ const Splash = ({ navigation }) => {
     show();
 
     setTimeout(() => {
-      navigation.navigate('LoginOptions');
+      navigation.navigate('Login');
     }, 3000)
   }, [])
 
   return (
     <View style={{ flex: 1 }}>
-      <StatusBar backgroundColor={"#16E2F5"}></StatusBar>
+      <StatusBar backgroundColor={"#003C43"}></StatusBar>
 
       <LinearGradient style={{
         flex: 1,

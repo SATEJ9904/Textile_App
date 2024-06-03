@@ -17,6 +17,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import LinearGradient from 'react-native-linear-gradient';
 
 import Splash from './Splash';
 
@@ -36,7 +37,7 @@ const CustomDrawer = (props) => {
   const [LoomOrTrader, SetLoomOrTrader] = useState("")
   const [id, setId] = useState("");
   const [mobileno, setMobileNo] = useState("")
-  const [gstno,setGSTNO]=useState("")
+  const [gstno, setGSTNO] = useState("")
 
   const handleSignOut = () => {
     firestore()
@@ -68,7 +69,7 @@ const CustomDrawer = (props) => {
 
   useEffect(() => {
     getData();
-    console.log(Name, AppUserId, LoomOrTrader, id)
+    // console.log(Name, AppUserId, LoomOrTrader, id)
   }, [])
 
   const getData = async () => {
@@ -91,17 +92,18 @@ const CustomDrawer = (props) => {
 
   return (
 
-    <View style={{ flex: 2 }}>
+    <View style={{ flex: 1, }}>
+
       <DrawerContentScrollView
         {...props}
-        contentContainerStyle={{ borderTopRightRadius: 10 }}>
+        contentContainerStyle={{}}>
 
-        <View>
+        {/* <View style={{ backgroundColor: 'red' }}>
           <View style={{ justifyContent: 'flex-start', alignItems: "flex-start", backgroundColor: "#71B7E1", marginLeft: "1%" }}>
-          <Text style={{ color: "#fff", fontSize: 22, marginLeft: "5%", marginTop: "5%" ,borderWidth:1,borderColor:"#fff",padding:"3%",borderRadius:35,paddingHorizontal:"5%"}}>{LoomOrTrader}</Text>
+            <Text style={{ color: "#fff", fontSize: 22, marginLeft: "5%", marginTop: "5%", borderWidth: 1, borderColor: "#fff", padding: "3%", borderRadius: 35, paddingHorizontal: "5%" }}>{LoomOrTrader}</Text>
 
           </View>
-          <View style={{ justifyContent: 'flex-start', alignItems: "flex-start", backgroundColor: "#71B7E1", marginLeft: "1%", flexDirection: "row" }}>
+          <View style={{ justifyContent: 'flex-start', alignItems: "flex-start", backgroundColor: "#71B7E1", flexDirection: "row" }}>
             <View style={{ marginTop: "7%" }}>
               <Image
                 source={require('../Images/logoweave.png')}
@@ -121,16 +123,66 @@ const CustomDrawer = (props) => {
             </View>
 
             <View>
-              <Text style={{ color: "#fff", fontSize: 22, marginLeft: "5%", marginTop: "-7%",fontWeight:"700" }}>{Name}</Text>
+              <Text style={{ color: "#fff", fontSize: 22, marginLeft: "5%", marginTop: "-7%", fontWeight: "700" }}>{Name}</Text>
               <Text style={{ color: "#fff", fontSize: 17, marginLeft: "5%", marginTop: "2%" }}>{mobileno}</Text>
               <Text style={{ color: "#fff", fontSize: 17, marginLeft: "5%", marginTop: "2%" }}>{gstno}</Text>
             </View>
 
 
           </View>
+        </View> */}
+
+        <View style={{ 
+          height: '27%',
+           marginTop: -4 
+          }}>
+
+          {/* <View style={{ height: '50%', alignItems: 'center' }}>
+          <Image
+            source={require('../Images/company.png')}
+            style={{ width: 360, height: 72, }}
+
+          />
+        </View> */}
+
+          <ImageBackground
+            source={require('../Images/bg.jpg')}
+            resizeMode="cover"
+            style={{ height: '100%', width: '100%', }}
+          >
+
+            <View style={{ height: '50%', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.25)' }}>
+              <Image
+                source={require('../Images/company.png')}
+                style={{ width: 400, height: 100, marginLeft: 10 }}
+
+              />
+            </View>
+
+            <View style={{ height: '50%', alignItems: 'center', flexDirection: 'row', backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
+
+              <View style={{ marginLeft: "5%", borderWidth: 1.5, borderColor: "#fff", padding: 5, paddingRight: 8, paddingLeft: 7, borderRadius: 30, }}>
+                <Text style={{ color: "#fff", fontSize: 22, fontWeight: 600 }}> {LoomOrTrader} </Text>
+              </View>
+
+              <View style={{ marginLeft: "7%", }}>
+                <Text style={{ color: "#fff", fontSize: 20, fontWeight: "700", marginBottom: 5 }}>{Name}</Text>
+                <Text style={{ color: "#fff", fontSize: 14, fontWeight: "700" }}>{AppUserId}</Text>
+              </View>
+            </View>
+
+
+
+          </ImageBackground>
+
+          <View>
+
+          </View>
+
         </View>
 
-        <View style={{ flex: 1, paddingTop: -80 }}>
+
+        <View style={{}}>
           <DrawerItemList
 
             {...props}
@@ -139,6 +191,7 @@ const CustomDrawer = (props) => {
 
         </View>
       </DrawerContentScrollView>
+
       <View style={{ padding: 20, borderTopWidth: 1, borderTopColor: '#ccc' }}>
         <TouchableOpacity onPress={() => { DeleteStorage(); }} style={{ paddingVertical: 15 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
