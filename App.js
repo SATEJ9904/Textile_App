@@ -91,6 +91,31 @@ const LoomDrawerNavigator = () => (
 
       }} />
 
+
+<LoomDrawer.Screen
+
+      name="Live orders"
+      component={LiveOrders}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'truck' : 'truck'} size={25} color={'grey'} />
+        ),
+        title: 'Live Orders',
+        drawerLabelStyle: {
+          marginLeft: 0,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 18,
+
+        },
+
+      }} />
+
+
+
+
     <LoomDrawer.Screen
 
       name="LoomDetails"
@@ -200,27 +225,7 @@ const LoomDrawerNavigator = () => (
 
       }} />
 
-    <LoomDrawer.Screen
-
-      name="Live orders"
-      component={LiveOrders}
-      options={{
-        drawerActiveBackgroundColor: '#fff',
-        drawerActiveTintColor: '#000',
-        drawerInactiveTintColor: '#000',
-        drawerIcon: ({ focused }) => (
-          <Icon name={focused ? 'truck' : 'truck'} size={25} color={'grey'} />
-        ),
-        title: 'Live Orders',
-        drawerLabelStyle: {
-          marginLeft: 0,
-          fontFamily: 'Roboto-Medium',
-          fontSize: 18,
-
-        },
-
-      }} />
-
+    
 
     <LoomDrawer.Screen
 

@@ -81,7 +81,8 @@ const ConfirmEnquires = ({ navigation }) => {
     const fetchData = async () => {
       try {
         const response = await axios.get('https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=Enquiry&Colname=TraderId&Colvalue=' + await AsyncStorage.getItem("Id"));
-        setEnquiries(response.data);
+        const sortedData = response.data.sort((a, b) => b.EnquiryId - a.EnquiryId); // Sort in descending order
+        setEnquiries(sortedData);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data: ', error);
@@ -89,12 +90,13 @@ const ConfirmEnquires = ({ navigation }) => {
       }
     };
 
+
     fetchData();
   }, []);
 
   const fetchEnquiryDetails = async (EnquiryId) => {
     try {
-      const response = await axios.get('https://textileapp.microtechsolutions.co.in/php/getjoin2.php?EnquiryId=' + EnquiryId);
+      const response = await axios.get('https://textileapp.microtechsolutions.co.in/php/getjoin2.php?EnquiryId='+EnquiryId);
       setEnquiryDetails(response.data);
     } catch (error) {
       console.error('Error fetching enquiry details: ', error);
@@ -106,12 +108,44 @@ const ConfirmEnquires = ({ navigation }) => {
     setShowConfirmModal(true);
   };
 
+  const postLoomOrder = async () => {
+
+    const qs = require('qs');
+    let data = qs.stringify({
+      'EnquiryConfirmId': selectedData?.Id,
+      'PartyName': Name,
+      'JobRate': selectedData?.JobRateExp,
+      'Quality': selectedData?.Quality,
+      'Orderdate': new Date().toISOString().split('T')[0],
+      'BookedDateFrom': selectedData?.DatePossibleFrom.date.substring(0, 10),
+      'BookedDateTo': selectedData?.DatePossibleTo.date.substring(0, 10) 
+    });
+    
+    let config = {
+      method: 'post',
+      maxBodyLength: Infinity,
+      url: 'https://textileapp.microtechsolutions.co.in/php/postloomorder.php',
+      headers: { 
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      data : data
+    };
+    
+    axios.request(config)
+    .then((response) => {
+      console.log(JSON.stringify(response.data));
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+  };
+
   const UpdateEnquiryConfirm = () => {
 
     console.log("Got ID = ", selectedData?.Id)
 
     const formdata = new FormData();
-    formdata.append("Status", false);
+    formdata.append("Status", true);
     formdata.append("Id", selectedData?.Id);
 
     const requestOptions = {
@@ -124,6 +158,9 @@ const ConfirmEnquires = ({ navigation }) => {
       .then((response) => response.text())
       .then((result) => console.log(result))
       .catch((error) => console.error(error));
+
+      postLoomOrder();
+
   }
 
   const yesbutton2 = () => {
@@ -143,7 +180,7 @@ const ConfirmEnquires = ({ navigation }) => {
     enquiries.map((item, index) => (
       <TouchableOpacity key={index} onPress={() => selectEnquiry(item)}>
         <View style={styles.itemContainer}>
-          <Text style={styles.itemText}>Enquiry Id: {item.EnquiryId}</Text>
+          <Text style={styles.itemText}>Enquiry NO: {item.EnquiryNo}</Text>
         </View>
       </TouchableOpacity>
     ))
@@ -174,11 +211,11 @@ const ConfirmEnquires = ({ navigation }) => {
         <>
           {showE ? (
             <ScrollView style={styles.flatList}>
-              <View style={{ flexDirection: "row", backgroundColor: "#71B7E1", width: "100%", marginBottom: "5%" }}>
+              <View style={{ flexDirection: "row", backgroundColor: "#003C43", width: "100%", marginBottom: "5%" }}>
                 <TouchableOpacity onPress={() => navigation.navigate('PlanLooms')}>
                   <ImageBackground
                     source={require("../Images/back.png")}
-                    style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#71B7E1", marginTop: 8, marginRight: 0, marginLeft: 10 }}
+                    style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#003C43", marginTop: 8, marginRight: 0, marginLeft: 10 }}
                     imageStyle={{ borderRadius: 0 }}
                   />
                 </TouchableOpacity>
@@ -193,22 +230,22 @@ const ConfirmEnquires = ({ navigation }) => {
               <View>
                 {
                   showE ?
-                    <View style={{ flexDirection: "row", backgroundColor: "#71B7E1" }}>
+                    <View style={{ flexDirection: "row", backgroundColor: "#003C43" }}>
                       <TouchableOpacity onPress={() => navigation.openDrawer()}>
                         <ImageBackground
                           source={require("../Images/drawer.png")}
-                          style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#71B7E1", marginTop: 15, marginRight: 0, marginLeft: 10 }}
+                          style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#003C43", marginTop: 15, marginRight: 0, marginLeft: 10 }}
                           imageStyle={{ borderRadius: 0 }}
                         />
                       </TouchableOpacity>
                       <Text style={styles.detailsTitle}>Enquiry Details:</Text>
 
                     </View> :
-                    <View style={{ flexDirection: "row", backgroundColor: "#71B7E1", width: "120%", marginLeft: "-8%", marginTop: "-5%" }}>
+                    <View style={{ flexDirection: "row", backgroundColor: "#003C43", width: "120%", marginLeft: "-8%", marginTop: "-5%" }}>
                       <TouchableOpacity onPress={() => { setShowE(true); setShowEC(false); }}>
                         <ImageBackground
                           source={require("../Images/back.png")}
-                          style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#71B7E1", marginTop: 15, marginRight: 0, marginLeft: 20 }}
+                          style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#003C43", marginTop: 15, marginRight: 0, marginLeft: 20 }}
                           imageStyle={{ borderRadius: 0 }}
                         />
                       </TouchableOpacity>
@@ -220,7 +257,7 @@ const ConfirmEnquires = ({ navigation }) => {
               <ScrollView>
                 <View style={styles.detailsHeaderContainer}>
                   <ScrollView horizontal>
-                    <Text style={styles.detailsHeaderText}>LoomId</Text>
+                    <Text style={styles.detailsHeaderText}>Loom</Text>
                     <Text style={styles.detailsHeaderText}>Date Possible</Text>
                     <Text style={styles.detailsHeaderText}>Job Rate Exp</Text>
                     <Text style={[styles.detailsHeaderText]}>Enquiry Id</Text>
@@ -233,7 +270,7 @@ const ConfirmEnquires = ({ navigation }) => {
                     enquiryDetails.map((item, index) => (
                       <ScrollView key={index} horizontal={true}>
                         <View style={[styles.detailsItemContainer, index % 2 === 0 ? styles.rowColor1 : styles.rowColor2]}>
-                          <Text style={[styles.detailsItemText, styles.column1]}>{item.LoomTraderId}</Text>
+                          <Text style={[styles.detailsItemText, styles.column1]}>{item.Name}</Text>
                           <View style={{ flexDirection: "column" }}>
                             <Text style={[styles.detailsItemText, styles.column2]}>{item.DatePossibleFrom.date.substring(0, 10)}</Text>
                             <Text style={[styles.detailsItemText, styles.column2]}>{item.DatePossibleTo.date.substring(0, 10)}</Text>
@@ -383,7 +420,7 @@ const styles = StyleSheet.create({
   detailsHeaderContainer: {
     width: width * 1,
     flexDirection: 'row',
-    backgroundColor: '#71B7E1',
+    backgroundColor: '#003C43',
     marginBottom: height * 0.01,
     alignItems: 'center',
     height: height * 0.06,

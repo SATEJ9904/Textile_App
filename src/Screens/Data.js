@@ -45,6 +45,8 @@ const Data = ({ navigation }) => {
         setId(Id)
         setMobileNo(PrimaryContact)
         setGSTNO(GSTNumber)
+
+        console.log(Email, Name, LoomOrTrader, Id, PrimaryContact, GSTNumber)
     }
 
     const fetchData = async () => {
@@ -88,6 +90,27 @@ const Data = ({ navigation }) => {
         .then(setData())
         .then(getData())
 
+        const loadUser = async () => {
+            const Name = await AsyncStorage.getItem('Name');
+            const LoomOrTrader = await AsyncStorage.getItem('LoomOrTrader');
+            const AppUserId = await AsyncStorage.getItem('AppUserId');
+            const Id = await AsyncStorage.getItem('Id');
+            const PrimaryContact = await AsyncStorage.getItem('PrimaryContact');
+            const GSTNumber = await AsyncStorage.getItem('GSTNumber');
+      
+            if (Name && AppUserId) {
+              setUser({
+                Name,
+                LoomOrTrader,
+                AppUserId,
+                Id,
+                PrimaryContact,
+                GSTNumber,
+              });
+            }
+          };
+      
+          loadUser();
     }
     callfuns();
 
@@ -97,7 +120,7 @@ const Data = ({ navigation }) => {
       useEffect(()=>{
         const timeoutId = setTimeout(() => {
             // Code to be executed after the timeout
-           navigation.navigate("Home")
+           navigation.navigate("Difference")
           }, 3000); // Adjust the timeout duration as needed (in milliseconds)
 
           // Cleanup function to clear the timeout if component unmounts or if dependency changes
@@ -117,7 +140,6 @@ const Data = ({ navigation }) => {
             {
                 show ? <ActivityIndicator size={70} color="green" /> : null
             }
-        
             {/* <Text>Email : {AppUserId}</Text>
             <Text>Loom Or Trader : {LoomOrTrader}</Text>
             <Button title="Click" onPress={() => fetchData()} /> */}

@@ -1,7 +1,9 @@
-import React, { useEffect, useState , useRef} from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { TouchableOpacity, SafeAreaView, StyleSheet, Text, View, Image, StatusBar, RefreshControl, ScrollView } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
+import LottieView from 'lottie-react-native';
+
 
 const Home = ({ navigation }) => {
 
@@ -108,7 +110,16 @@ const Home = ({ navigation }) => {
         </View>
 
       </View>
+{/* 
+      <View style={{ flex: 1 }}>
+        <LottieView
+          source={require('../Animation/splash.json')}
+          autoPlay
+          loop={false}
+          resizeMode='cover'
 
+        />
+      </View> */}
 
       <Text style={{ fontSize: 30, color: "#000", marginTop: "6%", marginLeft: "5%" }}> Welcome </Text>
 

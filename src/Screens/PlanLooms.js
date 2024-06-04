@@ -377,12 +377,12 @@ const PlanLooms = ({ navigation }) => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#e5f2fe" }}>
-      <StatusBar backgroundColor={"#0b659a"}></StatusBar>
-      <View style={{ backgroundColor: "#71B7E1", flexDirection: "row" }}>
+      <StatusBar backgroundColor={"#003C43"}></StatusBar>
+      <View style={{ backgroundColor: "#003C43", flexDirection: "row" }}>
         <TouchableOpacity onPress={() => navigation.openDrawer()}>
           <ImageBackground
             source={require("../Images/drawer.png")}
-            style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#71B7E1", marginTop: 15, marginRight: 0, marginLeft: 10 }}
+            style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#003C43", marginTop: 15, marginRight: 0, marginLeft: 10 }}
             imageStyle={{ borderRadius: 0 }}
           />
         </TouchableOpacity>
@@ -390,7 +390,7 @@ const PlanLooms = ({ navigation }) => {
         <TouchableOpacity onPress={() => fetchselectedEnquiryId()}>
           <ImageBackground
             source={require("../Images/refresh2.png")}
-            style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#71B7E1", marginTop: 15, marginRight: -30, marginLeft: 80 }}
+            style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#003C43", marginTop: 15, marginRight: -30, marginLeft: 80 }}
             imageStyle={{ borderRadius: 0 }}
           />
         </TouchableOpacity>
@@ -420,10 +420,10 @@ const PlanLooms = ({ navigation }) => {
 
             showTable ? <View style={styles.container}>
 
-              <TouchableOpacity onPress={() => Toggle()} style={{ backgroundColor: '#71B7E1', padding: 10, alignItems: 'center', marginTop: "10%" }}>
+              <TouchableOpacity onPress={() => Toggle()} style={{ backgroundColor: '#003C43', padding: 10, alignItems: 'center', marginTop: "10%" }}>
                 <Text style={{ color: 'white' }}>NEW</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => navigation.navigate("ConfirmEnquires")} style={{ backgroundColor: '#71B7E1', padding: 10, alignItems: 'center', marginTop: "10%" }}>
+              <TouchableOpacity onPress={() => navigation.navigate("ConfirmEnquires")} style={{ backgroundColor: '#003C43', padding: 10, alignItems: 'center', marginTop: "10%" }}>
                 <Text style={{ color: 'white' }}>Confirm Enquires</Text>
               </TouchableOpacity>
             </View> : null
@@ -877,7 +877,7 @@ const styles = StyleSheet.create({
     color: "#000"
   },
   button: {
-    backgroundColor: '#71B7E1',
+    backgroundColor: '#003C43',
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',
@@ -972,17 +972,17 @@ const styles = StyleSheet.create({
     backgroundColor: "red"
   },
   buttonOpen1: {
-    backgroundColor: "#71B7E1",
+    backgroundColor: "#003C43",
   },
   buttonClose1: {
-    backgroundColor: "#71B7E1",
+    backgroundColor: "#003C43",
     margin: "5%"
   },
   textStyle1: {
     color: 'white',
     fontWeight: 'bold',
     textAlign: 'center',
-    backgroundColor: "#71B7E1"
+    backgroundColor: "#003C43"
   },
   modalText: {
     marginBottom: 15,

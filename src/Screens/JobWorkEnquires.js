@@ -26,7 +26,7 @@ const JobWorkEnquires = ({ navigation }) => {
   const [mobileno, setMobileNo] = useState("");
   const [gstno, setGSTNO] = useState("")
 
-  const tableHead = ['Enquiry ID', 'Enquiry Date', 'Trader ID'];
+  const tableHead = ['Enquiry No', 'Enquiry Date'];
 
   const [showmsg, setShowMsg] = useState(true)
   const [isConected, setisConnected] = useState(false)
@@ -88,8 +88,10 @@ const JobWorkEnquires = ({ navigation }) => {
 
   const fetchEnquiries = async () => {
     try {
-      const response = await axios.get('https://textileapp.microtechsolutions.co.in/php/getenquiry.php');
-      setEnquiries(response.data);
+      const response = await axios.get('https://textileapp.microtechsolutions.co.in/php/getenquirybymachine.php?LoomTraderId=' + await AsyncStorage.getItem("Id"));
+      // Sort the enquiries by Enquiry ID in descending order
+      const sortedEnquiries = response.data.sort((a, b) => b.EnquiryId - a.EnquiryId);
+      setEnquiries(sortedEnquiries);
     } catch (error) {
       alert('Error fetching data');
     }
@@ -117,22 +119,31 @@ const JobWorkEnquires = ({ navigation }) => {
   };
 
   const handleFromDateChange = (event, selectedDate) => {
-    setFromDatePickerVisible(Platform.OS === 'ios'); // Hide DatePicker for iOS
+    console.log("Selected date for fromDate:", selectedDate);
+    setFromDatePickerVisible(Platform.OS === 'ios');
     if (selectedDate) {
+      console.log("Updating fromDate state:", formatDate(selectedDate));
       setFromDate(formatDate(selectedDate));
     }
   };
 
   const handleToDateChange = (event, selectedDate) => {
-    setToDatePickerVisible(Platform.OS === 'ios'); // Hide DatePicker for iOS
+    console.log("Selected date for toDate:", selectedDate);
+    setToDatePickerVisible(Platform.OS === 'ios');
     if (selectedDate) {
+      console.log("Updating toDate state:", formatDate(selectedDate));
       setToDate(formatDate(selectedDate));
     }
   };
 
   const [loomdata, setLoomdata] = useState([])
 
-  const postLoomData = async () => {
+
+   const postLoomData = async () => {
+
+  console.log(Id,selectedEnquiry.MachineType,selectedEnquiry.Width,selectedEnquiry.RPM,selectedEnquiry.SheddingType,selectedEnquiry.NoofFrame,selectedEnquiry.NoofFeedero,selectedEnquiry.SelvageJacquard,selectedEnquiry.TopBeam,selectedEnquiry.Cramming,selectedEnquiry.LenoDesignEquipment,fromDate,toDate)
+
+
     console.log(fromDate, toDate)
     console.log("ID = ", Id)
     const qs = require('qs');
@@ -148,8 +159,8 @@ const JobWorkEnquires = ({ navigation }) => {
       'TopBeam': selectedEnquiry.TopBeam,
       'Cramming': selectedEnquiry.Cramming,
       'LenoDesignEquipment': selectedEnquiry.LenoDesignEquipment,
-      'FromDate': fromDate || selectedEnquiry.BookingFrom.date.substring(0, 10),
-      'ToDate': toDate || selectedEnquiry.BookingTo.date.substring(0, 10)
+      'FromDate': fromDate,
+      'ToDate': toDate
     });
 
     let config = {
@@ -222,7 +233,6 @@ const JobWorkEnquires = ({ navigation }) => {
   const EnquiryConfirm = () => {
 
 
-
     const qs = require('qs');
     let data = qs.stringify({
       'EnquiryId': selectedEnquiry.EnquiryId,
@@ -273,7 +283,7 @@ const JobWorkEnquires = ({ navigation }) => {
     return (
       <View style={styles.header}>
         {tableHead.map((item, index) => (
-          <Text key={index} style={[styles.headerText, { width: index === 0 ? width * 0.3 : width * 0.35 }]}>
+          <Text key={index} style={[styles.headerText, { width: index === 0 ? width * 0.5 : width * 0.35 }]}>
             {item}
           </Text>
         ))}
@@ -294,9 +304,8 @@ const JobWorkEnquires = ({ navigation }) => {
         onPress={() => {
           fetchEnquiryDetails(enquiry.EnquiryId);
         }}>
-        <Text style={[styles.text, styles.cell, { width: width * 0.3 }]}>{enquiry.EnquiryNo}</Text>
+        <Text style={[styles.text, styles.cell, { width: width * 0.5 }]}>{enquiry.EnquiryNo}</Text>
         <Text style={[styles.text, styles.cell, { width: width * 0.35 }]}>{enquiry.EnquiryDate.date.substring(0, 10)}</Text>
-        <Text style={[styles.text, styles.cell, { width: width * 0.35 }]}>{enquiry.TraderId}</Text>
       </TouchableOpacity>
     ));
   };
@@ -308,22 +317,12 @@ const JobWorkEnquires = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.detailsContainer}>
         <View style={styles.detailGroup}>
           <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Enquiry ID</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.EnquiryId}</Text>
-          </View>
-          <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Enquiry No</Text>
             <Text style={styles.detailValue}>{selectedEnquiry.EnquiryNo}</Text>
           </View>
-        </View>
-        <View style={styles.detailGroup}>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Enquiry Date</Text>
             <Text style={styles.detailValue}>{selectedEnquiry.EnquiryDate.date.substring(0, 10)}</Text>
-          </View>
-          <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Trader ID</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.TraderId}</Text>
           </View>
         </View>
         <View style={styles.detailGroup}>
@@ -428,7 +427,7 @@ const JobWorkEnquires = ({ navigation }) => {
             <View style={{ flexDirection: "row" }}>
               <TextInput
                 style={[styles.textInput, { borderWidth: 1, width: "70%", borderColor: "#000" }]}
-                value={selectedEnquiry.BookingFrom.date.substring(0, 10)}
+                value={fromDate}
                 onChangeText={setFromDate}
                 keyboardType="numeric"
                 placeholderTextColor={'#000'}
@@ -443,12 +442,9 @@ const JobWorkEnquires = ({ navigation }) => {
               </TouchableOpacity>
               {fromDatePickerVisible && (
                 <DatePicker
-                  testID="fromDatePicker"
-                  value={selectedEnquiry.BookingFrom.date.substring(0, 10) ? new Date(fromDate) : new Date()}
+                  value={fromDate ? new Date(fromDate) : new Date()} // Initialize with fromDate state value, default to current date if fromDate is not set
                   mode="date"
-                  is24Hour={true}
                   display="default"
-                  minimumDate={new Date()}
                   onChange={handleFromDateChange}
                 />
               )}
@@ -457,7 +453,7 @@ const JobWorkEnquires = ({ navigation }) => {
 
               <TextInput
                 style={[styles.textInput, { borderWidth: 1, width: "70%", borderColor: "#000" }]}
-                value={selectedEnquiry.BookingTo.date.substring(0, 10)}
+                value={toDate}
                 onChangeText={setToDate}
                 keyboardType="numeric"
                 placeholderTextColor={'#000'}
@@ -471,12 +467,9 @@ const JobWorkEnquires = ({ navigation }) => {
               </TouchableOpacity>
               {toDatePickerVisible && (
                 <DatePicker
-                  testID="toDatePicker"
-                  value={selectedEnquiry.BookingFrom.date.substring(0, 10) ? new Date(toDate) : new Date()}
+                  value={toDate ? new Date(toDate) : new Date()} // Initialize with toDate state value, default to current date if toDate is not set
                   mode="date"
-                  is24Hour={true}
                   display="default"
-                  minimumDate={new Date()}
                   onChange={handleToDateChange}
                 />
               )}
@@ -625,7 +618,7 @@ const JobWorkEnquires = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f4f4f4', padding: 16 },
   header: { flexDirection: 'row', borderBottomWidth: 2, borderBottomColor: '#007bff', paddingBottom: 10, marginBottom: 10 },
-  headerText: { fontWeight: 'bold', textAlign: 'center', color: '#333', fontSize: 16 },
+  headerText: { fontWeight: 'bold', textAlign: 'center', color: '#333', fontSize: 16, marginTop: "5%" },
   row: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#ccc', paddingTop: 10, paddingBottom: 10 },
   rowEven: { backgroundColor: 'rgba(19, 93, 102, 0.3)' },
   rowOdd: { backgroundColor: '#fff' },
@@ -637,7 +630,7 @@ const styles = StyleSheet.create({
   detailItem: { flex: 1, marginTop: "2%" },
   detailLabel: { fontWeight: 'bold', color: '#555', fontSize: 16 },
   detailValue: { color: '#333', fontSize: 16 },
-  textInput: { borderColor: '#ccc', paddingLeft: 10, fontSize: 16, borderRadius: 5, height: 40 },
+  textInput: { borderColor: '#ccc', paddingLeft: 10, fontSize: 16, borderRadius: 5, height: 40 , color:"#000"},
   buttonContainer: { flexDirection: 'row', justifyContent: "space-evenly", marginTop: 20, marginBottom: "40%" },
   checkAvailabilityButton: { backgroundColor: 'white', padding: 10, alignItems: 'center', borderRadius: 10, marginTop: 20, marginBottom: 10, borderColor: '#003C43', borderWidth: 2 },
   checkAvailabilityText: { color: '#003C43', fontSize: 20, },

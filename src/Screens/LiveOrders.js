@@ -89,7 +89,7 @@ const LiveOrders = ({ navigation }) => {
 
     const fetchData = async () => {
         try {
-            const response = await fetch('https://textileapp.microtechsolutions.co.in/php/gettable.php?table=LoomOrder');
+            const response = await fetch('https://textileapp.microtechsolutions.co.in/php/loomliveorder.php?LoomTraderId=' + await AsyncStorage.getItem("Id"));
             const json = await response.json();
             setOrders(json);
         } catch (error) {
@@ -692,14 +692,46 @@ const LiveOrders = ({ navigation }) => {
     }
 
 
+    const startOrder = async (order) => {
+        const confirmed = true
+       try {
+        const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/updateloomorder.php?LoomOrderId=${order.LoomOrderId}&Confirmed=${confirmed}`);
+
+        if (!response.ok) {
+            throw new Error('Something went wrong');
+        }
+
+        console.log('Order updated successfully');
+        navigation.navigate("LoomBooking")
+    } catch (error) {
+        console.error(error);
+    }
+      };
+      
+      const cancelOrder = async (order) => {
+        const confirmed = false
+       try {
+        const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/updateloomorder.php?LoomOrderId=${order.LoomOrderId}&Confirmed=${confirmed}`);
+
+        if (!response.ok) {
+            throw new Error('Something went wrong');
+        }
+
+        console.log('Order updated successfully');
+    } catch (error) {
+        console.error(error);
+    }
+      };
+
+
     return (
         <SafeAreaView style={{ backgroundColor: "#e5f2fe" }}>
-            <StatusBar backgroundColor={"#0b659a"}></StatusBar>
-            <View style={{ backgroundColor: "#71B7E1", flexDirection: "row" }}>
+            <StatusBar backgroundColor={"#003c43"}></StatusBar>
+            <View style={{ backgroundColor: "#003c43", flexDirection: "row" }}>
                 <TouchableOpacity onPress={() => navigation.openDrawer()}>
                     <ImageBackground
                         source={require("../Images/drawer.png")}
-                        style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#71B7E1", marginTop: 15, marginRight: 0, marginLeft: 10 }}
+                        style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#003c43", marginTop: 15, marginRight: 0, marginLeft: 10 }}
                         imageStyle={{ borderRadius: 0 }}
                     />
                 </TouchableOpacity>
@@ -724,12 +756,22 @@ const LiveOrders = ({ navigation }) => {
 
                         {showBlocks ? <View style={styles.ordersContainer}>
                             {orders.map((order, index) => (
-                                <TouchableOpacity
-                                    key={index}
-                                    style={styles.orderContainer}
-                                    onPress={() => handleOrderPress(order)}>
-                                    <Text style={styles.orderText}>{`Order No: ${order.OrderNo}     party Name : ${order.PartyName}   \n\n    Quality :${order.Quality}`}</Text>
-                                </TouchableOpacity>
+                                <View>
+                                    <TouchableOpacity
+                                        key={index}
+                                        style={styles.orderContainer}
+                                        onPress={() => handleOrderPress(order)}>
+                                        <Text style={styles.orderText}>{`Order No: ${order.OrderNo}  party Name : ${order.PartyName}   \n\n    Quality :${order.Quality}`}</Text>
+                                    </TouchableOpacity>
+                                    <View style={{ flexDirection: "row", justifyContent: "space-evenly", backgroundColor: "#003c43", borderRadius: 50, height: "18%",alignItems:"center" }}>
+                                        <TouchableOpacity  onPress={() => startOrder(order)}>
+                                            <Text style={{ color: "#fff" }}>Start Order</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity onPress={() => cancelOrder(order)}>
+                                            <Text style={{ color: "#fff" }}>cancel Order</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
                             ))}
                         </View> : null}
 
@@ -1448,7 +1490,7 @@ const styles = StyleSheet.create({
     ordersContainer: {
         flexDirection: 'column',
         alignItems: "center",
-        marginTop: "5%"
+        marginTop: "5%",
     },
     header1: {
         flexDirection: 'row',
@@ -1464,10 +1506,10 @@ const styles = StyleSheet.create({
     },
     orderContainer: {
         width: '88%',
-        backgroundColor: '#71B7E1',
+        backgroundColor: '#003c43',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: 0,
         padding: 10,
         borderRadius: 25
     },
@@ -1483,7 +1525,7 @@ const styles = StyleSheet.create({
     },
     button1: {
         alignItems: "center",
-        backgroundColor: '#71B7E1',
+        backgroundColor: '#003c43',
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 5,

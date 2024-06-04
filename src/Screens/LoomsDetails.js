@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput, ScrollView, Button, RefreshControl } from 'react-native'
+import { StyleSheet, Text, View, Image, TouchableOpacity, TextInput, ScrollView, Button, RefreshControl, Alert } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import CheckBox from '@react-native-community/checkbox';
@@ -6,6 +6,8 @@ import { Dropdown } from 'react-native-element-dropdown';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import NetInfo from "@react-native-community/netinfo";
+import moment from 'moment';
+
 
 
 const LoomsDetails = ({ navigation }) => {
@@ -23,35 +25,60 @@ const LoomsDetails = ({ navigation }) => {
     const [showmsg, setShowMsg] = useState(true)
     const [isConected, setisConnected] = useState(false)
     useEffect(() => {
-      const unsubscribe = NetInfo.addEventListener(state => {
-        setisConnected(state.isConnected)
-  
-  
-        if (state.isConnected == true) {
-          setTimeout(() => {
-            setShowMsg(false)
-          }, 5000)
-        } else {
-          setShowMsg(true)
+        const unsubscribe = NetInfo.addEventListener(state => {
+            setisConnected(state.isConnected)
+
+
+            if (state.isConnected == true) {
+                setTimeout(() => {
+                    setShowMsg(false)
+                }, 5000)
+            } else {
+                setShowMsg(true)
+            }
+        })
+
+
+
+        return () => {
+            unsubscribe();
         }
-      })
-  
-  
-  
-      return () => {
-        unsubscribe();
-      }
     })
 
     const [Name, setName] = useState("");
     const [AppUserId, setAppUserId] = useState("")
     const [LoomOrTrader, SetLoomOrTrader] = useState("")
-    const [id, setId] = useState("")
+    const [id, setId] = useState(null);
+    const [currentDate, setCurrentDate] = useState('');
+    const [sixMonthsLaterDate, setSixMonthsLaterDate] = useState('');
 
     useEffect(() => {
         onRefresh();
         getData();
-        console.log(Name, AppUserId, LoomOrTrader, id)
+        //console.log(Name, AppUserId, LoomOrTrader, id)
+        const fetchData = async () => {
+            try {
+              // Fetching the ID from AsyncStorage
+              const storedId = await AsyncStorage.getItem('Id');
+              if (storedId !== null) {
+                setId(storedId);
+                console.log(storedId)
+              } else {
+                console.log('No ID found in AsyncStorage');
+              }
+      
+              // Setting current date
+              const today = moment().format('YYYY-MM-DD');
+              setCurrentDate(today);
+      
+              // Setting date six months later
+              const sixMonthsLater = moment().add(6, 'months').format('YYYY-MM-DD');
+              setSixMonthsLaterDate(sixMonthsLater);
+            } catch (error) {
+                console.error('Error fetching data from AsyncStorage or API', error);
+              }
+            }
+            fetchData();
     }, [])
 
 
@@ -59,19 +86,19 @@ const LoomsDetails = ({ navigation }) => {
     const getData = async () => {
         const Name = await AsyncStorage.getItem("Name");
         const AppUserId = await AsyncStorage.getItem("AppUserId");
-        const LoomOrTrader = await AsyncStorage.getItem("LoomOrTrader")
-        const Id = await AsyncStorage.getItem("Id")
+        const LoomOrTrader = await AsyncStorage.getItem("LoomOrTrader");
+        const Id = await AsyncStorage.getItem("Id");
 
-        setName(Name)
-        setAppUserId(AppUserId)
-        SetLoomOrTrader(LoomOrTrader)
-        setId(Id)
-        console.log('ID', id)
+        setName(Name);
+        setAppUserId(AppUserId);
+        SetLoomOrTrader(LoomOrTrader);
+        setId(parseInt(Id)); // Parse Id to integer
+        console.log('ID', id);
         setRows((prevRows) =>
-            prevRows.map((row) => ({ ...row, LoomTraderId: id }))
+            prevRows.map((row) => ({ ...row, LoomTraderId: parseInt(Id) })) // Parse LoomTraderId to integer
         );
+    };
 
-    }
 
     const [isFocus3, setIsFocus3] = useState(false);
     const [isFocus4, setIsFocus4] = useState(false);
@@ -79,10 +106,10 @@ const LoomsDetails = ({ navigation }) => {
     const [isFocus6, setIsFocus6] = useState(false);
 
 
-    const [rows, setRows] = useState([{ LoomTraderId: null, NoOfLooms: null, MachineType: '', Width: '', RPM: '', SheddingType: '', NoofFrames: '', NoofFeeders: '', SelvageJacquard: false, TopBeam: false, Cramming: false, LenoDesignEquipment: false, Available: false, Fromdate: '', ToDate: '', NoOfLooms: null }]);
+    const [rows, setRows] = useState([{ LoomTraderId: id, LoomNo: null, MachineType: '', Width: '', RPM: '', SheddingType: '', NoofFrames: '', NoofFeeders: '', SelvageJacquard: false, TopBeam: false, Cramming: false, LenoDesignEquipment: false, Available: false, Fromdate: date, ToDate: date2, NoOfLooms: null }]);
 
     const addRow = () => {
-        setRows([...rows, { LoomTraderId: null, NoOfLooms: null, MachineType: '', Width: '', RPM: '', SheddingType: '', NoofFrames: '', NoofFeeders: '', SelvageJacquard: false, TopBeam: false, Cramming: false, LenoDesignEquipment: false, Available: false, Fromdate: '', ToDate: '', NoOfLooms: null }]);
+        setRows([...rows, { LoomTraderId: id, LoomNo: null, MachineType: '', Width: '', RPM: '', SheddingType: '', NoofFrames: '', NoofFeeders: '', SelvageJacquard: false, TopBeam: false, Cramming: false, LenoDesignEquipment: false, Available: false, Fromdate: date, ToDate: date2, NoOfLooms: null }]);
     };
 
     const removeRow = (index) => {
@@ -92,13 +119,21 @@ const LoomsDetails = ({ navigation }) => {
             setRows(newRows);
         }
     };
-
     const handleChange = (text, index, fieldName) => {
         const newRows = [...rows];
-        newRows[index][fieldName] = text;
-        setRows(newRows);
 
+        if (fieldName === 'SelvageJacquard' || fieldName === 'TopBeam' || fieldName === 'Cramming' || fieldName === 'LenoDesignEquipment' || fieldName === 'Available') {
+            // For checkbox fields, set the value directly
+            newRows[index][fieldName] = text;
+        } else if (['LoomNo', 'NoOfLooms', 'Width', 'RPM', 'NoofFrames', 'NoofFeeders'].includes(fieldName)) {
+            newRows[index][fieldName] = parseFloat(text) || null;
+        } else {
+            newRows[index][fieldName] = text.toString();
+        }
+
+        setRows(newRows);
     };
+
 
     const handleSubmit = () => {
         const formdata = new FormData();
@@ -118,8 +153,10 @@ const LoomsDetails = ({ navigation }) => {
         console.log('Form submitted:', rows);
     };
 
+    
 
     const postAPI = async (item) => {
+
 
         let config = {
             method: 'post',
@@ -129,7 +166,7 @@ const LoomsDetails = ({ navigation }) => {
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
             data: {
-                'LoomTraderId': await AsyncStorage.getItem("Id"),
+                'LoomTraderId': id,
                 'LoomNo': item.LoomNo,
                 'MachineType': item.MachineType,
                 'Width': item.Width,
@@ -142,18 +179,22 @@ const LoomsDetails = ({ navigation }) => {
                 'Cramming': item.Cramming,
                 'LenoDesignEquipment': item.LenoDesignEquipment,
                 'NoOfLooms': item.NoOfLooms,
-                'Available': item.Available
+                'Available': item.Available,
+                'LoomAvailableFrom': currentDate,
+                'LoomAvailableTo': sixMonthsLaterDate,
+                'OrderNoId': null
             }
         };
 
         axios.request(config)
             .then((response) => {
                 console.log(JSON.stringify(response.data));
+                Alert.alert("Data Submitted Successfully")
             })
             .catch((error) => {
                 console.log(error);
             });
-        console.log('Form submitted:', rows);
+        console.log('Form submitted:', item);
 
     }
 
@@ -265,30 +306,37 @@ const LoomsDetails = ({ navigation }) => {
         }
 
         callfuns();
+        handleDate();
     }, [])
 
+    const [date, setDate] = useState()
+    const [date2, setDate2] = useState()
+
+    const handleDate = () => {
+        const dt = new Date()
+        const x = dt.toISOString().split('T');
+        const x1 = x[0].split('-')
+        setDate(x1[0] + '/' + x1[1] + '/' + x1[2]);
+        let year = dt.getFullYear();
+        let year1 = year + 1;
+        setDate2(year1 + '/' + x1[1] + '/' + x1[2]);
+    };
+
+
     return (
-        <SafeAreaView style={{height:"100%"}}>
-
-        <View style={{ backgroundColor: "#003C43", flexDirection: "row", alignItems: 'center', height: 50 }}>
-
-        <TouchableOpacity
-          onPress={() => navigation.openDrawer()}
-        >
-          <Image
-            source={require("../Images/drawer1.png")}
-            style={{ width: 28, height: 22, marginLeft: 10, }}
-
-          />
-        </TouchableOpacity>
-
-
-        <View style={{ flex: 0.9, alignItems: 'center' }}>
-          <Text style={{ fontSize: 26, color: "white", fontWeight: 500 }}> Loom Details </Text>
-        </View>
-
-      </View>
-
+        <SafeAreaView style={{ height: "100%" }}>
+            <View style={styles.header2}>
+                <TouchableOpacity style={styles.header1} onPress={() => navigation.openDrawer()}>
+                    <Image
+                        style={{ width: "35%", height: "35%" ,marginLeft:"25%"}}
+                        source={require("../Images/drawer1.png")}
+                    />
+                </TouchableOpacity>
+                <Text style={styles.headerText1}>Loom Details</Text>
+            </View>
+            <View >
+            <Text style={{ color: 'black', fontSize: 20, padding: 10 }}>Loom Owner : {Name} </Text>
+            </View>
             <View style={styles.container}>
                 <ScrollView horizontal={true} contentContainerStyle={styles.scrollView}
                     refreshControl={
@@ -337,10 +385,10 @@ const LoomsDetails = ({ navigation }) => {
 
                                 </View>
                                 <View style={styles.field}>
-                                    <TextInput style={styles.input} placeholder='Width' placeholderTextColor={'#000'} value={row.Width} onChangeText={(text) => handleChange(text, index, 'Width')} />
+                                <TextInput style={styles.input} placeholder='Width' placeholderTextColor={'#000'} value={row.Width} onChangeText={(text) => handleChange(text, index, 'Width')} />
                                 </View>
                                 <View style={styles.field}>
-                                    <TextInput style={styles.input} placeholder='RPM' placeholderTextColor={'#000'}  value={row.RPM} onChangeText={(text) => handleChange(text, index, 'RPM')} />
+                                <TextInput style={styles.input} placeholder='RPM' placeholderTextColor={'#000'} value={row.RPM} onChangeText={(text) => handleChange(text, index, 'RPM')} />
                                 </View>
                                 <View style={styles.field}>
                                     <Dropdown
@@ -466,8 +514,8 @@ const LoomsDetails = ({ navigation }) => {
                                 <View style={styles.field}>
 
 
-                                    <TextInput style={styles.input} placeholder='Loom No' placeholderTextColor={'#000'}  value={row.LoomNo} keyboardType='number-pad' onChangeText={(text) => handleChange(text, index, 'LoomNo')} />
-                                    <TextInput style={styles.input} placeholder='No Of Looms' placeholderTextColor={'#000'}  value={row.NoOfLooms} keyboardType='number-pad' onChangeText={(text) => handleChange(text, index, 'NoOfLooms')} />
+                                    <TextInput style={styles.input} placeholder='Loom No' placeholderTextColor={'#000'} value={row.LoomNo} keyboardType='number-pad' onChangeText={(text) => handleChange(text, index, 'LoomNo')} />
+                                    <TextInput style={styles.input} placeholder='No Of Looms' placeholderTextColor={'#000'} value={row.NoOfLooms} keyboardType='number-pad' onChangeText={(text) => handleChange(text, index, 'NoOfLooms')} />
 
                                 </View>
                                 {/* <View style={styles.field}>
@@ -494,7 +542,7 @@ const LoomsDetails = ({ navigation }) => {
                 </TouchableOpacity>
             </View>
             {
-                showmsg ? <View style={{ flex:2, alignItems: "flex-end", justifyContent: "flex-end"}}>
+                showmsg ? <View style={{ flex: 2, alignItems: "flex-end", justifyContent: "flex-end" }}>
                     <View style={{
                         bottom: 0,
                         height: 20,
@@ -505,14 +553,14 @@ const LoomsDetails = ({ navigation }) => {
 
                     }}>
                         <Text style={{ color: "#fff" }}>
-              {(()=>{
-                if(isConected === true) {
-                  'Back Online'
-                }else{
-                  navigation.navigate("NoInternet")
-                }
-              })}
-            </Text>
+                            {(() => {
+                                if (isConected === true) {
+                                    'Back Online'
+                                } else {
+                                    navigation.navigate("NoInternet")
+                                }
+                            })}
+                        </Text>
 
                     </View>
                 </View> : null
@@ -529,7 +577,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 70,
         flexDirection: "row",
-        backgroundColor: "#71B7E1",
+        backgroundColor: "#003c43",
         justifyContent: "space-between"
     },
     header1: {
@@ -537,7 +585,7 @@ const styles = StyleSheet.create({
         width: "20%",
         height: "100%",
         flexDirection: "row",
-        backgroundColor: "#71B7E1",
+        backgroundColor: "#003c43",
         justifyContent: "space-between"
     },
     headerText1: {
@@ -581,8 +629,8 @@ const styles = StyleSheet.create({
     fieldName: {
         marginRight: 50,
         fontWeight: 'bold',
-        minWidth: 100, 
-        color:"#000"// Adjust this value as needed
+        minWidth: 100,
+        color: "#000"// Adjust this value as needed
     },
     inputLabel: {
         flex: 0,
@@ -615,7 +663,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     submitButton: {
-        backgroundColor: 'blue',
+        backgroundColor: '#003c43',
         paddingHorizontal: 20,
         paddingVertical: 10,
         borderRadius: 5,
