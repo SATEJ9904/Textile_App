@@ -106,10 +106,10 @@ const LoomsDetails = ({ navigation }) => {
     const [isFocus6, setIsFocus6] = useState(false);
 
 
-    const [rows, setRows] = useState([{ LoomTraderId: id, LoomNo: null, MachineType: '', Width: '', RPM: '', SheddingType: '', NoofFrames: '', NoofFeeders: '', SelvageJacquard: false, TopBeam: false, Cramming: false, LenoDesignEquipment: false, Available: false, Fromdate: date, ToDate: date2, NoOfLooms: null }]);
+    const [rows, setRows] = useState([{ LoomTraderId: id, LoomNo: null, MachineType: '', Width: '', RPM: '', SheddingType: '', NoofFrames: '', NoofFeeders: '', SelvageJacquard: false, TopBeam: false, Cramming: false, LenoDesignEquipment: false, Available: false,  NoOfLooms: null }]);
 
     const addRow = () => {
-        setRows([...rows, { LoomTraderId: id, LoomNo: null, MachineType: '', Width: '', RPM: '', SheddingType: '', NoofFrames: '', NoofFeeders: '', SelvageJacquard: false, TopBeam: false, Cramming: false, LenoDesignEquipment: false, Available: false, Fromdate: date, ToDate: date2, NoOfLooms: null }]);
+        setRows([...rows, { LoomTraderId: id, LoomNo: null, MachineType: '', Width: '', RPM: '', SheddingType: '', NoofFrames: '', NoofFeeders: '', SelvageJacquard: false, TopBeam: false, Cramming: false, LenoDesignEquipment: false, Available: false,NoOfLooms: null }]);
     };
 
     const removeRow = (index) => {
@@ -156,8 +156,13 @@ const LoomsDetails = ({ navigation }) => {
     
 
     const postAPI = async (item) => {
-
-
+        // Validate if all input fields are filled
+        if (!isItemValid(item)) {
+            console.log('Validation failed for item:', item);
+            Alert.alert('Please fill out all fields before submitting.');
+            return;
+        }
+    
         let config = {
             method: 'post',
             maxBodyLength: Infinity,
@@ -185,7 +190,7 @@ const LoomsDetails = ({ navigation }) => {
                 'OrderNoId': null
             }
         };
-
+    
         axios.request(config)
             .then((response) => {
                 console.log(JSON.stringify(response.data));
@@ -195,7 +200,15 @@ const LoomsDetails = ({ navigation }) => {
                 console.log(error);
             });
         console.log('Form submitted:', item);
-
+    }
+    
+    const isItemValid = (item) => {
+        for (const key in item) {
+            if (!item[key] && item[key] !== 0 && item[key] !== false) {
+                return false;
+            }
+        }
+        return true;
     }
 
 
@@ -459,7 +472,7 @@ const LoomsDetails = ({ navigation }) => {
                                             value={row.SelvageJacquard}
                                             onValueChange={(text) => handleChange(text, index, 'SelvageJacquard')}
                                         />
-                                        <Text style={{ fontSize: 17, color: "#000", marginLeft: 0 }}>yes</Text>
+                                        <Text style={{ fontSize: 17, color: "#000", marginLeft: 0 }}>Available</Text>
                                     </View>
 
                                 </View>
@@ -472,7 +485,7 @@ const LoomsDetails = ({ navigation }) => {
                                             value={row.TopBeam}
                                             onValueChange={(text) => handleChange(text, index, 'TopBeam')}
                                         />
-                                        <Text style={{ fontSize: 17, color: "#000", marginLeft: 0 }}>yes</Text>
+                                        <Text style={{ fontSize: 17, color: "#000", marginLeft: 0 }}>Available</Text>
                                     </View>
                                 </View>
                                 <View style={styles.field}>
@@ -484,7 +497,7 @@ const LoomsDetails = ({ navigation }) => {
                                             value={row.Cramming}
                                             onValueChange={(text) => handleChange(text, index, 'Cramming')}
                                         />
-                                        <Text style={{ fontSize: 17, color: "#000", marginLeft: 0 }}>yes</Text>
+                                        <Text style={{ fontSize: 17, color: "#000", marginLeft: 0 }}>Available</Text>
                                     </View>
                                 </View>
                                 <View style={styles.field}>
@@ -496,7 +509,7 @@ const LoomsDetails = ({ navigation }) => {
                                             value={row.LenoDesignEquipment}
                                             onValueChange={(text) => handleChange(text, index, 'LenoDesignEquipment')}
                                         />
-                                        <Text style={{ fontSize: 17, color: "#000", marginLeft: 0 }}>yes</Text>
+                                        <Text style={{ fontSize: 17, color: "#000", marginLeft: 0 }}>Available</Text>
                                     </View>
                                 </View>
                                 <View style={styles.field}>
@@ -508,7 +521,7 @@ const LoomsDetails = ({ navigation }) => {
                                             value={row.Available}
                                             onValueChange={(text) => handleChange(text, index, 'Available')}
                                         />
-                                        <Text style={{ fontSize: 17, color: "#000", marginLeft: 0 }}>yes</Text>
+                                        <Text style={{ fontSize: 17, color: "#000", marginLeft: 0 }}>Yes</Text>
                                     </View>
                                 </View>
                                 <View style={styles.field}>

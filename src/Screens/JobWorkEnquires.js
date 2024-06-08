@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, ScrollView, Dimensions, TouchableOpacity, TextInput, Image, RefreshControl, Platform, ImageBackground } from 'react-native';
+import { View, StyleSheet, Text, ScrollView, Dimensions, TouchableOpacity, TextInput, Image, RefreshControl, Platform, ImageBackground, Modal, Animated, Easing, Alert } from 'react-native';
 import axios from 'axios';
 import DatePicker from '@react-native-community/datetimepicker'; // Import the DatePicker component
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -139,9 +139,9 @@ const JobWorkEnquires = ({ navigation }) => {
   const [loomdata, setLoomdata] = useState([])
 
 
-   const postLoomData = async () => {
+  const postLoomData = async () => {
 
-  console.log(Id,selectedEnquiry.MachineType,selectedEnquiry.Width,selectedEnquiry.RPM,selectedEnquiry.SheddingType,selectedEnquiry.NoofFrame,selectedEnquiry.NoofFeedero,selectedEnquiry.SelvageJacquard,selectedEnquiry.TopBeam,selectedEnquiry.Cramming,selectedEnquiry.LenoDesignEquipment,fromDate,toDate)
+    console.log(Id, selectedEnquiry.MachineType, selectedEnquiry.Width, selectedEnquiry.RPM, selectedEnquiry.SheddingType, selectedEnquiry.NoofFrame, selectedEnquiry.NoofFeedero, selectedEnquiry.SelvageJacquard, selectedEnquiry.TopBeam, selectedEnquiry.Cramming, selectedEnquiry.LenoDesignEquipment, fromDate, toDate)
 
 
     console.log(fromDate, toDate)
@@ -231,37 +231,94 @@ const JobWorkEnquires = ({ navigation }) => {
   }
 
   const EnquiryConfirm = () => {
-
-
-    const qs = require('qs');
-    let data = qs.stringify({
-      'EnquiryId': selectedEnquiry.EnquiryId,
-      'LoomTraderId': Id,
-      'DatePossibleFrom': fromDate || selectedEnquiry.BookingFrom.date.substring(0, 10),
-      'DatePossibleTo': toDate || selectedEnquiry.BookingTo.date.substring(0, 10),
-      'JobRateExp': counterOffer,
-      'Status': false,
-      'LoomPossible': loomPossible,
-    });
-
-    let config = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: 'https://textileapp.microtechsolutions.co.in/php/postenquiryconfirm.php',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      data: data
-    };
-
-    axios.request(config)
-      .then(response => {
-        console.log(response.data)
-      })
-      .catch((error) => {
-        console.log(error);
+    if (!fromDate) {
+      Alert.alert("Please Select The Dates Properly")
+    } else if (!toDate) {
+      Alert.alert("Please Select The Dates Properly")
+    } else if (!loomPossible) {
+      Alert.alert("Please Enter The Looms Possible To Assign")
+    } else if (!counterOffer) {
+      Alert.alert("Please Enter The Value Of Counter Offer")
+    } else {
+      const qs = require('qs');
+      let data = qs.stringify({
+        'EnquiryId': selectedEnquiry.EnquiryId,
+        'LoomTraderId': Id,
+        'DatePossibleFrom': fromDate || selectedEnquiry.BookingFrom.date.substring(0, 10),
+        'DatePossibleTo': toDate || selectedEnquiry.BookingTo.date.substring(0, 10),
+        'JobRateExp': counterOffer,
+        'Status': false,
+        'LoomPossible': loomPossible,
       });
+
+      let config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: 'https://textileapp.microtechsolutions.co.in/php/postenquiryconfirm.php',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: data
+      };
+
+      axios.request(config)
+        .then(response => {
+          console.log(response.data)
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+      setShowSuccessModal(true);
+      setShowED(false);
+      setShowE(true)
+    }
   }
+
+
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successAnimation] = useState(new Animated.Value(0));
+
+  useEffect(() => {
+    if (showSuccessModal) {
+      animateSuccess();
+    }
+  }, [showSuccessModal]);
+
+  const animateSuccess = () => {
+    Animated.timing(successAnimation, {
+      toValue: 1,
+      duration: 1000,
+      easing: Easing.linear,
+      useNativeDriver: true
+    }).start(() => {
+      // Animation complete
+      setTimeout(() => {
+        setShowSuccessModal(false);
+      }, 2000); // Close modal after 2 seconds
+    });
+  };
+
+  const renderSuccessModal = () => {
+    return (
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showSuccessModal}
+        onRequestClose={() => setShowSuccessModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <Animated.View style={[styles.modalContent, { opacity: successAnimation }]}>
+            <Image
+              source={require("../Images/success.png")}
+              style={{ width: 80, height: 80, marginBottom: 20 }}
+            />
+            <Text style={styles.modalMessage}>Data Submitted Successfully</Text>
+          </Animated.View>
+        </View>
+      </Modal>
+    );
+
+  };
 
 
 
@@ -386,6 +443,16 @@ const JobWorkEnquires = ({ navigation }) => {
           </View>
         </View>
         <View style={styles.detailGroup}>
+          <View style={styles.detailItem}>
+            <Text style={styles.detailLabel}>FabricWidth</Text>
+            <Text style={styles.detailValue}>{selectedEnquiry.FabricWidth}</Text>
+          </View>
+          <View style={styles.detailItem}>
+            <Text style={styles.detailLabel}>DeliveryDate</Text>
+            <Text style={styles.detailValue}>{selectedEnquiry.DeliveryDate.date.substring(0, 10)}</Text>
+          </View>
+        </View>
+        <View style={styles.detailGroup}>
           <View style={[styles.detailItem]}>
             <Text style={styles.detailLabel}>Loom No</Text>
             <Text style={styles.detailValue}>{selectedEnquiry.LoomNo}</Text>
@@ -395,6 +462,22 @@ const JobWorkEnquires = ({ navigation }) => {
             <Text style={styles.detailValue}>{calculatePPI(selectedEnquiry.FabricQuality)}</Text>
           </View>
         </View>
+        <View style={[styles.detailItem, { marginLeft: "10%" }]}>
+          <Text style={styles.detailLabel}>Description</Text>
+          <Text style={styles.detailValue}>{selectedEnquiry.Description}</Text>
+        </View>
+        <View style={[styles.detailItem, { marginLeft: "10%",margin:"5%" }]}>
+          <Text style={styles.detailLabel}>Design </Text>
+          <Image
+            source={{ uri: selectedEnquiry.Photopath }}
+            style={{
+              marginTop: 10,
+              width: 200,
+              height: 200,
+            }}
+          />
+        </View>
+
         <View style={styles.detailGroup}>
           {selectedEnquiry.SelvageJacquard === 1 ? (
             <View style={styles.detailItem}>
@@ -431,6 +514,7 @@ const JobWorkEnquires = ({ navigation }) => {
                 onChangeText={setFromDate}
                 keyboardType="numeric"
                 placeholderTextColor={'#000'}
+                placeholder='YYYY-MM-DD'
               />
               <TouchableOpacity onPress={() => setFromDatePickerVisible(true)}>
                 <ImageBackground
@@ -457,6 +541,7 @@ const JobWorkEnquires = ({ navigation }) => {
                 onChangeText={setToDate}
                 keyboardType="numeric"
                 placeholderTextColor={'#000'}
+                placeholder='YYYY-MM-DD'
               />
               <TouchableOpacity onPress={() => setToDatePickerVisible(true)}>
                 <ImageBackground
@@ -582,13 +667,15 @@ const JobWorkEnquires = ({ navigation }) => {
             {renderHeader()}
             <ScrollView style={styles.dataWrapper}>{renderRows()}</ScrollView>
           </>
+
         ) : null}
         {showED ? (
-          <View style={styles.dataWrapper}>{renderEnquiryDetails()}</View>
+          <View style={styles.dataWrapper}>{renderEnquiryDetails()}{renderSuccessModal()}</View>
+
         ) : null}
       </ScrollView>
       {
-        showmsg ? <View style={{ flex: 1, alignItems: "flex-end", justifyContent: "flex-end" }}>
+        showmsg ? <View style={{ flex: 1, alignItems: "flex-end", justifyContent: "flex-end", marginTop: "2%" }}>
           <View style={{
             bottom: 0,
             height: 20,
@@ -603,7 +690,7 @@ const JobWorkEnquires = ({ navigation }) => {
                 if (isConected === true) {
                   'Back Online'
                 } else {
-                  navigation.navigate("NoInternet")
+                  'No Internet'
                 }
               })}
             </Text>
@@ -630,11 +717,28 @@ const styles = StyleSheet.create({
   detailItem: { flex: 1, marginTop: "2%" },
   detailLabel: { fontWeight: 'bold', color: '#555', fontSize: 16 },
   detailValue: { color: '#333', fontSize: 16 },
-  textInput: { borderColor: '#ccc', paddingLeft: 10, fontSize: 16, borderRadius: 5, height: 40 , color:"#000"},
+  textInput: { borderColor: '#ccc', paddingLeft: 10, fontSize: 16, borderRadius: 5, height: 40, color: "#000" },
   buttonContainer: { flexDirection: 'row', justifyContent: "space-evenly", marginTop: 20, marginBottom: "40%" },
   checkAvailabilityButton: { backgroundColor: 'white', padding: 10, alignItems: 'center', borderRadius: 10, marginTop: 20, marginBottom: 10, borderColor: '#003C43', borderWidth: 2 },
   checkAvailabilityText: { color: '#003C43', fontSize: 20, },
   checkAvailabilityText1: { color: '#fff', fontSize: 20, fontWeight: '500' },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center'
+  },
+  modalMessage: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center'
+  }
 });
 
 export default JobWorkEnquires;

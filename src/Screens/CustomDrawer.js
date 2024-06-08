@@ -6,7 +6,8 @@ import {
   ImageBackground,
   Image,
   TouchableOpacity,
-  ToastAndroid
+  ToastAndroid,
+  ScrollView
 } from 'react-native';
 import {
   DrawerContentScrollView,
@@ -132,10 +133,10 @@ const CustomDrawer = (props) => {
           </View>
         </View> */}
 
-        <View style={{ 
+        <View style={{
           height: '27%',
-           marginTop: -4 
-          }}>
+          marginTop: -4
+        }}>
 
           {/* <View style={{ height: '50%', alignItems: 'center' }}>
           <Image
@@ -182,12 +183,14 @@ const CustomDrawer = (props) => {
         </View>
 
 
-        <View style={{}}>
-          <DrawerItemList
+        <View style={{ marginTop: "0%" }}>
+          
+            <DrawerItemList
 
-            {...props}
+              {...props}
 
-          />
+            />
+
 
         </View>
       </DrawerContentScrollView>

@@ -17,7 +17,15 @@ const Login = ({ navigation }) => {
     const [newpassword, setNewpassword] = useState('');
 
 
-
+    const validateInputs = () => {
+        if (!Email || !Password) {
+            Alert.alert("Please fill in all the fields");
+            return false;
+        }else{
+            NewLogin()
+        }
+        return true;
+    }
 
     const clear = () => {
         setEmail(""),
@@ -345,7 +353,7 @@ const Login = ({ navigation }) => {
 
                                         <TouchableOpacity
                                             style={{ width: "70%", marginTop: "8%", borderRadius: 20, backgroundColor: "#003C43", justifyContent: "center", alignItems: "center" }}
-                                            onPress={() => NewLogin()}
+                                            onPress={() => validateInputs()}
                                             >
                                             <Text style={{ color: "#fff", fontSize: 25, padding: 8, marginLeft: "3%", fontWeight: "500" }}>Log In</Text>
 

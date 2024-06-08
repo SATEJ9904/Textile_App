@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, ScrollView, Alert, ActivityIndicator, ToastAndroid } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, ScrollView, Alert, ActivityIndicator, ToastAndroid, Modal, Animated } from 'react-native'
+import React, { useEffect, useState, useRef } from 'react'
 import { getAllCountries, getStatesOfCountry, getCitiesOfState, Country, State, City } from 'country-state-city';
 import { Dropdown } from 'react-native-element-dropdown';
 import { RadioButton } from 'react-native-paper';
@@ -36,7 +36,8 @@ const SignupTrader = ({ navigation }) => {
     const [show3, setShow3] = useState(true)
     const [show2, setShow2] = useState(false)
     const [show4, setShow4] = useState(false)
-
+    const [showModal, setShowModal] = useState(false);
+    const animatedValue = React.useRef(new Animated.Value(0)).current;
 
     const showToast = () => {
         ToastAndroid.show("Account Created Successfully", ToastAndroid.SHORT);
@@ -50,63 +51,130 @@ const SignupTrader = ({ navigation }) => {
         ToastAndroid.show("Data Inserted Successfully", ToastAndroid.SHORT);
     };
 
+    const validateFields = () => {
+        if (
+            !Email ||
+            !Password ||
+            !loomShade
+        ) {
+            Alert.alert("Please fill in all the required fields");
+            return false;
+        }
+        // You can add additional validation checks here if needed
+        return true;
+    };
 
+    const validateFields2 = () => {
+        if (
+            !ownerName ||
+            !address ||
+            !gstNo ||
+            !value ||
+            !value2 ||
+            !value3 ||
+            !registrationNo ||
+            !primaryContactNo
+        ) {
+            Alert.alert("Please fill in all the required fields");
+            return false;
+        }
+        // You can add additional validation checks here if needed
+        return true;
+    };
+
+
+    const validateFields3 = () => {
+        if (
+            !dataArray ||
+            !selectedOption
+        ) {
+            Alert.alert("Please fill in all the required fields");
+            return false;
+        }
+        // You can add additional validation checks here if needed
+        return true;
+    };
 
     const postAPI = () => {
-        setShow2(true)
 
-        let config = {
-            method: 'post',
-            maxBodyLength: Infinity,
-            url: 'https://textileapp.microtechsolutions.co.in/php/postappuser.php',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            data: {
-                'AppUserId': Email,
-                'Name': loomShade,
-                'Password': Password,
-            }
-        };
+        if (validateFields()) {
+            setShow2(true);
 
-        axios.request(config)
-            .then((response) => {
-                console.log(JSON.stringify(response.data));
-                showToast();
-                setShow2(false)
-                setShow(false)
-                setShow4(true)
-                setShow3(false)
-            })
-            .catch((error) => {
-                console.log(error);
+            let config = {
+                method: 'post',
+                maxBodyLength: Infinity,
+                url: 'https://textileapp.microtechsolutions.co.in/php/postappuser.php',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                data: {
+                    'AppUserId': Email,
+                    'Name': loomShade,
+                    'Password': Password,
+                }
+            };
 
-            });
+            axios.request(config)
+                .then((response) => {
+                    console.log(JSON.stringify(response.data));
+                    showToast()
+                    setShow2(false);
+                    setShow(false)
+                    setShow4(true)
+                    setShow3(false)
+                })
+                .catch((error) => {
+                    if (error.response && error.response.status === 500) {
+                        console.log("Entered Email Already Exists Please Try Another One eww");
+                        setShowModal(true); // Show modal on error
+                        setShow2(false);
+                    } else {
+                        console.log(error);
+                    }
+                });
+        }
 
-    }
+
+    };
+
+    React.useEffect(() => {
+        if (showModal) {
+            Animated.timing(animatedValue, {
+                toValue: 1,
+                duration: 500,
+                useNativeDriver: true,
+            }).start();
+        }
+    }, [showModal, animatedValue]);
+
 
     const verifyotp = async () => {
-        setShow2(true)
-        let config = {
-            method: 'get',
-            maxBodyLength: Infinity,
-            url: 'https://textileapp.microtechsolutions.co.in/php/verifyotp.php?otp=' + otp,
-            headers: {}
-        };
 
-        axios.request(config)
-            .then((response) => {
-                console.log(JSON.stringify(response.data));
-                showToast();
-                setShow2(false)
-                setShow(true)
-                setShow4(false)
-                setShow3(false)
-            })
-            .catch((error) => {
-                console.log(error);
+        if (validateFields()) {
+            setShow2(true)
+            let config = {
+                method: 'get',
+                maxBodyLength: Infinity,
+                url: 'https://textileapp.microtechsolutions.co.in/php/verifyotp.php?otp=' + otp,
+                headers: {}
+            };
 
-            });
+            axios.request(config)
+                .then((response) => {
+                    console.log(JSON.stringify(response.data));
+                    showToast();
+                    setShow2(false)
+                    setShow(true)
+                    setShow4(false)
+                    setShow3(false)
+                })
+                .catch((error) => {
+                    console.log(error);
+
+                });
+
+        }
+
 
     }
 
@@ -114,83 +182,93 @@ const SignupTrader = ({ navigation }) => {
 
 
     const postDetails = () => {
-        setShow2(true)
-        console.log(Email, loomShade, ownerName, gstNo, address, pincode, value, value2, value3, registrationNo, primaryContactNo)
-        try {
-            const formdata = new FormData();
-            formdata.append("AppUserId", Email);
-            formdata.append("Name", loomShade);
-            formdata.append("OwnerName", ownerName);
-            formdata.append("GSTNumber", gstNo);
-            formdata.append("Address", address);
-            formdata.append("Pincode", pincode);
-            formdata.append("Country", value);
-            formdata.append("State", value2);
-            formdata.append("City", value3);
-            formdata.append("RegistrationNumber", "TR");
-            formdata.append("PrimaryContact", primaryContactNo);
-            formdata.append("LoomOrTrader", "T");
 
-            const requestOptions = {
-                method: "POST",
-                body: formdata,
-                redirect: "follow"
-            };
+        if (validateFields2()) {
+            setShow2(true)
+            console.log(Email, loomShade, ownerName, gstNo, address, pincode, value, value2, value3, registrationNo, primaryContactNo)
+            try {
+                const formdata = new FormData();
+                formdata.append("AppUserId", Email);
+                formdata.append("Name", loomShade);
+                formdata.append("OwnerName", ownerName);
+                formdata.append("GSTNumber", gstNo);
+                formdata.append("Address", address);
+                formdata.append("Pincode", pincode);
+                formdata.append("Country", value);
+                formdata.append("State", value2);
+                formdata.append("City", value3);
+                formdata.append("RegistrationNumber", "TR");
+                formdata.append("PrimaryContact", primaryContactNo);
+                formdata.append("LoomOrTrader", "T");
 
-            fetch("https://textileapp.microtechsolutions.co.in/php/postdetail.php", requestOptions)
-                .then((response) => response.text())
-                .then((result) => setUserId(result))
-                .catch((error) => console.error(error));
-            setShow(false)
-            setShow1(true)
-            setShow2(false)
-            setShow4(false)
-            console.log("UserId : ", UserId)
-        } catch (err) {
-            console.log("Error : ", err)
+                const requestOptions = {
+                    method: "POST",
+                    body: formdata,
+                    redirect: "follow"
+                };
+
+                fetch("https://textileapp.microtechsolutions.co.in/php/postdetail.php", requestOptions)
+                    .then((response) => response.text())
+                    .then((result) => setUserId(result))
+                    .catch((error) => console.error(error));
+                setShow(false)
+                setShow1(true)
+                setShow2(false)
+                setShow4(false)
+                console.log("UserId : ", UserId)
+            } catch (err) {
+                console.log("Error : ", err)
+            }
         }
+
+
     };
 
 
     const dataArray = [ownercontactDetails, managercontactDetails, otherscontactDetails];
 
     const getContact = () => {
-        setShow2(true)
 
-        try {
-            let config = {
-                method: 'post',
-                maxBodyLength: Infinity,
-                url: 'https://textileapp.microtechsolutions.co.in/php/postcontact.php',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                data: {
+        if (validateFields3()) {
+            setShow2(true)
 
-                    "contactNumber": dataArray,
-                    "Designation": selectedOption,
-                    'LoomTraderDetailId': UserId,
-                }
-            };
+            try {
+                let config = {
+                    method: 'post',
+                    maxBodyLength: Infinity,
+                    url: 'https://textileapp.microtechsolutions.co.in/php/postcontact.php',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    data: {
 
-            axios.request(config)
-                .then((response) => {
-                    console.log(JSON.stringify(response.data));
-                    showToast2();
-                })
-                .catch((error) => {
-                    console.log(error);
+                        "contactNumber": dataArray,
+                        "Designation": selectedOption,
+                        'LoomTraderDetailId': UserId,
+                    }
+                };
 
-                });
-            navigation.navigate("Login")
-            setShow(false)
-            setShow1(true)
-            setShow2(false)
+                axios.request(config)
+                    .then((response) => {
+                        console.log(JSON.stringify(response.data));
+                        showToast2();
+                    })
+                    .catch((error) => {
+                        console.log(error);
 
-            console.log(dataArray, selectedOption, UserId)
-        } catch (err) {
-            console.log("Error :", err)
+                    });
+                navigation.navigate("Login")
+                setShow(false)
+                setShow1(true)
+                setShow2(false)
+
+                console.log(dataArray, selectedOption, UserId)
+            } catch (err) {
+                console.log("Error :", err)
+            }
         }
+
+
     }
 
 
@@ -252,7 +330,12 @@ const SignupTrader = ({ navigation }) => {
     };
 
 
-
+    const handleClose = () => {
+        setShowModal(false)
+        setEmail("");
+        setPassword("");
+        setLoomShade("")
+    }
 
 
     const countries = Country.getAllCountries().map(Country => ({ label: Country.name, value: Country.isoCode }));
@@ -365,7 +448,30 @@ const SignupTrader = ({ navigation }) => {
                                 }
                             </View>
 
-
+                            <Modal
+                                animationType="slide"
+                                transparent={true}
+                                visible={showModal}
+                                onRequestClose={handleClose}
+                            >
+                                <View style={styles.modalContainer}>
+                                    <Animated.View
+                                        style={[styles.modalView, {
+                                            transform: [{
+                                                translateY: animatedValue.interpolate({
+                                                    inputRange: [0, 1],
+                                                    outputRange: [600, 0],
+                                                }),
+                                            }],
+                                        }]}
+                                    >
+                                        <Text style={styles.modalText}>Entered Email Already Exists. Please Try Another One!</Text>
+                                        <TouchableOpacity style={styles.button} onPress={handleClose}>
+                                            <Text style={styles.buttonText}>Close</Text>
+                                        </TouchableOpacity>
+                                    </Animated.View>
+                                </View>
+                            </Modal>
                         </View>
                     </ScrollView>
                 </View>
@@ -771,6 +877,8 @@ const SignupTrader = ({ navigation }) => {
                 </View> */}
 
 
+
+
                         </View>
                     </ScrollView>
                 </View>
@@ -800,6 +908,33 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         padding: 2
 
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalView: {
+        backgroundColor: 'white',
+        borderRadius: 10,
+        padding: 20,
+        alignItems: 'center',
+        elevation: 5,
+    },
+    modalText: {
+        fontSize: 18,
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    button: {
+        backgroundColor: '#2196F3',
+        padding: 10,
+        borderRadius: 5,
+    },
+    buttonText: {
+        color: 'white',
+        fontSize: 16,
     },
     loginButton: {
         width: '50%',

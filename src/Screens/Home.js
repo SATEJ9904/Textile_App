@@ -81,7 +81,7 @@ const Home = ({ navigation }) => {
 
   useEffect(() => {
     if (!isConnected) {
-      navigation.navigate("NoInternet");
+      'No Internet';
     } else {
       navigation.navigate("Home");
     }

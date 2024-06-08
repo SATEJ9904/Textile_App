@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, ScrollView, Alert, ActivityIndicator, ToastAndroid } from 'react-native'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, ScrollView, Alert, Modal, ActivityIndicator, ToastAndroid } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { getAllCountries, getStatesOfCountry, getCitiesOfState, Country, State, City } from 'country-state-city';
 import { Dropdown } from 'react-native-element-dropdown';
@@ -40,7 +40,15 @@ const Signup = ({ navigation }) => {
     const [show3, setShow3] = useState(true)
     const [show4, setShow4] = useState(false)
     const [show2, setShow2] = useState(false)
+    const [modalVisible, setModalVisible] = useState(false);
 
+    const toggleModal = () => {
+      setModalVisible(!modalVisible);
+      setEmail("");
+      setPassword("");
+      setLoomShade("");
+      setShow2(false)
+    };
 
     const showToast = () => {
         ToastAndroid.show("Account Created Successfully", ToastAndroid.SHORT);
@@ -58,109 +66,174 @@ const Signup = ({ navigation }) => {
     const dataArray = [ownercontactDetails, managercontactDetails, otherscontactDetails];
 
 
+
+    const validateFields = () => {
+        if (
+            !Email ||
+            !Password ||
+            !loomShade
+        ) {
+            Alert.alert("Please fill in all the required fields");
+            return false;
+        }
+        // You can add additional validation checks here if needed
+        return true;
+    };
+
+    const validateFields2 = () => {
+        if (
+            !ownerName ||
+            !address ||
+            !gstNo ||
+            !value ||
+            !value2 ||
+            !value3 ||
+            !registrationNo ||
+            !primaryContactNo
+        ) {
+            Alert.alert("Please fill in all the required fields");
+            return false;
+        }
+        // You can add additional validation checks here if needed
+        return true;
+    };
+
+
+    const validateFields3 = () => {
+        if (
+            !dataArray ||
+            !selectedOption
+        ) {
+            Alert.alert("Please fill in all the required fields");
+            return false;
+        }
+        // You can add additional validation checks here if needed
+        return true;
+    };
+
+
     const postAPI = () => {
-        setShow2(true)
 
-        let config = {
-            method: 'post',
-            maxBodyLength: Infinity,
-            url: 'https://textileapp.microtechsolutions.co.in/php/postappuser.php',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            data: {
-                'AppUserId': Email,
-                'Name': loomShade,
-                'Password': Password,
-            }
-        };
+        if (validateFields()) {
+            setShow2(true);
 
-        axios.request(config)
-            .then((response) => {
-                console.log(JSON.stringify(response.data));
-                showToast();
-                setShow2(false)
-                setShow(false)
-                setShow4(true)
-                setShow3(false)
-            })
-            .catch((error) => {
-                console.log(error);
+            let config = {
+                method: 'post',
+                maxBodyLength: Infinity,
+                url: 'https://textileapp.microtechsolutions.co.in/php/postappuser.php',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                data: {
+                    'AppUserId': Email,
+                    'Name': loomShade,
+                    'Password': Password,
+                }
+            };
+    
+            axios.request(config)
+                .then((response) => {
+                    console.log(JSON.stringify(response.data));
+                    showToast();
+                    setShow2(false);
+                    setShow(false);
+                    setShow4(true);
+                    setShow3(false);
+                })
+                .catch((error) => {
+                    if (error.response && error.response.status === 500) {
+                        toggleModal()
+                    } else {
+                        console.log(error);
+                    }
+                });
+        }
 
-            });
-
-    }
+      
+    };
 
     const verifyotp = async () => {
-        setShow2(true)
-        let config = {
-            method: 'get',
-            maxBodyLength: Infinity,
-            url: 'https://textileapp.microtechsolutions.co.in/php/verifyotp.php?otp=' + otp,
-            headers: {}
-        };
 
-        axios.request(config)
-            .then((response) => {
-                console.log(JSON.stringify(response.data));
-                showToast();
-                setShow2(false)
-                setShow(true)
-                setShow4(false)
-                setShow3(false)
-            })
-            .catch((error) => {
-                console.log(error);
-
-            });
+        if (validateFields2()) {
+            setShow2(true)
+            let config = {
+                method: 'get',
+                maxBodyLength: Infinity,
+                url: 'https://textileapp.microtechsolutions.co.in/php/verifyotp.php?otp=' + otp,
+                headers: {}
+            };
+    
+            axios.request(config)
+                .then((response) => {
+                    console.log(JSON.stringify(response.data));
+                    showToast();
+                    setShow2(false)
+                    setShow(true)
+                    setShow4(false)
+                    setShow3(false)
+                })
+                .catch((error) => {
+                    console.log(error);
+    
+                });
+        }
+        
+        
 
     }
 
 
     const postDetails = () => {
-        setShow2(true)
-        console.log(Email, loomShade, ownerName, gstNo, address, pincode, value, value2, value3, registrationNo, primaryContactNo, "Total no", TotalNoOfLooms)
-        try {
-            const formdata = new FormData();
-            formdata.append("AppUserId", Email);
-            formdata.append("Name", loomShade);
-            formdata.append("OwnerName", ownerName);
-            formdata.append("GSTNumber", gstNo);
-            formdata.append("Address", address);
-            formdata.append("Pincode", pincode);
-            formdata.append("Country", value);
-            formdata.append("State", value2);
-            formdata.append("City", value3);
-            formdata.append("RegistrationNumber", "LU");
-            formdata.append("PrimaryContact", primaryContactNo);
-            formdata.append("TotalLooms", TotalNoOfLooms);
-            formdata.append("LoomOrTrader", "L");
 
-            const requestOptions = {
-                method: "POST",
-                body: formdata,
-                redirect: "follow"
-            };
-
-            fetch("https://textileapp.microtechsolutions.co.in/php/postdetail.php", requestOptions)
-                .then((response) => response.text())
-                .then((result) => setUserId(result))
-                .catch((error) => console.error(error));
-            setShow(false)
-            setShow1(true)
-            setShow2(false)
-            setShow4(false)
-            console.log("UserId : ", UserId)
-        } catch (err) {
-            console.log("Error : ", err)
+        if (validateFields3()) {
+            setShow2(true)
+            console.log(Email, loomShade, ownerName, gstNo, address, pincode, value, value2, value3, registrationNo, primaryContactNo, "Total no", TotalNoOfLooms)
+            try {
+                const formdata = new FormData();
+                formdata.append("AppUserId", Email);
+                formdata.append("Name", loomShade);
+                formdata.append("OwnerName", ownerName);
+                formdata.append("GSTNumber", gstNo);
+                formdata.append("Address", address);
+                formdata.append("Pincode", pincode);
+                formdata.append("Country", value);
+                formdata.append("State", value2);
+                formdata.append("City", value3);
+                formdata.append("RegistrationNumber", "LU");
+                formdata.append("PrimaryContact", primaryContactNo);
+                formdata.append("TotalLooms", TotalNoOfLooms);
+                formdata.append("LoomOrTrader", "L");
+    
+                const requestOptions = {
+                    method: "POST",
+                    body: formdata,
+                    redirect: "follow"
+                };
+    
+                fetch("https://textileapp.microtechsolutions.co.in/php/postdetail.php", requestOptions)
+                    .then((response) => response.text())
+                    .then((result) => setUserId(result))
+                    .catch((error) => {console.error(error); });
+                setShow(false)
+                setShow1(true)
+                setShow2(false)
+                setShow4(false)
+                console.log("UserId : ", UserId)
+            } catch (err) {
+                console.log("Error : ", err)
+            }
         }
+
+       
     }
 
 
 
 
     const getContact = () => {
-        setShow2(true)
+
+        if (validateFields()) {
+            setShow2(true)
 
         try {
             let config = {
@@ -196,6 +269,9 @@ const Signup = ({ navigation }) => {
         } catch (err) {
             console.log("Error :", err)
         }
+        }
+
+        
     }
 
 
@@ -361,6 +437,19 @@ const Signup = ({ navigation }) => {
                                 <Text style={styles.loginText}>Submit</Text>
                             </TouchableOpacity>
 
+                            <Modal
+                                animationType="slide"
+                                transparent={true}
+                                visible={modalVisible}
+                                onRequestClose={toggleModal}
+                            >
+                                <View style={styles.modalView}>
+                                    <Text style={styles.modalText}>Email already exists. Please try with another Email.</Text>
+                                    <TouchableOpacity style={styles.modalButton} onPress={toggleModal}>
+                                        <Text style={styles.modalButtonText}>Close</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </Modal>
 
                             <View style={{ flex: 1 }}>
                                 {
@@ -712,35 +801,6 @@ const Signup = ({ navigation }) => {
                                 }
                             </View>
 
-                            {/* <View style={{ marginLeft: "-20%", marginTop: "5%" }}>
-                    <Text style={{ fontSize: 18, color: "#fff" }}>Select Role:</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: "20%" }}>
-                        <RadioButton
-                            value="owner"
-                            status={selectedOption === 'owner' ? 'checked' : 'unchecked'}
-                            onPress={() => setSelectedOption('owner')}
-                        />
-                        <Text style={{ fontSize: 18, color: "#fff" }}>Owner</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: "20%" }}>
-                        <RadioButton
-                            value="manager"
-                            status={selectedOption === 'manager' ? 'checked' : 'unchecked'}
-                            onPress={() => setSelectedOption('manager')}
-                        />
-                        <Text style={{ fontSize: 18, color: "#fff" }}>Manager</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: "20%" }}>
-                        <RadioButton
-                            value="others"
-                            status={selectedOption === 'others' ? 'checked' : 'unchecked'}
-                            onPress={() => setSelectedOption('others')}
-                        />
-                        <Text style={{ fontSize: 18, color: "#fff" }}>Others</Text>
-                    </View>
-
-                </View> */}
-
 
                         </View>
                     </ScrollView>
@@ -823,6 +883,59 @@ const styles = StyleSheet.create({
         width: "120%",
         color: "black"
     },
+    centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 22,
+      },
+      modalView: {
+        marginTop:"80%",
+        margin: 20,
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 35,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+      },
+      button: {
+        borderRadius: 20,
+        padding: 10,
+        elevation: 2,
+      },
+      buttonText: {
+        fontSize: 16,
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center',
+      },
+      modalButton: {
+        backgroundColor: '#007bff',
+        borderRadius: 20,
+        padding: 10,
+        elevation: 2,
+        marginTop: 10,
+        width:"40%"
+      },
+      modalButtonText: {
+        fontSize: 16,
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center',
+      },
+      modalText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginBottom: 10,
+      },
 
 });
 

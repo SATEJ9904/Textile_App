@@ -42,6 +42,9 @@ import ConfirmEnquires from './src/Screens/ConfirmEnquires';
 import NoInternetScreen from './src/Screens/NoInternet';
 import LTDIFF from './src/Screens/Difference';
 import Navigator from './src/Screens/Navigator';
+import ConfirmOrders from './src/Screens/ConfirmOrders';
+import Profile from './src/Screens/Profile';
+import GeneratedEnquires from './src/Screens/GeneratedEnquires';
 
 
 
@@ -92,7 +95,30 @@ const LoomDrawerNavigator = () => (
       }} />
 
 
-<LoomDrawer.Screen
+    <LoomDrawer.Screen
+
+      name="Profile"
+      component={Profile}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'user' : 'user'} size={25} color={'grey'} />
+        ),
+        title: 'Profile',
+        drawerLabelStyle: {
+          marginLeft: 0,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 18,
+
+        },
+
+
+      }} />
+
+
+    <LoomDrawer.Screen
 
       name="Live orders"
       component={LiveOrders}
@@ -225,7 +251,7 @@ const LoomDrawerNavigator = () => (
 
       }} />
 
-    
+
 
     <LoomDrawer.Screen
 
@@ -317,7 +343,7 @@ const TraderDrawerNavigator = () => (
       component={PlanLooms}
       options={{
         drawerActiveBackgroundColor: '#fff',
-        drawerActiveTintColor: '#000', 
+        drawerActiveTintColor: '#000',
         drawerInactiveTintColor: '#000',
         drawerIcon: ({ focused }) => (
           <Icon name={focused ? 'briefcase' : 'briefcase'} size={25} color={'grey'} />
@@ -338,7 +364,7 @@ const TraderDrawerNavigator = () => (
       component={GetYarnRatesTrader}
       options={{
         drawerActiveBackgroundColor: '#fff',
-        drawerActiveTintColor: '#000', 
+        drawerActiveTintColor: '#000',
         drawerInactiveTintColor: '#000',
         drawerIcon: ({ focused }) => (
           <Icon name={focused ? 'rupee' : 'rupee'} size={25} color={'grey'} />
@@ -359,7 +385,7 @@ const TraderDrawerNavigator = () => (
       component={CalculationsTrader}
       options={{
         drawerActiveBackgroundColor: '#fff',
-        drawerActiveTintColor: '#000', 
+        drawerActiveTintColor: '#000',
         drawerInactiveTintColor: '#000',
         drawerIcon: ({ focused }) => (
           <Icon name={focused ? 'calculator' : 'calculator'} size={25} color={'grey'} />
@@ -380,7 +406,7 @@ const TraderDrawerNavigator = () => (
       component={IncompleteOrders}
       options={{
         drawerActiveBackgroundColor: '#fff',
-        drawerActiveTintColor: '#000', 
+        drawerActiveTintColor: '#000',
         drawerInactiveTintColor: '#000',
         drawerIcon: ({ focused }) => (
           <Icon name={focused ? 'exclamation-circle' : 'exclamation-circle'} size={25} color={'grey'} />
@@ -401,7 +427,7 @@ const TraderDrawerNavigator = () => (
       component={CompletedOrdersTrader}
       options={{
         drawerActiveBackgroundColor: '#fff',
-        drawerActiveTintColor: '#000', 
+        drawerActiveTintColor: '#000',
         drawerInactiveTintColor: '#000',
         drawerIcon: ({ focused }) => (
           <Icon name={focused ? 'check-circle' : 'check-circle'} size={25} color={'grey'} />
@@ -422,7 +448,7 @@ const TraderDrawerNavigator = () => (
       component={Storage}
       options={{
         drawerActiveBackgroundColor: '#fff',
-        drawerActiveTintColor: '#000', 
+        drawerActiveTintColor: '#000',
         drawerInactiveTintColor: '#000',
         drawerIcon: ({ focused }) => (
           <Icon name={focused ? 'sign-out' : 'sign-out'} size={25} color={'grey'} />
@@ -499,6 +525,8 @@ const App = () => {
         <Stack.Screen name="LoomBooking" component={LoomBooking} />
         <Stack.Screen name="ConfirmEnquires" component={ConfirmEnquires} />
         <Stack.Screen name="NoInternet" component={NoInternetScreen} />
+        <Stack.Screen name="Confirm_Orders" component={ConfirmOrders} />
+        <Stack.Screen name="Generated_Enquires" component={GeneratedEnquires} />
 
 
       </Stack.Navigator>

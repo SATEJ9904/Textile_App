@@ -1,8 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
-import { Button, StyleSheet, Text, View, Image, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { Button, StyleSheet, Text, View, Image, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
 import { useRoute } from '@react-navigation/native'
 import { withDelay } from "react-native-reanimated";
+import ExitApp from 'react-native-exit-app';
+
 
 const Storage = ({ navigation }) => {
 
@@ -13,7 +15,23 @@ const Storage = ({ navigation }) => {
     const [show, setShow] = useState(true)
     const [loomOrtrader,setLoomOrTrader]=useState("")
 
-
+    const closeApp = () => {
+        Alert.alert(
+            'Exit App',
+            'Are you sure you want to exit the app?',
+            [
+              {
+                text: 'Cancel',
+                style: 'cancel',
+              },
+              {
+                text: 'OK',
+                onPress: () => ExitApp.exitApp(),
+              },
+            ],
+            { cancelable: false }
+          );
+      };
 
     const getData = async () => {
         const ID = await AsyncStorage.getItem("AppUserId");
@@ -51,7 +69,7 @@ const Storage = ({ navigation }) => {
             {show ? <View>
                 <Text style={{ fontSize: 40, color: "#000" }}> Want to Exit App </Text>
                 <View style={{ flexDirection: "row", justifyContent: "space-evenly", alignSelf: "stretch", marginTop: "10%" }}>
-                    <TouchableOpacity onPress={() => navigation.navigate("hgf")}>
+                    <TouchableOpacity onPress={() => closeApp()}>
                         <Text style={{ color: "red", fontSize: 20 }} >Yes</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => navigation.navigate("Splash2")}>

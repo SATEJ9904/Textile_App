@@ -5,6 +5,7 @@ import { Dropdown } from 'react-native-element-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios'
+import ImagePicker from 'react-native-image-crop-picker';
 
 
 const { width } = Dimensions.get('window');
@@ -58,6 +59,37 @@ const PlanLooms = ({ navigation }) => {
   const [data, setData] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [deliveryDate, setDeliveryDate] = useState(new Date());
+  const [showDeliveryDate, setShowDeliveryDate] = useState(false);
+  const [designPaper, setDesignPaper] = useState(null);
+  const [fabricWidth, setFabricWidth] = useState("");
+  const [description, setDescription] = useState("")
+
+  const handleDeliveryDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || deliveryDate;
+    setShowDeliveryDate(false);
+    setDeliveryDate(currentDate);
+  };
+
+  const openCamera = () => {
+    ImagePicker.openCamera({
+      width: 300,
+      height: 400,
+      cropping: true,
+    }).then(image => {
+      setDesignPaper(image);
+    }).catch(error => {
+      console.log('ImagePicker Error: ', error);
+    });
+  };
+
+  // Format date in 'YYYY-MM-DD' format
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   useEffect(() => {
     fetchselectedEnquiryId();
@@ -290,40 +322,57 @@ const PlanLooms = ({ navigation }) => {
 
   const [EnquiryId, setEnquiryId] = useState("")
 
-  const handleSubmit = () => {
-    calculateResult();
+  const handleSubmit = (calculatedResult) => {
 
-    console.log("Fabric Quality = ", fabricQuality)
+    console.log("Photo",designPaper.path)
 
-    const formdata = new FormData();
-    formdata.append("EnquiryDate", formattedDate);
-    formdata.append("TraderId", id);
-    formdata.append("BookingFrom", updatedDateFrom);
-    formdata.append("BookingTo", updatedDateTo);
-    formdata.append("FabricQuality", fabricQuality);
-    formdata.append("FabricLength", fabricLength);
-    formdata.append("LoomRequired", numLoomsRequired);
-    formdata.append("AgentName", dalalAgent);
-    formdata.append("OfferedJobRate", jobRateOffered);
+    if (!updatedDateFrom || !updatedDateTo || !fabricQuality || !fabricLength || !numLoomsRequired || !dalalAgent || !jobRateOffered || !numLoomsRequired || !machineType || !width || !rpm || !sheddingType || !numFrames || !numFeeders || !selvadgeJacquard || !topBeam || !cramming || !lenoDesign) {
+      Alert.alert("Data Not Filled Properly Please Fill All Input Boxes")
+    } else {
+      console.log("Fabric Quality = ", calculatedResult)
 
-    const requestOptions = {
-      method: "POST",
-      body: formdata,
-      redirect: "follow"
-    };
+      const formdata = new FormData();
+      formdata.append("EnquiryDate", formattedDate);
+      formdata.append("TraderId", id);
+      formdata.append("BookingFrom", updatedDateFrom);
+      formdata.append("BookingTo", updatedDateTo);
+      formdata.append("FabricQuality", fabricQuality);
+      formdata.append("FabricLength", fabricLength);
+      formdata.append("LoomRequired", numLoomsRequired);
+      formdata.append("AgentName", dalalAgent);
+      formdata.append("OfferedJobRate", jobRateOffered);
+      formdata.append("FabricWidth", jobRateOffered);
+      formdata.append("DeliveryDate", jobRateOffered);
+      formdata.append("Description", jobRateOffered);
+      if (designPaper && designPaper.path) {
+        formdata.append('PhotoPath', {
+          uri: designPaper.path,
+          type: "image/jpg",
+          name: "designPaper.jpg",
+        });
+      } else {
+        formdata.append('PhotoPath', null);
+      }
+      const requestOptions = {
+        method: "POST",
+        body: formdata,
+        redirect: "follow"
+      };
 
-    fetch("https://textileapp.microtechsolutions.co.in/php/postenquiry.php", requestOptions)
-      .then((response) => response.text())
-      .then((result) => {
-        console.log(result);
-        SubmitEnquiryDetails(result)
-      })
-      .catch((error) => console.error(error));
-    console.log(formattedDate, id, Name, updatedDateFrom, updatedDateTo, fabricQuality, fabricLength, dalalAgent, loomNo, machineType, width, rpm, sheddingType, numFrames, numFeeders, selvadgeJacquard, topBeam, cramming, lenoDesign, availableLoomDates, numLoomsRequired, numLoomsPossible, jobRateOffered, counterOffer);
+      fetch("https://textileapp.microtechsolutions.co.in/php/postenquiry.php", requestOptions)
+        .then((response) => response.text())
+        .then((result) => {
+          console.log(result);
+          SubmitEnquiryDetails(result)
+        })
+        .catch((error) => console.error(error));
+      console.log(formattedDate, id, Name, updatedDateFrom, updatedDateTo, calculatedResult, fabricLength, dalalAgent, loomNo, machineType, width, rpm, sheddingType, numFrames, numFeeders, selvadgeJacquard, topBeam, cramming, lenoDesign, availableLoomDates, numLoomsRequired, numLoomsPossible, jobRateOffered, counterOffer);
+    }
 
   };
 
   const SubmitEnquiryDetails = (result) => {
+
     const formdata = new FormData();
     formdata.append("EnquiryId", result);
     formdata.append("LoomNo", numLoomsRequired);
@@ -361,18 +410,25 @@ const PlanLooms = ({ navigation }) => {
   const [result, setResult] = useState('');
 
   const calculateResult = () => {
-    const epiValue = parseFloat(epi);
-    const ppiValue = parseFloat(ppi);
-    const warpCountValue = parseFloat(warpCount);
-    const weftCountValue = parseFloat(weftCount);
-    const pannaValue = parseFloat(panna);
 
-    if (epiValue && ppiValue && warpCountValue && weftCountValue && pannaValue) {
-      const calculatedResult = (epiValue + "*" + ppiValue + "/" + warpCountValue + "*" + weftCountValue + ":" + pannaValue);
-      setFabricQuality(calculatedResult);
+    if (!epi || !ppi || !warpCount || !weftCount || !panna) {
+      Alert.alert("Set The Value Of Fabric Quality")
     } else {
-      setResult('Invalid Input');
+      const epiValue = parseFloat(epi);
+      const ppiValue = parseFloat(ppi);
+      const warpCountValue = parseFloat(warpCount);
+      const weftCountValue = parseFloat(weftCount);
+      const pannaValue = parseFloat(panna);
+
+      if (epiValue && ppiValue && warpCountValue && weftCountValue && pannaValue) {
+        const calculatedResult = (epiValue + "*" + ppiValue + "/" + warpCountValue + "*" + weftCountValue + ":" + pannaValue);
+        handleSubmit(calculatedResult)
+      } else {
+        setResult('Invalid Input');
+      }
     }
+
+
   };
 
   return (
@@ -425,6 +481,9 @@ const PlanLooms = ({ navigation }) => {
               </TouchableOpacity>
               <TouchableOpacity onPress={() => navigation.navigate("ConfirmEnquires")} style={{ backgroundColor: '#003C43', padding: 10, alignItems: 'center', marginTop: "10%" }}>
                 <Text style={{ color: 'white' }}>Confirm Enquires</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate("Generated_Enquires")} style={{ backgroundColor: '#003C43', padding: 10, alignItems: 'center', marginTop: "10%" }}>
+                <Text style={{ color: 'white' }}>Your Enquires</Text>
               </TouchableOpacity>
             </View> : null
 
@@ -771,8 +830,75 @@ const PlanLooms = ({ navigation }) => {
 
               </View>
 
-              <View style={{ flexDirection: "row", justifyContent: "space-evenly" }}>
-                <TouchableOpacity style={[styles.button]} onPress={() => { handleSubmit() }}>
+              <View style={{ flexDirection: "row", marginTop: "5%" }}>
+                <TextInput
+                  style={[styles.input, { width: "80%" }]}
+                  value={fabricWidth}
+                  onChangeText={setFabricWidth}
+                  placeholder="Fabric Width"
+                  keyboardType="numeric"
+                  placeholderTextColor={"#000"}
+                />
+                <Text style={{ color: "#000", fontSize: 17 }}>In cm</Text>
+              </View>
+
+              {/* Description */}
+              <View style={{ marginTop: "0%" }}>
+                <TextInput
+                  style={[styles.input, { width: "100%" }]}
+                  value={description}
+                  onChangeText={setDescription}
+                  placeholder="Description"
+                  keyboardType='default'
+                  placeholderTextColor={"#000"}
+                  multiline={true} // Allows multiple lines of input
+                  numberOfLines={5}
+                />
+              </View>
+
+              <View style={{ flexDirection: "row", marginBottom: 20, marginTop: "5%" }}>
+                <Text style={{ marginTop: "3%", fontSize: 20, marginLeft: "0%", color: "#000" }}>Delivery Date: </Text>
+                <Text style={{ color: "#000", marginTop: "4%", marginHorizontal: "5%", fontSize: 17 }}>{formatDate(deliveryDate)}</Text>
+                <TouchableOpacity onPress={() => setShowDeliveryDate(true)}>
+                  <ImageBackground
+                    source={require('../Images/calendar.png')}
+                    style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#006A4E", marginLeft: "20%" }}
+                    imageStyle={{ borderRadius: 0 }}
+                  />
+                </TouchableOpacity>
+                {showDeliveryDate && (
+                  <DateTimePicker
+                    testID='dateTimePicker'
+                    value={deliveryDate}
+                    mode='date'
+                    is24Hour={false}
+                    minimumDate={new Date()}
+                    display='default'
+                    onChange={handleDeliveryDateChange}
+                  />
+                )}
+              </View>
+
+              <View style={{ flexDirection: "row", marginVertical: "5%",marginTop:"15%" }}>
+                <Text style={{ color: "#000", fontSize: 18 }}>Design Paper (Optional)</Text>
+                {designPaper && (
+                  <ImageBackground
+                    source={{ uri: designPaper.path }}
+                    style={{ width: 100, height: 100,margin:10 ,marginTop:"-10%"}}
+                  />
+                )}
+                <TouchableOpacity onPress={openCamera}>
+                  <ImageBackground
+                    source={require('../Images/camera.png')}
+                    style={{ width: 34, height: 30, alignSelf: 'flex-start', marginLeft: "20%" }}
+                    imageStyle={{ borderRadius: 0 }}
+                  />
+                </TouchableOpacity>
+
+              </View>
+
+              <View style={{ flexDirection: "row", justifyContent: "space-evenly",marginTop:"5%" }}>
+                <TouchableOpacity style={[styles.button]} onPress={() => { calculateResult() }}>
                   <Text style={styles.buttonText}>Submit</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.button, styles.notInterestedButton]} onPress={() => setModalVisible(true)}>
@@ -785,7 +911,7 @@ const PlanLooms = ({ navigation }) => {
           </ScrollView>
           : null
       }
-     
+
       <Modal
         animationType="slide"
         transparent={true}

@@ -56,21 +56,27 @@ const LiveOrderstrader = ({ navigation }) => {
 
     onRefresh();
 
-    const fetchData = async () => {
+    const fetchOrders = async () => {
       try {
-        const response = await fetch('https://textileapp.microtechsolutions.co.in/php/gettable.php?table=LoomOrder');
-        const json = await response.json();
-        setOrders(json);
+        const id = await AsyncStorage.getItem("Id");
+        if (!id) {
+          console.error('No ID found in AsyncStorage');
+          return;
+        }
+
+        const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/traderliveorder.php?LoomTraderId=${id}`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
-        return response.json()
+        const json = await response.json();
+        setOrders(json);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
     };
 
-    fetchData();
+
+    fetchOrders();
     handleButtonPress();
   }, []);
 
@@ -236,7 +242,7 @@ const LiveOrderstrader = ({ navigation }) => {
       const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=OrderGoodRemain&Colname=OrderNoId&Colvalue=' + selectedOrderID);
       const json = await response.json();
       setOrderRGR(json);
-      json.map((item)=>{
+      json.map((item) => {
         setDateRGR(item.UpdatedOn.date.substring(0, 10))
       })
 
@@ -248,19 +254,19 @@ const LiveOrderstrader = ({ navigation }) => {
 
   // First Piece Approval sending
 
-  const [first_piece_approval, setFirst_Piece_Approval] = useState(" ");
-  const [dateFPA,setdateFPA] = useState(null)
+  const [dateFPA, setdateFPA] = useState(null)
 
 
-  const SubmitFPA = async () => {
+  const [first_piece_approval, setFirst_Piece_Approval] = useState(" ")
 
 
-    console.log("Submitted Data = ", "User Id = ", id, "Order No = ", getOrderNo, "Comment = ", first_piece_approval)
+  const SubmitFPA = async (comment) => {
+    console.log("Started", await AsyncStorage.getItem("Id"))
 
     const formdata = new FormData();
-    formdata.append("LoomTraderId", id);
-    formdata.append("OrderNoId", getOrderNo);
-    formdata.append("Comment", first_piece_approval);
+    formdata.append("LoomTraderId", await AsyncStorage.getItem("Id"));
+    formdata.append("OrderNoId", selectedOrderID);
+    formdata.append("Comment", comment);
 
     const requestOptions = {
       method: "POST",
@@ -275,6 +281,7 @@ const LiveOrderstrader = ({ navigation }) => {
     console.log(first_piece_approval)
     setFPAForm(false)
     setFirst_Piece_Approval(" ")
+    setModalVisible(true)
   }
 
 
@@ -291,7 +298,7 @@ const LiveOrderstrader = ({ navigation }) => {
       const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getname.php?OrderNoId=' + order.LoomOrderId);
       const json = await response.json();
       setFPAD(json);
-      json.map((item)=>{
+      json.map((item) => {
         setdateFPA(item.UpdatedOn.date.substring(0, 10))
       })
 
@@ -334,6 +341,7 @@ const LiveOrderstrader = ({ navigation }) => {
   const getData = async () => {
     const Name = await AsyncStorage.getItem("Name");
     const AppUserId = await AsyncStorage.getItem("AppUserId");
+    const Id = await AsyncStorage.getItem("Id")
 
 
     setName(Name)
@@ -438,6 +446,8 @@ const LiveOrderstrader = ({ navigation }) => {
 
   const [Action, setAction] = useState("")
 
+  const [getOrderNo, setGetOrderNo] = useState("")
+
   const handleButtonPress = (action) => {
     if (selectedOrder) {
       console.log(`Order No: ${selectedOrder.OrderNo}, Party Name: ${selectedOrder.PartyName}, Action: ${action}`);
@@ -458,12 +468,12 @@ const LiveOrderstrader = ({ navigation }) => {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#e5f2fe" }}>
-      <StatusBar backgroundColor={"#0b659a"}></StatusBar>
-      <View style={{ backgroundColor: "#71B7E1", flexDirection: "row" }}>
+      <StatusBar backgroundColor={"#003C43"}></StatusBar>
+      <View style={{ backgroundColor: "#003C43", flexDirection: "row" }}>
         <TouchableOpacity onPress={() => navigation.openDrawer()}>
           <ImageBackground
             source={require("../Images/drawer.png")}
-            style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#71B7E1", marginTop: 15, marginRight: 0, marginLeft: 10 }}
+            style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#003C43", marginTop: 15, marginRight: 0, marginLeft: 10 }}
             imageStyle={{ borderRadius: 0 }}
           />
         </TouchableOpacity>
@@ -761,8 +771,14 @@ const LiveOrderstrader = ({ navigation }) => {
 
               {fpaform ?
                 <View style={{ borderWidth: 1 }}>
-                  <View style={{justifyContent:"center"}}>
+                  <View style={styles.tableHeader}>
                     <Text style={styles.headerText}>Messages</Text>
+                    <TouchableOpacity onPress={() => setFPAForm(false)}>
+                      <Image
+                        source={require("../Images/cross.png")}
+                        style={{ width: 30, height: 30 }}
+                      />
+                    </TouchableOpacity>
                   </View>
 
 
@@ -777,9 +793,7 @@ const LiveOrderstrader = ({ navigation }) => {
                   <View style={{ width: "100%", marginTop: 15 }}>
                     <ScrollView horizontal={true} vertical={true}>
                       <View style={[{ marginLeft: 10, width: 500 }, styles.table]}>
-                        <View style={styles.tableHeader}>
-                          <Text style={{color:"#000",fontSize:17}}>Any Comments...</Text>
-                        </View>
+
 
 
 
@@ -793,10 +807,12 @@ const LiveOrderstrader = ({ navigation }) => {
                         <View style={{ flexDirection: "row", width: "100%" }}>
                           <TextInput
                             style={{ width: "80%", borderRadius: 15 }}
-                            placeholder='Any Coments....'
+                            placeholder='Any Comments....'
                             placeholderTextColor={"#000"}
                             value={first_piece_approval}
                             onChangeText={(txt) => setFirst_Piece_Approval(txt)}
+                            multiline={true} // Allows multiple lines of input
+                            numberOfLines={5} // Sets the initial number of lines
                           />
                         </View>
                       </View>
@@ -975,29 +991,29 @@ const LiveOrderstrader = ({ navigation }) => {
 
 
               {
-        showmsg ? <View style={{ flex: 1, alignItems: "flex-end", justifyContent: "flex-end" }}>
-          <View style={{
-            bottom: 0,
-            height: 20,
-            width: '100%',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: isConected ? 'green' : 'red'
+                showmsg ? <View style={{ flex: 1, alignItems: "flex-end", justifyContent: "flex-end" }}>
+                  <View style={{
+                    bottom: 0,
+                    height: 20,
+                    width: '100%',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    backgroundColor: isConected ? 'green' : 'red'
 
-          }}>
-           <Text style={{ color: "#fff" }}>
-              {(()=>{
-                if(isConected === true) {
-                  'Back Online'
-                }else{
-                  navigation.navigate("NoInternet")
-                }
-              })}
-            </Text>
+                  }}>
+                    <Text style={{ color: "#fff" }}>
+                      {(() => {
+                        if (isConected === true) {
+                          'Back Online'
+                        } else {
+                          'No Internet'
+                        }
+                      })}
+                    </Text>
 
-          </View>
-        </View> : null
-      }
+                  </View>
+                </View> : null
+              }
 
 
             </View>
@@ -1094,7 +1110,7 @@ const styles = StyleSheet.create({
   },
   orderContainer: {
     width: '88%',
-    backgroundColor: '#71B7E1',
+    backgroundColor: '#0E8C6B',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
@@ -1122,7 +1138,7 @@ const styles = StyleSheet.create({
   button1: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: '#71B7E1',
+    backgroundColor: '#0E8C6B',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
@@ -1251,9 +1267,30 @@ const styles = StyleSheet.create({
     color: "#000",
     fontSize: 17
   },
+  tableHeader: {
+    width: 400,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 10,
+    backgroundColor: '#0E8C6B',
+    marginBottom: 15,
+
+
+  },
   headerText: {
     fontWeight: 'bold',
     fontSize: 16,
-    color: "#000"
+    color: "#fff"
+  },
+  tableRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  tableCell: {
+    flex: 1,
+    fontSize: 16,
   },
 })

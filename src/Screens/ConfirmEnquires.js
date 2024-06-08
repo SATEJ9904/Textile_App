@@ -134,6 +134,7 @@ const ConfirmEnquires = ({ navigation }) => {
     axios.request(config)
     .then((response) => {
       console.log(JSON.stringify(response.data));
+      SendEmail(response.data)
     })
     .catch((error) => {
       console.log(error);
@@ -186,7 +187,10 @@ const ConfirmEnquires = ({ navigation }) => {
     ))
   );
 
+const[Email,setEmail]=useState("")
+
   const handleLoomDetails = (item) => {
+    setEmail(item.AppUserId)
     setConfirmed((prev) => {
       const newConfirmed = new Set(prev);
       if (newConfirmed.has(item.LoomTraderId)) {
@@ -200,6 +204,25 @@ const ConfirmEnquires = ({ navigation }) => {
     const selectedItem = enquiryDetails.find((i) => i.LoomTraderId === item.LoomTraderId);
     setSelectedData(selectedItem);
     setShowModal(true);
+  }
+
+
+  const SendEmail=(OrderNo)=>{
+    console.log("OrderNo = ",OrderNo)
+    const formdata = new FormData();
+formdata.append("AppUserId", Email );
+formdata.append("Body", 'Your Offer is Accepted by the '+Name+' Traders, navigate to Live Orders in Your app To Start Order And Book Your Loom For This Order; To Start Order Your Order No is '+OrderNo+' Thank You'+ "From : KapadaBanao Team");
+
+const requestOptions = {
+  method: "POST",
+  body: formdata,
+  redirect: "follow"
+};
+
+fetch("https://textileapp.microtechsolutions.co.in/php/sendemail.php", requestOptions)
+  .then((response) => response.text())
+  .then((result) => console.log(result))
+  .catch((error) => console.error(error));
   }
 
 
@@ -310,7 +333,7 @@ const ConfirmEnquires = ({ navigation }) => {
                     if (isConected === true) {
                       'Back Online'
                     } else {
-                      navigation.navigate("NoInternet")
+                      'No Internet'
                     }
                   })}
                 </Text>
