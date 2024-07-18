@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, Text, View, Modal, Pressable, StatusBar, FlatList, RefreshControl, TouchableOpacity, ImageBackground, TextInput, ScrollView, Image, Button, Alert } from 'react-native'
+import { SafeAreaView, StyleSheet, Text, View, Modal, Pressable, StatusBar, FlatList, RefreshControl, Dimensions, TouchableOpacity, ImageBackground, TextInput, ScrollView, Image, Button, Alert } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import DateTimePicker from '@react-native-community/datetimepicker';
 import CheckBox from '@react-native-community/checkbox';
@@ -8,8 +8,12 @@ import moment from 'moment';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from "@react-native-community/netinfo";
+import * as Animatable from 'react-native-animatable';
+import { Card } from 'react-native-paper';
 
 
+const { width } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 const ConfirmOrders = ({ navigation }) => {
 
@@ -91,7 +95,8 @@ const ConfirmOrders = ({ navigation }) => {
         try {
             const response = await fetch('https://textileapp.microtechsolutions.co.in/php/loomliveorder.php?LoomTraderId=' + await AsyncStorage.getItem("Id"));
             const json = await response.json();
-            setOrders(json);
+            const sortedOrdersJson = json.sort((a, b) => b.LoomOrderId - a.LoomOrderId);
+            setOrders(sortedOrdersJson);
         } catch (error) {
             console.error('Error fetching data:', error);
         }
@@ -133,6 +138,17 @@ const ConfirmOrders = ({ navigation }) => {
         setModalVisible(false)
     }
 
+    const Initialstage = () => {
+        console.log("called close")
+        setBeamInForm(false);
+        setWeftform(false);
+        setFdForm(false);
+        setremaining_Goods_ReturnForm(false);
+        setDrawingInForm(false)
+        setBeamGettingForm(false)
+        setFPAForm(false)
+    }
+
     const FalseOthersBeamIn = () => {
         setBeamInForm(true);
         setWeftform(false);
@@ -166,6 +182,7 @@ const ConfirmOrders = ({ navigation }) => {
     }
 
     const FalseOthersrgr = () => {
+        console.log("called open")
         setBeamInForm(false);
         setWeftform(false);
         setFdForm(false);
@@ -211,11 +228,13 @@ const ConfirmOrders = ({ navigation }) => {
     const [getOrderNo, setGetOrderNo] = useState(null)
 
     const handleOrderPress = (order) => {
+        handleButtonPress()
         setGetOrderNo(order.LoomOrderId)
         console.log(order.LoomOrderId)
         setSelectedOrder(order);
         setShowBlocks(false);
         fetchDataFPAD(order)
+        setShopwForms(true)
         handleButtonPress()
     };
 
@@ -224,7 +243,7 @@ const ConfirmOrders = ({ navigation }) => {
     const handleButtonPress = (action) => {
         if (selectedOrder) {
             console.log(`Order No: ${selectedOrder.OrderNo}, Party Name: ${selectedOrder.PartyName}, Action: ${action}`);
-            setAction("Order No. : " + selectedOrder.OrderNo + "\nParty Name : " + selectedOrder.PartyName + "\nQuality : " + selectedOrder.Quality)
+            setAction("Order No. :    " + selectedOrder.OrderNo + "\nParty Name :    " + selectedOrder.PartyName + "\nQuality :    " + selectedOrder.Quality)
         }
     };
 
@@ -278,45 +297,38 @@ const ConfirmOrders = ({ navigation }) => {
     const HandleSubmitBeamIn1 = (item) => {
 
         for (let i = 0; i < beamIn.length; i++) {
-            if (!item.SizingTippanNo || isNaN(parseInt(item.SizingTippanNo, 10))) {
-                Alert.alert(`Please enter a valid Sizing Tippan No for row ${i + 1}`);
-                return false;
+
+            const integerNumber = parseInt(item.SizingTippanNo, 10);
+            console.log("Converted to Integer", integerNumber, item.date.toISOString().split('T')[0])
+            let formatteddate = item.date.toISOString().split('T')[0]
+
+            const formdata = new FormData();
+            formdata.append("OrderNoId", getOrderNo);
+            formdata.append("Date", formatteddate);
+            formdata.append("SizingTippanNo", integerNumber);
+            if (item.PhotoPath && item.PhotoPath.uri) {
+                formdata.append('PhotoPath', {
+                    uri: item.PhotoPath.uri,
+                    type: "image/jpg",
+                    name: "cprograming.jpg",
+                });
             } else {
-                const integerNumber = parseInt(item.SizingTippanNo, 10);
-                console.log("Converted to Integer", integerNumber, item.date.toISOString().split('T')[0])
-                let formatteddate = item.date.toISOString().split('T')[0]
-
-                const formdata = new FormData();
-                formdata.append("OrderNoId", getOrderNo);
-                formdata.append("Date", formatteddate);
-                formdata.append("SizingTippanNo", integerNumber);
-                if (item.PhotoPath && item.PhotoPath.uri) {
-                    formdata.append('PhotoPath', {
-                        uri: item.PhotoPath.uri,
-                        type: "image/jpg",
-                        name: "cprograming.jpg",
-                    });
-                } else {
-                    formdata.append('PhotoPath', null);
-                }
-
-                const requestOptions = {
-                    method: "POST",
-                    body: formdata,
-                    redirect: "follow"
-                };
-
-                fetch("https://textileapp.microtechsolutions.co.in/php/postorderbeam.php", requestOptions)
-                    .then((response) => response.text())
-                    .then((result) => console.log(result))
-                    .catch((error) => console.error(error));
-                setModalVisible(true)
-                setBeamInForm(false)
+                formdata.append('PhotoPath', null);
             }
+
+            const requestOptions = {
+                method: "POST",
+                body: formdata,
+                redirect: "follow"
+            };
+
+            fetch("https://textileapp.microtechsolutions.co.in/php/postorderbeam.php", requestOptions)
+                .then((response) => response.text())
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+            setModalVisible(true)
+            setBeamInForm(false)
         }
-
-
-
     }
 
     const handleImagePickerBI = async (index) => {
@@ -385,47 +397,43 @@ const ConfirmOrders = ({ navigation }) => {
     const HandleSubmitWEFT1 = (itemweft) => {
 
         for (let i = 0; i < Weft.length; i++) {
-            if (!itemweft.GatePassNo || isNaN(parseInt(itemweft.GatePassNo, 10))) {
-                Alert.alert(`Please enter a valid Gate Pass No. for row ${i + 1}`);
-                return false;
+
+            const integerNumber = parseInt(itemweft.GatePassNo);
+            console.log("Converted to Integer = ", integerNumber)
+            let formatteddate = itemweft.date.toISOString().split('T')[0]
+
+
+
+            const formdata = new FormData();
+            formdata.append("OrderNoId", getOrderNo);
+            formdata.append("Date", formatteddate);
+            formdata.append("GatePassNo", integerNumber);
+            if (itemweft.PhotoPathweft && itemweft.PhotoPathweft.uri) {
+                formdata.append('PhotoPath', {
+                    uri: itemweft.PhotoPathweft.uri,
+                    type: "image/jpg",
+                    name: "cprograming.jpg",
+                });
             } else {
-                const integerNumber = parseInt(itemweft.GatePassNo);
-                console.log("Converted to Integer = ", integerNumber)
-                let formatteddate = itemweft.date.toISOString().split('T')[0]
-
-
-
-                const formdata = new FormData();
-                formdata.append("OrderNoId", getOrderNo);
-                formdata.append("Date", formatteddate);
-                formdata.append("GatePassNo", integerNumber);
-                if (itemweft.PhotoPath && itemweft.PhotoPath.uri) {
-                    formdata.append('PhotoPath', {
-                        uri: itemweft.PhotoPath.uri,
-                        type: "image/jpg",
-                        name: "cprograming.jpg",
-                    });
-                } else {
-                    formdata.append('PhotoPath', null);
-                }
-
-                const requestOptions = {
-                    method: "POST",
-                    body: formdata,
-                    redirect: "follow"
-                };
-
-                fetch("https://textileapp.microtechsolutions.co.in/php/postorderyarn.php ", requestOptions)
-                    .then((response) => response.text())
-                    .then((result) => console.log(result))
-                    .catch((error) => console.error(error));
-                setModalVisible(true)
-                setWeftform(false)
-
+                formdata.append('PhotoPath', null);
             }
 
+            const requestOptions = {
+                method: "POST",
+                body: formdata,
+                redirect: "follow"
+            };
+
+            fetch("https://textileapp.microtechsolutions.co.in/php/postorderyarn.php ", requestOptions)
+                .then((response) => response.text())
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+            setModalVisible(true)
+            setWeftform(false)
 
         }
+
+
     }
 
     const handleImagePickerWEFT = async (index) => {
@@ -505,7 +513,7 @@ const ConfirmOrders = ({ navigation }) => {
 
     // First Piece Approval sending
 
-    const [first_piece_approval, setFirst_Piece_Approval] = useState(" ")
+    const [first_piece_approval, setFirst_Piece_Approval] = useState("")
 
 
     const SubmitFPA = async () => {
@@ -530,7 +538,7 @@ const ConfirmOrders = ({ navigation }) => {
             .catch((error) => console.error(error));
         console.log(first_piece_approval)
         setFPAForm(false)
-        setFirst_Piece_Approval(" ")
+        setFirst_Piece_Approval("")
         setModalVisible(true)
     }
 
@@ -591,15 +599,6 @@ const ConfirmOrders = ({ navigation }) => {
     };
 
     const HandleSubmitFD1 = (item, index) => {
-        if (!item.Meter || isNaN(parseInt(item.Meter, 10))) {
-            Alert.alert(`Please enter a valid Meter value for row ${index + 1}`);
-            return false;
-        }
-
-        if (!item.Weight || isNaN(parseInt(item.Weight, 10))) {
-            Alert.alert(`Please enter a valid Weight value for row ${index + 1}`);
-            return false;
-        }
 
         let formatteddate = item.date.toISOString().split('T')[0];
         const integerNumber = parseInt(item.Meter, 10);
@@ -667,7 +666,7 @@ const ConfirmOrders = ({ navigation }) => {
 
     //REMAINING GOODS RETURN 
 
-    const [remaining_goods_return, setRemaining_Goods_Return] = useState([{ GpNo: '', YarnCount: '', Weight: '', CutPiece: '', Meter: '' }]);
+    const [remaining_goods_return, setRemaining_Goods_Return] = useState([{ GpNo: '', YarnCount: '', Weight: '', CutPiece: '', Meter: '', PhotopathRGR: require("../Images/camera.png") }]);
 
 
     const handleInputChangeRGR = (text, index, field) => {
@@ -677,7 +676,7 @@ const ConfirmOrders = ({ navigation }) => {
     };
 
     const handleAddRowRGR = () => {
-        const newFormData = [...remaining_goods_return, { GpNo: '', YarnCount: '', Weight: '', CutPiece: '', Meter: '' }];
+        const newFormData = [...remaining_goods_return, { GpNo: '', YarnCount: '', Weight: '', CutPiece: '', Meter: '', PhotopathRGR: require("../Images/camera.png") }];
         setRemaining_Goods_Return(newFormData);
     };
 
@@ -687,27 +686,25 @@ const ConfirmOrders = ({ navigation }) => {
         setRemaining_Goods_Return(newFormData);
     };
 
-    const HandleSubmiRGR1 = (item, index) => {
-        if (!item.GpNo || isNaN(parseInt(item.GpNo, 10))) {
-            Alert.alert(`Please enter a valid GpNo for row ${index + 1}`);
-            return false;
+
+    const handleImagePickerRGR = async (index) => {
+        try {
+            const image = await ImageCropPicker.openCamera({
+                width: 300,
+                height: 300,
+                cropping: true,
+            });
+
+            const updatedRows = [...remaining_goods_return];
+            updatedRows[index].PhotopathRGR = { uri: image.path };
+            console.log({ uri: image.path })
+            setRemaining_Goods_Return(updatedRows);
+        } catch (error) {
+            console.log('ImagePicker Error: ', error);
         }
-        if (!item.YarnCount || isNaN(parseInt(item.YarnCount, 10))) {
-            Alert.alert(`Please enter a valid YarnCount for row ${index + 1}`);
-            return false;
-        }
-        if (!item.Weight || isNaN(parseInt(item.Weight, 10))) {
-            Alert.alert(`Please enter a valid Weight for row ${index + 1}`);
-            return false;
-        }
-        if (!item.CutPiece || isNaN(parseInt(item.CutPiece, 10))) {
-            Alert.alert(`Please enter a valid CutPiece for row ${index + 1}`);
-            return false;
-        }
-        if (!item.Meter || isNaN(parseInt(item.Meter, 10))) {
-            Alert.alert(`Please enter a valid Meter for row ${index + 1}`);
-            return false;
-        }
+    };
+
+    const HandleSubmiRGR1 = (item) => {
 
         const integerNumber = parseInt(item.GpNo, 10);
         const integerNumber2 = parseInt(item.YarnCount, 10);
@@ -724,6 +721,15 @@ const ConfirmOrders = ({ navigation }) => {
         formdata.append("Weight", integerNumber3);
         formdata.append("CutPiece", integerNumber4);
         formdata.append("Meter", integerNumber5);
+        if (item.PhotopathRGR && item.PhotopathRGR.uri) {
+            formdata.append('PhotoPath', {
+                uri: item.PhotopathRGR.uri,
+                type: "image/jpg",
+                name: "cprograming.jpg",
+            });
+        } else {
+            formdata.append('PhotoPath', null);
+        }
 
         const requestOptions = {
             method: "POST",
@@ -762,7 +768,7 @@ const ConfirmOrders = ({ navigation }) => {
             }
 
             console.log('Order updated successfully');
-            navigation.navigate("LoomBooking")
+            navigation.navigate("LiveBooking")
         } catch (error) {
             console.error(error);
         }
@@ -783,32 +789,72 @@ const ConfirmOrders = ({ navigation }) => {
         }
     };
 
+    const [showforms, setShopwForms] = useState(false)
+
+    const handlecontent = () => {
+        setShowBlocks(true)
+        setShopwForms(false)
+    }
+
+    const OrderFinished = () => {
+
+        console.log(selectedOrder.LoomOrderId)
 
 
+        const requestOptions = {
+            method: "GET",
+            redirect: "follow"
+        };
 
+        fetch("https://textileapp.microtechsolutions.co.in/php/finishloomorder.php?LoomOrderId=" + selectedOrder.LoomOrderId, requestOptions)
+            .then((response) => response.text())
+            .then((result) => {
+                console.log(result)
+                Alert.alert("Order Completed Successfully")
+                setShowBlocks(true)
+                setShopwForms(false)
+                fetchData()
+            })
+            .catch((error) => console.error(error));
+    }
     return (
-        <SafeAreaView style={{ backgroundColor: "#e5f2fe", flex: 1 }}>
+        <SafeAreaView style={{ backgroundColor: "white", flex: 1 }}>
             <StatusBar backgroundColor={"#003c43"}></StatusBar>
-            <View style={{ backgroundColor: "#003c43", flexDirection: "row" }}>
-                <TouchableOpacity onPress={() => navigation.navigate("Live orders")}>
-                    <ImageBackground
+
+
+
+            <View style={{ backgroundColor: "#003C43", flexDirection: "row", alignItems: 'center', height: 50, }}>
+
+                <TouchableOpacity
+                    onPress={() => {
+                        showBlocks ? navigation.navigate("Live orders") : handlecontent();
+                    }}
+                    style={{ padding: "2%", }}
+                >
+                    <Image
                         source={require("../Images/back.png")}
-                        style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#003c43", marginTop: 15, marginRight: 0, marginLeft: 10 }}
-                        imageStyle={{ borderRadius: 0 }}
+                        style={{ width: 28, height: 22, marginLeft: 10, padding: "1%" }}
+
                     />
                 </TouchableOpacity>
-                <Text style={{ fontSize: 25, color: "white", margin: "2.5%", marginLeft: "25%" }}>Live Orders</Text>
+
+
+                <View style={{ flex: 0.9, alignItems: 'center' }}>
+                    <Text style={{ fontSize: 26, color: "white", fontWeight: 500 }}> Live Orders </Text>
+                </View>
+
             </View>
+
+
             <ScrollView contentContainerStyle={styles.scrollView}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                 }>
-                <View>
-                    <View style={styles.container}>
+                <View style={styles.container}>
+                    <View style={{ padding: "3%" }}>
 
 
                         {/* FORM OPTIONS */}
-
 
 
 
@@ -817,14 +863,29 @@ const ConfirmOrders = ({ navigation }) => {
                                 {orders.map((order, index) => (
                                     order.Confirmed === 1 ? (
                                         <View key={index} style={styles.orderWrapper}>
-                                            <TouchableOpacity style={styles.orderContainer} onPress={() => handleOrderPress(order)}>
-                                                <Text style={styles.orderText}>{`Order No: ${order.OrderNo}\nParty Name: ${order.PartyName}\nQuality: ${order.Quality}`}</Text>
+
+                                            <TouchableOpacity style={styles.orderContainer}
+                                                onPress={() => handleOrderPress(order)}
+                                            >
+
+                                                <View style={{ paddingLeft: 10, marginBottom: 10 }}>
+                                                    <Text style={styles.orderText}>{`Order No : ${order.OrderNo}\nParty Name : ${order.PartyName}\nQuality : ${order.Quality}`}</Text>
+                                                </View>
+
+                                                <View style={styles.buttonContainer}>
+                                                    <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                                                        <TouchableOpacity
+                                                            style={[styles.button, { backgroundColor: '#FF7722', paddingVertical: "2%", marginTop: "5%" }]}
+                                                            onPress={() => cancelOrder(order)}
+                                                        >
+                                                            <Text style={styles.buttonText}> Cancel Order </Text>
+                                                        </TouchableOpacity>
+                                                    </View>
+
+                                                </View>
                                             </TouchableOpacity>
-                                            <View style={styles.buttonContainer}>
-                                                <TouchableOpacity style={styles.button} onPress={() => cancelOrder(order)}>
-                                                    <Text style={styles.buttonText}>Cancel Order</Text>
-                                                </TouchableOpacity>
-                                            </View>
+
+
                                         </View>
                                     ) : null
                                 ))}
@@ -834,33 +895,50 @@ const ConfirmOrders = ({ navigation }) => {
 
 
 
+                        {
+                            showforms ?
+
+                                <View>
+                                    {selectedOrder && (
+                                        <View>
+                                            <View>
+                                                <Text style={{ color: "#003C43", fontSize: 20, fontWeight: "600", marginBottom: "2.5%" }}>Order Details</Text>
+                                                <Text style={{ color: "#000", fontSize: 16, fontWeight: "600", marginBottom: "2%", marginTop: "1%" }}>Order No : {selectedOrder.OrderNo}</Text>
+                                                <Text style={{ color: "#000", fontSize: 16, fontWeight: "600", marginBottom: "2%", marginTop: "0%" }}>Party Name : {selectedOrder.PartyName}</Text>
+                                                <Text style={{ color: "#000", fontSize: 16, fontWeight: "600", marginBottom: "2%", marginTop: "0%" }}>Quality : {selectedOrder.Quality}</Text>
+
+                                            </View>
+                                            <View style={styles.Card}>
+                                                <TouchableOpacity style={[styles.button1, { marginTop: "8%" }]} onPress={() => { handleButtonPress('Beam in'); FalseOthersBeamIn() }}>
+                                                    <Text style={[styles.buttonText, styles.BeamInCss]}>Beam in</Text>
+                                                    {Beaminform ? (
+                                                        <TouchableOpacity onPress={() => Initialstage()}>
+                                                            <Image
+                                                                source={require("../Images/downarrow.png")}
+                                                                style={{ width: 25, height: 20, tintColor: "#848482" }}
+                                                            />
+                                                        </TouchableOpacity>
+                                                    ) : (
+                                                        <TouchableOpacity onPress={() => { handleButtonPress('Beam in'); FalseOthersBeamIn() }}>
+                                                            <Image
+                                                                source={require("../Images/rightarrow.png")}
+                                                                style={{ width: 25, height: 20, tintColor: "#848482" }}
+                                                            />
+                                                        </TouchableOpacity>
+                                                    )}
+                                                </TouchableOpacity>
+                                                {Beaminform ? <View style={{ width: width * 0.9 }}>
+                                                    <View style={[styles.table, { width: width * 0.9 }]}>
+                                                        <View style={styles.header1}>
+
+                                                            <Text style={{ color: "#000", fontSize: 18, fontWeight: "600" }}>Beam In From</Text>
+                                                        </View>
 
 
 
 
 
-                        {selectedOrder && (
-                            <View>
-                                <Text style={{ color: "#000", fontSize: 22 }}>{Action}</Text>
-                                <View style={{ alignItems: "center", justifyContent: "center", marginTop: "10%" }}>
-                                    <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Beam in'); FalseOthersBeamIn() }}>
-                                        <Text style={[styles.buttonText, styles.BeamInCss]}>Beam in</Text>
-                                    </TouchableOpacity>
-                                    {Beaminform ? <View style={{ width: "100%" }}>
-                                        <ScrollView horizontal={true} vertical={true}>
-                                            <View style={[styles.table, { width: 520 }]}>
-                                                <View style={styles.header1}>
-                                                    <Text style={styles.headerText1}>Date</Text>
-                                                    <Text style={[styles.headerText1, { marginRight: 80 }]}>Sizing Tippan Number</Text>
-                                                    <Text style={[styles.headerText1, { marginRight: 40 }]}>Image</Text>
-
-                                                </View>
-
-
-
-
-
-                                                {/* BEAM IN FORM  */}
+                                                        {/* BEAM IN FORM  */}
 
 
 
@@ -874,618 +952,775 @@ const ConfirmOrders = ({ navigation }) => {
 
 
 
-                                                {beamIn.map((row, index) => (
-                                                    <ScrollView>
-                                                        <View key={index} style={styles.rowContainer}>
+                                                        {beamIn.map((row, index) => (
+                                                            <ScrollView>
+                                                                <View key={index} style={styles.rowContainer}>
 
-                                                            <View style={styles.row}>
-                                                                <View>
-                                                                    <Text style={styles.dateText}>{row.date.toLocaleDateString()}</Text>
+                                                                    <View style={styles.row}>
+                                                                        <View style={{ flexDirection: "row", marginTop: "3%" }}>
+                                                                            <Text style={styles.headerText1}>Date</Text>
 
-                                                                    <TouchableOpacity onPress={() => { setShowDatePickerBI(true); setSelectedDateIndexBI(index); }}>
-                                                                        <Image
-                                                                            style={{ width: 30, height: 30, marginLeft: 30 }}
-                                                                            source={require("../Images/calendar.png")}
-                                                                        />
-                                                                    </TouchableOpacity>
+                                                                            <Text style={styles.dateText}>{row.date.toLocaleDateString()}</Text>
+
+                                                                            <TouchableOpacity onPress={() => { setShowDatePickerBI(true); setSelectedDateIndexBI(index); }}>
+                                                                                <Image
+                                                                                    style={{ width: 30, height: 30, marginLeft: 30 }}
+                                                                                    source={require("../Images/calendar.png")}
+                                                                                />
+                                                                            </TouchableOpacity>
+                                                                        </View>
+                                                                        {showDatePickerBI && selectedDateIndexBI === index && (
+                                                                            <DateTimePicker
+                                                                                value={row.date}
+                                                                                mode="date"
+                                                                                display="default"
+                                                                                minimumDate={new Date()}
+                                                                                onChange={handleDateChangeBI}
+                                                                            />
+                                                                        )}
+                                                                        <View style={{ flexDirection: "row", marginTop: "3%" }}>
+                                                                            <Text style={[styles.headerText1, { marginTop: "3%" }]}>Sizing Tippan No.</Text>
+                                                                            <TextInput
+                                                                                style={[styles.input, { width: width * 0.4 }]}
+                                                                                value={row.SizingTippanNo}
+                                                                                onChangeText={(text) => handleInputChangeBI(text, index, 'SizingTippanNo')}
+                                                                                keyboardType="numeric"
+                                                                                placeholderTextColor={"#000"}
+                                                                                placeholder="sizing Tippan No."
+                                                                            />
+                                                                        </View>
+                                                                        <View style={{ flexDirection: "row", marginTop: "3%" }}>
+                                                                            <Text style={[styles.headerText1]}>Image</Text>
+
+                                                                            <TouchableOpacity onPress={() => { handleImagePickerBI(index); setShow1(1) }}>
+
+
+                                                                                {
+                                                                                    (() => {
+
+                                                                                        if (show1 === 1) {
+                                                                                            return (
+                                                                                                <View>
+                                                                                                    <Image
+                                                                                                        source={row.PhotoPath}
+                                                                                                        style={{ width: 40, height: 40, alignSelf: 'flex-start', marginLeft: 20 }}
+
+                                                                                                    />
+                                                                                                </View>
+                                                                                            )
+                                                                                        } else {
+                                                                                            return (
+                                                                                                <Image
+                                                                                                    source={require('../Images/camera.png')}
+                                                                                                    style={{ width: 40, height: 40, alignSelf: 'flex-start', marginLeft: 20 }}
+
+                                                                                                />
+                                                                                            )
+
+
+                                                                                        }
+
+                                                                                    })()
+                                                                                }</TouchableOpacity>
+
+                                                                        </View>
+                                                                        <View style={styles.rowButtons}>
+                                                                            {index !== 0 && (
+                                                                                <TouchableOpacity style={{ backgroundColor: "#135D66", width: "25%", borderRadius: 30 }} onPress={() => handleRemoveRowBI(index)}>
+                                                                                    <Text style={styles.button}>- Row</Text>
+                                                                                </TouchableOpacity>
+                                                                            )}
+                                                                            <TouchableOpacity style={{ backgroundColor: "#135D66", width: "25%", borderRadius: 30 }} onPress={handleAddRowBI}>
+                                                                                <Text style={styles.button}>+ Row</Text>
+                                                                            </TouchableOpacity>
+
+                                                                        </View>
+                                                                        <Text style={{ color: "#000", fontSize: 20, width: width * 1 }}>_____________________________________</Text>
+
+
+                                                                    </View>
+
                                                                 </View>
-                                                                {showDatePickerBI && selectedDateIndexBI === index && (
-                                                                    <DateTimePicker
-                                                                        value={row.date}
-                                                                        mode="date"
-                                                                        display="default"
-                                                                        minimumDate={new Date()}
-                                                                        onChange={handleDateChangeBI}
+                                                            </ScrollView>
+                                                        ))}
+                                                    </View>
+                                                    <TouchableOpacity style={styles.submitButton} onPress={() => HandleSubmitBeamIn()}>
+                                                        <Text style={styles.submitButtonText}>Submit</Text>
+                                                    </TouchableOpacity>
+                                                </View> : null}
+                                                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('WEFT yarn in'); FalseOthersWeft() }}>
+                                                    <Text style={styles.buttonText}>Weft Yarn In</Text>
+                                                    {weftform ? (
+                                                        <TouchableOpacity onPress={() => Initialstage()}>
+                                                            <Image
+                                                                source={require("../Images/downarrow.png")}
+                                                                style={{ width: 25, height: 20, tintColor: "#848482" }}
+                                                            />
+                                                        </TouchableOpacity>
+                                                    ) : (
+                                                        <TouchableOpacity onPress={() => { handleButtonPress('WEFT yarn in'); FalseOthersWeft() }}>
+                                                            <Image
+                                                                source={require("../Images/rightarrow.png")}
+                                                                style={{ width: 25, height: 20, tintColor: "#848482" }}
+                                                            />
+                                                        </TouchableOpacity>
+                                                    )}
+                                                </TouchableOpacity>
+                                                {weftform ? <View style={{ width: width * 0.9 }}>
+                                                    <ScrollView horizontal={true} vertical={true}>
+                                                        <View style={[styles.table, { width: width * 0.9 }]}>
+                                                            <View style={styles.header1}>
+                                                                <Text style={{ color: "#000", fontSize: 18, fontWeight: "600" }}>Weft Yarn In Form</Text>
+
+                                                            </View>
+
+
+                                                            {/* WEFT YARN IN FORM */}
+
+
+
+
+
+
+
+
+                                                            {Weft.map((row, index) => (
+                                                                <ScrollView>
+                                                                    <View key={index} style={styles.rowContainer}>
+
+                                                                        <View style={styles.row}>
+                                                                            <View style={{ flexDirection: "row", marginTop: "3%" }}>
+                                                                                <Text style={styles.headerText1}>Date</Text>
+
+                                                                                <Text style={styles.dateText}>{row.date.toDateString()}</Text>
+
+                                                                                <TouchableOpacity onPress={() => { setShowDatePickerWEFT(true); setSelectedDateIndexWEFT(index); }}>
+                                                                                    <Image
+                                                                                        style={{ width: 30, height: 30, marginLeft: 30 }}
+                                                                                        source={require("../Images/calendar.png")}
+                                                                                    />
+                                                                                </TouchableOpacity>
+                                                                            </View>
+                                                                            {showDatePickerWEFT && selectedDateIndexWEFT === index && (
+                                                                                <DateTimePicker
+                                                                                    value={row.date}
+                                                                                    mode="date"
+                                                                                    minimumDate={new Date()}
+                                                                                    display="default"
+                                                                                    placeholderTextColor={"#000"}
+                                                                                    onChange={handleDateChangeWEFT}
+                                                                                />
+                                                                            )}
+                                                                            <View style={{ flexDirection: "row", marginTop: "2%" }}>
+                                                                                <Text style={[styles.headerText1, { marginTop: "3%" }]}>Gate Pass No.</Text>
+                                                                                <TextInput
+                                                                                    style={[styles.input, { width: 200 }]}
+                                                                                    value={row.GatePassNo}
+                                                                                    onChangeText={(text) => handleInputChangeWEFT(text, index, 'GatePassNo')}
+                                                                                    keyboardType="numeric"
+                                                                                    placeholder="gate Pass No."
+                                                                                />
+                                                                            </View>
+                                                                            <View style={{ flexDirection: "row", marginTop: "2%" }}>
+                                                                                <Text style={[styles.headerText1]}>Image</Text>
+
+                                                                                <TouchableOpacity onPress={() => { handleImagePickerWEFT(index); setShow1(1) }}>
+
+
+                                                                                    {
+                                                                                        (() => {
+
+                                                                                            if (show1 === 1) {
+                                                                                                return (
+                                                                                                    <View>
+                                                                                                        <Image
+                                                                                                            source={row.PhotoPathweft}
+                                                                                                            style={{ width: 40, height: 40, alignSelf: 'flex-start', marginLeft: 20 }}
+
+                                                                                                        />
+                                                                                                    </View>
+                                                                                                )
+                                                                                            } else {
+                                                                                                return (
+                                                                                                    <Image
+                                                                                                        source={require('../Images/camera.png')}
+                                                                                                        style={{ width: 40, height: 40, alignSelf: 'flex-start', marginLeft: 20 }}
+
+                                                                                                    />
+                                                                                                )
+
+
+                                                                                            }
+
+                                                                                        })()
+                                                                                    }</TouchableOpacity>
+
+
+                                                                            </View>
+                                                                            <View style={styles.rowButtons}>
+                                                                                {index !== 0 && (
+                                                                                    <TouchableOpacity style={{ backgroundColor: "#135D66", width: "25%", borderRadius: 30 }} onPress={() => handleRemoveRowWEFT(index)}>
+                                                                                        <Text style={styles.button}>- Row</Text>
+                                                                                    </TouchableOpacity>
+                                                                                )}
+                                                                                <TouchableOpacity style={{ backgroundColor: "#135D66", width: "25%", borderRadius: 30 }} onPress={handleAddRowWEFT}>
+                                                                                    <Text style={styles.button}>+ Row</Text>
+                                                                                </TouchableOpacity>
+
+                                                                            </View>
+                                                                            <Text style={{ color: "#000", fontSize: 20 }}>______________________________________</Text>
+
+                                                                        </View>
+
+                                                                    </View>
+                                                                </ScrollView>
+                                                            ))}
+                                                        </View>
+                                                    </ScrollView>
+                                                    <TouchableOpacity style={styles.submitButton} onPress={() => HandleSubmitWEFT()}>
+                                                        <Text style={styles.submitButtonText}>Submit</Text>
+                                                    </TouchableOpacity>
+                                                </View> : null}
+
+
+
+
+
+
+
+
+
+                                                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Drawing in'), FalseOthersDI() }}>
+                                                    <Text style={styles.buttonText}>Drawing in</Text>
+                                                    {DrawingInForm ? (
+                                                        <TouchableOpacity onPress={() => Initialstage()}>
+                                                            <Image
+                                                                source={require("../Images/downarrow.png")}
+                                                                style={{ width: 25, height: 20, tintColor: "#848482" }}
+                                                            />
+                                                        </TouchableOpacity>
+                                                    ) : (
+                                                        <TouchableOpacity onPress={() => { handleButtonPress('Drawing in'), FalseOthersDI() }}>
+                                                            <Image
+                                                                source={require("../Images/rightarrow.png")}
+                                                                style={{ width: 25, height: 20, tintColor: "#848482" }}
+                                                            />
+                                                        </TouchableOpacity>
+                                                    )}
+                                                </TouchableOpacity>
+                                                {
+                                                    DrawingInForm ? (
+                                                        <View style={{ width: "100%" }}>
+                                                            <View style={[styles.table, { width: 200, marginLeft: 80 }]}>
+                                                                <View style={styles.header1}>
+                                                                    <Text style={styles.headerText1}>Drawing In</Text>
+                                                                </View>
+
+                                                                {/* DrawingIn FORM */}
+                                                                <Animatable.View
+                                                                    animation="fadeIn"
+                                                                    duration={500}
+                                                                    style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "center", color: "#000" }}
+                                                                >
+                                                                    <CheckBox
+                                                                        tintColors={{ true: 'blue', false: 'black' }} // Change color when checked and unchecked
+                                                                        tintColor="black"
+                                                                        disabled={false}
+                                                                        value={DrawingIn}
+                                                                        onValueChange={(newValue) => setDrawingIn(newValue)}
                                                                     />
-                                                                )}
-                                                                <TextInput
-                                                                    style={[styles.input, { width: 200 }]}
-                                                                    value={row.SizingTippanNo}
-                                                                    onChangeText={(text) => handleInputChangeBI(text, index, 'SizingTippanNo')}
-                                                                    keyboardType="numeric"
-                                                                    placeholderTextColor={"#000"}
-                                                                    placeholder="sizing Tippan Number"
-                                                                />
-                                                                <View>
-                                                                    <TouchableOpacity onPress={() => { handleImagePickerBI(index); setShow1(1) }}>
+                                                                    <Text style={{ color: "#000", marginLeft: 15, fontSize: 20 }}>Done</Text>
+                                                                </Animatable.View>
+                                                                <Text style={styles.text}>{currentDate}</Text>
+                                                            </View>
+                                                            <TouchableOpacity style={styles.submitButton} onPress={() => SubmitDrawingIn()}>
+                                                                <Text style={styles.submitButtonText}>Submit</Text>
+                                                            </TouchableOpacity>
+                                                        </View>
+                                                    ) : null
+                                                }
+
+                                                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Beam Getting'), FalseOthersBG() }}>
+                                                    <Text style={styles.buttonText}>Beam Getting</Text>
+                                                    {beamGettingForm ? (
+                                                        <TouchableOpacity onPress={() => Initialstage()}>
+                                                            <Image
+                                                                source={require("../Images/downarrow.png")}
+                                                                style={{ width: 25, height: 20, tintColor: "#848482" }}
+                                                            />
+                                                        </TouchableOpacity>
+                                                    ) : (
+                                                        <TouchableOpacity onPress={() => { handleButtonPress('Beam Getting'), FalseOthersBG() }}>
+                                                            <Image
+                                                                source={require("../Images/rightarrow.png")}
+                                                                style={{ width: 25, height: 20, tintColor: "#848482" }}
+                                                            />
+                                                        </TouchableOpacity>
+                                                    )}
+                                                </TouchableOpacity>
+                                                {beamGettingForm ? <View style={{ width: "100%" }}>
+                                                    <View style={[styles.table, { width: 200, marginLeft: 80 }]}>
+                                                        <View style={styles.header1}>
+                                                            <Text style={styles.headerText1}>Beam Getting</Text>
+                                                        </View>
 
 
-                                                                        {
-                                                                            (() => {
 
-                                                                                if (show1 === 1) {
-                                                                                    return (
-                                                                                        <View>
+
+
+
+
+
+
+
+
+                                                        {/* BEAM Getting FORM  */}
+
+
+
+
+
+
+
+
+
+
+
+                                                        <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "center" }}>
+                                                            <CheckBox
+                                                                tintColors={{ true: 'blue', false: 'black' }}
+                                                                tintColor="black"
+                                                                disabled={false}
+                                                                value={beamgetting}
+                                                                onValueChange={(newValue) => setBeamGetting(newValue)}
+                                                            />
+                                                            <Text style={{ color: "#000", marginLeft: 15, fontSize: 20 }}>Done</Text>
+                                                        </View>
+                                                        <Text style={styles.text}>{currentDate}</Text>
+                                                    </View>
+                                                    <TouchableOpacity style={styles.submitButton} onPress={() => SubmitBeamInGetting()}>
+                                                        <Text style={styles.submitButtonText}>Submit</Text>
+                                                    </TouchableOpacity>
+                                                </View> : null}
+
+
+                                                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('First Piece Approval'); FalseOthersFPA() }}>
+                                                    <Text style={styles.buttonText}>First Piece Approval</Text>
+                                                    {fpaform ? (
+                                                        <TouchableOpacity onPress={() => Initialstage()}>
+                                                            <Image
+                                                                source={require("../Images/downarrow.png")}
+                                                                style={{ width: 25, height: 20, tintColor: "#848482" }}
+                                                            />
+                                                        </TouchableOpacity>
+                                                    ) : (
+                                                        <TouchableOpacity onPress={() => { handleButtonPress('First Piece Approval'); FalseOthersFPA() }}>
+                                                            <Image
+                                                                source={require("../Images/rightarrow.png")}
+                                                                style={{ width: 25, height: 20, tintColor: "#848482" }}
+                                                            />
+                                                        </TouchableOpacity>
+                                                    )}
+                                                </TouchableOpacity>
+                                                {fpaform ?
+                                                    <View style={{ borderWidth: 1, width: width * 0.9, marginBottom: "4%" }}>
+                                                        <View style={styles.tableHeader}>
+                                                            <Text style={styles.headerText}>Messages</Text>
+
+                                                        </View>
+
+
+                                                        {FPAD.map((item, index) => (
+                                                            <View key={index} style={{ padding: 10, alignItems: "flex-start", justifyContent: "center", width: width * 0.9, borderBottomWidth: 1 }}>
+                                                                <Text style={{ color: "#000" }}>{item.UpdatedOn.date.substring(0, 10)}</Text>
+                                                                <Text style={{ color: "#000" }}>{item.Name} : {item.Comment}</Text>
+                                                            </View>
+                                                        ))}
+
+
+                                                        <View style={{ width: width * 0.9, marginTop: 15 }}>
+                                                            <View style={[{ marginLeft: 10, width: width * 0.9 }, styles.table]}>
+
+
+
+
+                                                                {/*First Piece Approval FORM  */}
+
+
+
+
+
+
+                                                                <View style={{ flexDirection: "row", width: width * 0.9 }}>
+                                                                    <TextInput
+                                                                        style={{ width: width * 0.9, borderRadius: 15, color: "#000" }}
+                                                                        placeholder='Any Comments....'
+                                                                        placeholderTextColor={"#000"}
+                                                                        value={first_piece_approval}
+                                                                        onChangeText={(txt) => setFirst_Piece_Approval(txt)}
+                                                                        multiline={true} // Allows multiple lines of input
+                                                                        numberOfLines={5} // Sets the initial number of lines
+                                                                    />
+                                                                </View>
+                                                            </View>
+                                                            <TouchableOpacity style={styles.submitButton} onPress={() => SubmitFPA()}>
+                                                                <Text style={styles.submitButtonText}>Submit</Text>
+                                                            </TouchableOpacity>
+                                                        </View>
+                                                    </View> : null}
+                                                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Fabric Dispatch'), FalseOthersFD() }}>
+                                                    <Text style={styles.buttonText}>Fabric Dispatch</Text>
+                                                    {fdFrom ? (
+                                                        <TouchableOpacity onPress={() => Initialstage()}>
+                                                            <Image
+                                                                source={require("../Images/downarrow.png")}
+                                                                style={{ width: 25, height: 20, tintColor: "#848482" }}
+                                                            />
+                                                        </TouchableOpacity>
+                                                    ) : (
+                                                        <TouchableOpacity onPress={() => { handleButtonPress('Fabric Dispatch'), FalseOthersFD() }}>
+                                                            <Image
+                                                                source={require("../Images/rightarrow.png")}
+                                                                style={{ width: 25, height: 20, tintColor: "#848482" }}
+                                                            />
+                                                        </TouchableOpacity>
+                                                    )}
+                                                </TouchableOpacity>
+
+
+
+                                                {/*                          
+
+
+
+                      FABRIC DISPATCH FORM 
+
+
+
+
+
+
+*/}
+
+                                                {fdFrom ? <View style={{ justifyContent: "space-between", width: width * 0.9, }}>
+                                                    <View style={[styles.table, { width: width * 0.9, justifyContent: "space-between" }]}>
+                                                        <View style={styles.header1}>
+                                                            <Text style={{ color: "#000", fontSize: 18, fontWeight: "600" }}>Fabric Dispatch Form</Text>
+                                                        </View>
+
+                                                        {tableRows.map((row, index) => (
+                                                            <View key={index} style={styles.rowContainer}>
+                                                                <View style={styles.row}>
+
+                                                                    <View style={{ flexDirection: "row", marginTop: "3%" }}>
+                                                                        <Text style={[styles.headerText1]}>Date</Text>
+                                                                        <Text style={styles.dateText}>{row.date.toDateString()}</Text>
+
+                                                                        <TouchableOpacity onPress={() => { setShowDatePickerFD(true); setSelectedDateIndexFD(index); }}>
+                                                                            <Image
+                                                                                style={{ width: 30, height: 30, marginLeft: 30 }}
+                                                                                source={require("../Images/calendar.png")}
+                                                                            />
+                                                                        </TouchableOpacity>
+                                                                    </View>
+
+                                                                    {showDatePickerFD && selectedDateIndexFD === index && (
+                                                                        <DateTimePicker
+                                                                            value={row.date}
+                                                                            mode="date"
+                                                                            minimumDate={new Date()}
+                                                                            display="default"
+                                                                            onChange={handleDateChangeFD}
+                                                                        />
+                                                                    )}
+                                                                    <View style={{ flexDirection: "row" }}>
+                                                                        <Text style={[styles.headerText1, { marginRight: 10 }]}>Meter</Text>
+
+                                                                        <TextInput
+                                                                            style={[styles.input, { width: 200 }]}
+                                                                            value={row.Meter}
+                                                                            onChangeText={(text) => handleInputChangeFD(text, index, 'Meter')}
+                                                                            keyboardType="numeric"
+                                                                            placeholderTextColor={"#000"}
+                                                                            placeholder="Meter"
+                                                                        />
+                                                                    </View>
+                                                                    <View style={{ flexDirection: "row" }}>
+                                                                        <Text style={[styles.headerText1, { marginLeft: 0 }]}>Weight</Text>
+
+                                                                        <TextInput
+                                                                            style={[styles.input, { width: 200 }]}
+                                                                            value={row.Weight}
+                                                                            onChangeText={(text) => handleInputChangeFD(text, index, 'Weight')}
+                                                                            keyboardType="numeric"
+                                                                            placeholderTextColor={"#000"}
+                                                                            placeholder="Weight"
+                                                                        />
+
+                                                                    </View>
+                                                                    <View style={{ flexDirection: "row" }}>
+                                                                        <Text style={[styles.headerText1]}>Image</Text>
+
+                                                                        <TouchableOpacity onPress={() => { handleImagePickerFD(index); setShow1(1) }}>
+
+
+                                                                            {
+                                                                                (() => {
+
+                                                                                    if (show1 === 1) {
+                                                                                        return (
+                                                                                            <View>
+                                                                                                <Image
+                                                                                                    source={row.PhotoPathFFD}
+                                                                                                    style={{ width: 40, height: 40, alignSelf: 'flex-start', marginLeft: 20 }}
+
+                                                                                                />
+                                                                                            </View>
+                                                                                        )
+                                                                                    } else {
+                                                                                        return (
                                                                                             <Image
-                                                                                                source={row.PhotoPath}
+                                                                                                source={require('../Images/camera.png')}
                                                                                                 style={{ width: 40, height: 40, alignSelf: 'flex-start', marginLeft: 20 }}
 
                                                                                             />
-                                                                                        </View>
-                                                                                    )
-                                                                                } else {
-                                                                                    return (
-                                                                                        <Image
-                                                                                            source={require('../Images/camera.png')}
-                                                                                            style={{ width: 40, height: 40, alignSelf: 'flex-start', marginLeft: 20 }}
-
-                                                                                        />
-                                                                                    )
+                                                                                        )
 
 
-                                                                                }
+                                                                                    }
 
-                                                                            })()
-                                                                        }</TouchableOpacity>
+                                                                                })()
+                                                                            }</TouchableOpacity>
 
-                                                                </View>
-                                                                <View style={styles.rowButtons}>
-                                                                    {index !== 0 && (
-                                                                        <TouchableOpacity onPress={() => handleRemoveRowBI(index)}>
-                                                                            <Text style={{ fontSize: 35, marginTop: -20 }}>-</Text>
+                                                                    </View>
+                                                                    <View style={styles.rowButtons}>
+                                                                        {index !== 0 && (
+                                                                            <TouchableOpacity style={{ backgroundColor: "#135D66", width: "25%", borderRadius: 30 }} onPress={() => handleRemoveRowFD(index)}>
+                                                                                <Text style={styles.button}>- Row</Text>
+                                                                            </TouchableOpacity>
+                                                                        )}
+                                                                        <TouchableOpacity style={{ backgroundColor: "#135D66", width: "25%", borderRadius: 30 }} onPress={handleAddRowFD}>
+                                                                            <Text style={styles.button}>+ Row</Text>
                                                                         </TouchableOpacity>
-                                                                    )}
-                                                                    <TouchableOpacity onPress={handleAddRowBI}>
-                                                                        <Text style={styles.button}>+</Text>
-                                                                    </TouchableOpacity>
+
+                                                                    </View>
+                                                                    <Text style={{ color: "#000", fontSize: 20 }}>_____________________________________</Text>
+
                                                                 </View>
                                                             </View>
-
-                                                        </View>
-                                                    </ScrollView>
-                                                ))}
-                                            </View>
-                                        </ScrollView>
-                                        <TouchableOpacity style={styles.submitButton} onPress={() => HandleSubmitBeamIn()}>
-                                            <Text style={styles.submitButtonText}>Submit</Text>
-                                        </TouchableOpacity>
-                                    </View> : null}
-                                    <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('WEFT yarn in'); FalseOthersWeft() }}>
-                                        <Text style={styles.buttonText}>WEFT yarn in</Text>
-                                    </TouchableOpacity>
+                                                        ))}
 
 
-
-                                    {/* WEFT YARN IN FORM */}
-
-
-
-
-
-
-
-
-
-                                    {weftform ? <View style={{ justifyContent: "space-evenly", width: "100%" }}>
-                                        <ScrollView horizontal={true}>
-                                            <View style={[styles.table, { width: 520 }]}>
-                                                <View style={styles.header1}>
-                                                    <Text style={styles.headerText1}>Date</Text>
-                                                    <Text style={[styles.headerText1, { marginRight: 30 }]}>Gate Pass Number</Text>
-                                                    <Text style={[styles.headerText1, { marginRight: 20 }]}>Image</Text>
-
-
-                                                </View>
-                                                {Weft.map((row, index) => (
-                                                    <View key={index} style={styles.rowContainer}>
-                                                        <View style={styles.row}>
-                                                            <View>
-                                                                <Text style={styles.dateText}>{row.date.toDateString()}</Text>
-
-                                                                <TouchableOpacity onPress={() => { setShowDatePickerWEFT(true); setSelectedDateIndexWEFT(index); }}>
-                                                                    <Image
-                                                                        style={{ width: 30, height: 30, marginLeft: 30 }}
-                                                                        source={require("../Images/calendar.png")}
-                                                                    />
-                                                                </TouchableOpacity>
-                                                            </View>
-                                                            {showDatePickerWEFT && selectedDateIndexWEFT === index && (
-                                                                <DateTimePicker
-                                                                    value={row.date}
-                                                                    mode="date"
-                                                                    minimumDate={new Date()}
-                                                                    display="default"
-                                                                    placeholderTextColor={"#000"}
-                                                                    onChange={handleDateChangeWEFT}
-                                                                />
-                                                            )}
-                                                            <TextInput
-                                                                style={[styles.input, { width: "45%" }]}
-                                                                value={row.GatePassNo}
-                                                                onChangeText={(text) => handleInputChangeWEFT(text, index, 'GatePassNo')}
-                                                                keyboardType="numeric"
-                                                                placeholder="gatePassNumber"
-                                                            />
-                                                            <View>
-                                                                <TouchableOpacity onPress={() => { handleImagePickerWEFT(index); setShow1(1) }}>
-
-
-                                                                    {
-                                                                        (() => {
-
-                                                                            if (show1 === 1) {
-                                                                                return (
-                                                                                    <View>
-                                                                                        <Image
-                                                                                            source={row.PhotoPathweft}
-                                                                                            style={{ width: 40, height: 40, alignSelf: 'flex-start', marginLeft: 20 }}
-
-                                                                                        />
-                                                                                    </View>
-                                                                                )
-                                                                            } else {
-                                                                                return (
-                                                                                    <Image
-                                                                                        source={require('../Images/camera.png')}
-                                                                                        style={{ width: 40, height: 40, alignSelf: 'flex-start', marginLeft: 20 }}
-
-                                                                                    />
-                                                                                )
-
-
-                                                                            }
-
-                                                                        })()
-                                                                    }</TouchableOpacity>
-
-                                                            </View>
-                                                            <View style={styles.rowButtons}>
-                                                                {index !== 0 && (
-                                                                    <TouchableOpacity onPress={() => handleRemoveRowWEFT(index)}>
-                                                                        <Text style={styles.button}>-</Text>
-                                                                    </TouchableOpacity>
-                                                                )}
-                                                                <TouchableOpacity onPress={handleAddRowWEFT}>
-                                                                    <Text style={styles.button}>+</Text>
-                                                                </TouchableOpacity>
-                                                            </View>
-
-                                                        </View>
                                                     </View>
 
-                                                ))}
-                                            </View>
-                                        </ScrollView>
-                                        <TouchableOpacity style={styles.submitButton} onPress={() => HandleSubmitWEFT()}>
-                                            <Text style={styles.submitButtonText}>Submit</Text>
-                                        </TouchableOpacity>
-                                    </View> : null}
-
-
-
-
-
-
-
-
-
-
-                                    <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Drawing in'), FalseOthersDI() }}>
-                                        <Text style={styles.buttonText}>Drawing in</Text>
-                                    </TouchableOpacity>
-                                    {DrawingInForm ? <View style={{ width: "100%" }}>
-                                        <ScrollView horizontal={true} vertical={true}>
-                                            <View style={[styles.table, { width: 200, marginLeft: 30 }]}>
-                                                <View style={styles.header1}>
-                                                    <Text style={styles.headerText1}>Drawing In</Text>
-                                                </View>
-
-
-
-
-
-                                                {/*DrawingIn FORM  */}
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                                <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "center" }}>
-                                                    <CheckBox
-                                                        disabled={false}
-                                                        value={DrawingIn}
-                                                        onValueChange={(newValue) => setDrawingIn(newValue)}
-                                                    />
-                                                    <Text style={{ color: "#000", marginLeft: 15, fontSize: 20 }}>Done</Text>
-                                                </View>
-                                                <Text style={styles.text}>{currentDate}</Text>
-                                            </View>
-                                        </ScrollView>
-                                        <TouchableOpacity style={styles.submitButton} onPress={() => SubmitDrawingIn()}>
-                                            <Text style={styles.submitButtonText}>Submit</Text>
-                                        </TouchableOpacity>
-                                    </View> : null}
-
-
-                                    <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Beam Getting'), FalseOthersBG() }}>
-                                        <Text style={styles.buttonText}>Beam Getting</Text>
-                                    </TouchableOpacity>
-                                    {beamGettingForm ? <View style={{ width: "100%" }}>
-                                        <ScrollView horizontal={true} vertical={true}>
-                                            <View style={[styles.table, { width: 200, marginLeft: 30 }]}>
-                                                <View style={styles.header1}>
-                                                    <Text style={styles.headerText1}>Beam Getting</Text>
-                                                </View>
-
-
-
-
-
-
-
-
-
-
-
-                                                {/* BEAM Getting FORM  */}
-
-
-
-
-
-
-
-
-
-
-
-                                                <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "center" }}>
-                                                    <CheckBox
-                                                        disabled={false}
-                                                        value={beamgetting}
-                                                        onValueChange={(newValue) => setBeamGetting(newValue)}
-                                                    />
-                                                    <Text style={{ color: "#000", marginLeft: 15, fontSize: 20 }}>Done</Text>
-                                                </View>
-                                                <Text style={styles.text}>{currentDate}</Text>
-                                            </View>
-                                        </ScrollView>
-                                        <TouchableOpacity style={styles.submitButton} onPress={() => SubmitBeamInGetting()}>
-                                            <Text style={styles.submitButtonText}>Submit</Text>
-                                        </TouchableOpacity>
-                                    </View> : null}
-
-
-                                    <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('First Piece Approval'); FalseOthersFPA() }}>
-                                        <Text style={styles.buttonText}>First Piece Approval</Text>
-                                    </TouchableOpacity>
-                                    {fpaform ?
-                                        <View style={{ borderWidth: 1 }}>
-                                            <View style={styles.tableHeader}>
-                                                <Text style={styles.headerText}>Messages</Text>
-                                                <TouchableOpacity onPress={() => setFPAForm(false)}>
-                                                    <Image
-                                                        source={require("../Images/cross.png")}
-                                                        style={{ width: 30, height: 30 }}
-                                                    />
-                                                </TouchableOpacity>
-                                            </View>
-
-
-                                            {FPAD.map((item, index) => (
-                                                <View key={index} style={{ padding: 10, alignItems: "flex-start", justifyContent: "center", width: 400, borderBottomWidth: 1 }}>
-                                                    <Text style={{ color: "#000" }}>{item.UpdatedOn.date.substring(0, 10)}</Text>
-                                                    <Text style={{ color: "#000" }}>{item.Name} : {item.Comment}</Text>
-                                                </View>
-                                            ))}
-
-
-                                            <View style={{ width: "100%", marginTop: 15 }}>
-                                                <ScrollView horizontal={true} vertical={true}>
-                                                    <View style={[{ marginLeft: 10, width: 500 }, styles.table]}>
-
-
-
-
-                                                        {/*First Piece Approval FORM  */}
-
-
-
-
-
-
-                                                        <View style={{ flexDirection: "row", width: "100%" }}>
-                                                            <TextInput
-                                                                style={{ width: "80%", borderRadius: 15 }}
-                                                                placeholder='Any Comments....'
-                                                                placeholderTextColor={"#000"}
-                                                                value={first_piece_approval}
-                                                                onChangeText={(txt) => setFirst_Piece_Approval(txt)}
-                                                                multiline={true} // Allows multiple lines of input
-                                                                numberOfLines={5} // Sets the initial number of lines
+                                                    <Text style={{ marginRight: width * 0.9 }}></Text>
+                                                    <TouchableOpacity style={styles.submitButton} onPress={() => HandleSubmitFD()}>
+                                                        <Text style={styles.submitButtonText}>Submit</Text>
+                                                    </TouchableOpacity>
+
+                                                </View> : null}
+
+                                                <TouchableOpacity style={[styles.button1, { marginBottom: "10%" }]} onPress={() => { handleButtonPress('Remaining Goods Return'); FalseOthersrgr(); }}>
+                                                    <Text style={styles.buttonText}>Remaining Goods Return</Text>
+                                                    {remaining_goods_returnform ? (
+                                                        <TouchableOpacity onPress={() => Initialstage()}>
+                                                            <Image
+                                                                source={require("../Images/downarrow.png")}
+                                                                style={{ width: 25, height: 20, tintColor: "#848482" }}
                                                             />
-                                                        </View>
-                                                    </View>
-                                                </ScrollView>
-                                                <TouchableOpacity style={styles.submitButton} onPress={() => SubmitFPA()}>
-                                                    <Text style={styles.submitButtonText}>Submit</Text>
+                                                        </TouchableOpacity>
+                                                    ) : (
+                                                        <TouchableOpacity onPress={() => { handleButtonPress('Remaining Goods Return'); FalseOthersrgr(); }}>
+                                                            <Image
+                                                                source={require("../Images/rightarrow.png")}
+                                                                style={{ width: 25, height: 20, tintColor: "#848482" }}
+                                                            />
+                                                        </TouchableOpacity>
+                                                    )}
                                                 </TouchableOpacity>
-                                            </View>
-                                        </View> : null}
-                                    <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Fabric Dispatch'), FalseOthersFD() }}>
-                                        <Text style={styles.buttonText}>Fabric Dispatch</Text>
-                                    </TouchableOpacity>
-
-
-
-                                    {/*                          
-
-
-
-                                      FABRIC DISPATCH FORM 
 
 
 
 
+                                                {/*                          
 
 
+
+                      FABRIC DISPATCH FORM 
+                    
+                    
+                    
+                    
+
+                      
 */}
 
-                                    {fdFrom ? <View style={{ justifyContent: "space-between", width: "100%", }}>
-                                        <ScrollView horizontal={true}>
-                                            <View style={[styles.table, { width: 700, justifyContent: "space-between" }]}>
-                                                <View style={styles.header1}>
-                                                    <Text style={[styles.headerText1, { marginLeft: -70 }]}>Date</Text>
-                                                    <Text style={[styles.headerText1, { marginRight: 50 }]}>Meter</Text>
-                                                    <Text style={[styles.headerText1, { marginLeft: 0 }]}>Weight</Text>
-                                                    <Text style={[styles.headerText1, { marginRight: -50 }]}>Image</Text>
-                                                </View>
-
-                                                {tableRows.map((row, index) => (
-                                                    <View key={index} style={styles.rowContainer}>
-                                                        <View style={styles.row}>
-
-                                                            <View style={styles.headerText1}>
-                                                                <Text style={styles.dateText}>{row.date.toDateString()}</Text>
-
-                                                                <TouchableOpacity onPress={() => { setShowDatePickerFD(true); setSelectedDateIndexFD(index); }}>
-                                                                    <Image
-                                                                        style={{ width: 30, height: 30, marginLeft: 30 }}
-                                                                        source={require("../Images/calendar.png")}
-                                                                    />
-                                                                </TouchableOpacity>
-                                                            </View>
-
-                                                            {showDatePickerFD && selectedDateIndexFD === index && (
-                                                                <DateTimePicker
-                                                                    value={row.date}
-                                                                    mode="date"
-                                                                    minimumDate={new Date()}
-                                                                    display="default"
-                                                                    onChange={handleDateChangeFD}
-                                                                />
-                                                            )}
-                                                            <TextInput
-                                                                style={[styles.input, { width: 200 }]}
-                                                                value={row.Meter}
-                                                                onChangeText={(text) => handleInputChangeFD(text, index, 'Meter')}
-                                                                keyboardType="numeric"
-                                                                placeholderTextColor={"#000"}
-                                                                placeholder="Meter"
-                                                            />
-                                                            <TextInput
-                                                                style={[styles.input, { width: 200 }]}
-                                                                value={row.Weight}
-                                                                onChangeText={(text) => handleInputChangeFD(text, index, 'Weight')}
-                                                                keyboardType="numeric"
-                                                                placeholderTextColor={"#000"}
-                                                                placeholder="Weight"
-                                                            />
-
-                                                            <View>
-                                                                <TouchableOpacity onPress={() => { handleImagePickerFD(index); setShow1(1) }}>
-
-
-                                                                    {
-                                                                        (() => {
-
-                                                                            if (show1 === 1) {
-                                                                                return (
-                                                                                    <View>
-                                                                                        <Image
-                                                                                            source={row.PhotoPathFFD}
-                                                                                            style={{ width: 40, height: 40, alignSelf: 'flex-start', marginLeft: 20 }}
-
-                                                                                        />
-                                                                                    </View>
-                                                                                )
-                                                                            } else {
-                                                                                return (
-                                                                                    <Image
-                                                                                        source={require('../Images/camera.png')}
-                                                                                        style={{ width: 40, height: 40, alignSelf: 'flex-start', marginLeft: 20 }}
-
-                                                                                    />
-                                                                                )
-
-
-                                                                            }
-
-                                                                        })()
-                                                                    }</TouchableOpacity>
-
-                                                            </View>
-                                                            <View style={[styles.rowButtons, { marginRight: 0 }]}>
-                                                                {index !== 0 && (
-                                                                    <TouchableOpacity onPress={() => handleRemoveRowFD(index)}>
-                                                                        <Text style={styles.button}>-</Text>
-                                                                    </TouchableOpacity>
-                                                                )}
-                                                                <TouchableOpacity onPress={handleAddRowFD}>
-                                                                    <Text style={styles.button}>+</Text>
-                                                                </TouchableOpacity>
-                                                            </View>
-
+                                                {remaining_goods_returnform ? <View style={{ justifyContent: "space-evenly", width: width * 0.9, }}>
+                                                    <View style={[styles.table, { marginLeft: 0, width: width * 0.9 }]}>
+                                                        <View style={styles.header1}>
+                                                            <Text style={{ color: "#000", fontSize: 18, fontWeight: "600" }}>Remaining Goods Return Form</Text>
                                                         </View>
 
-                                                    </View>
-                                                ))}
+                                                        {remaining_goods_return.map((row, index) => (
+                                                            <View key={index} style={styles.rowContainer}>
+                                                                <SafeAreaView style={[styles.row, { width: 600 }]}>
+                                                                    <View style={{ flexDirection: "row", marginTop: "3%" }}>
+                                                                        <Text style={[styles.headerText1, { marginTop: "0%" }]}>GP. NO.</Text>
+
+                                                                        <TextInput
+                                                                            style={[styles.input, { width: "18%", marginLeft: "5%", marginTop: "-2%" }]}
+                                                                            value={row.GpNo}
+                                                                            onChangeText={(text) => handleInputChangeRGR(text, index, 'GpNo')}
+                                                                            keyboardType="numeric"
+                                                                            placeholder="GP_NO"
+                                                                            placeholderTextColor={"#000"}
+                                                                        />
+                                                                    </View>
+                                                                    <View style={{ flexDirection: "row" }}>
+                                                                        <Text style={[styles.headerText1, { marginTop: "2%" }]}>Yarn Count</Text>
 
 
-                                            </View>
+                                                                        <TextInput
+                                                                            style={[styles.input, { width: "18%" }]}
+                                                                            value={row.YarnCount}
+                                                                            onChangeText={(text) => handleInputChangeRGR(text, index, 'YarnCount')}
+                                                                            keyboardType="numeric"
+                                                                            placeholder="Yarn_count"
+                                                                            placeholderTextColor={"#000"}
 
-                                            <Text style={{ marginRight: 250 }}></Text>
-                                        </ScrollView>
-                                        <TouchableOpacity style={styles.submitButton} onPress={() => HandleSubmitFD()}>
-                                            <Text style={styles.submitButtonText}>Submit</Text>
-                                        </TouchableOpacity>
+                                                                        />
+                                                                    </View>
+                                                                    <View style={{ flexDirection: "row" }}>
+                                                                        <Text style={[styles.headerText1, { marginRight: 25, marginTop: "2%" }]}>Weight</Text>
 
-                                    </View> : null}
+                                                                        <TextInput
+                                                                            style={[styles.input, { width: "18%" }]}
+                                                                            value={row.Weight}
+                                                                            onChangeText={(text) => handleInputChangeRGR(text, index, 'Weight')}
+                                                                            keyboardType="numeric"
+                                                                            placeholder="Weight"
+                                                                            placeholderTextColor={"#000"}
 
-                                    <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Remaining Goods Return'), FalseOthersrgr() }}>
-                                        <Text style={styles.buttonText}>Remaining Goods Return</Text>
-                                    </TouchableOpacity>
+                                                                        />
+                                                                    </View>
+                                                                    <View style={{ flexDirection: "row" }}>
+                                                                        <Text style={[styles.headerText1, { marginRight: 10, marginTop: "2%" }]}>Cut Piece</Text>
+
+                                                                        <TextInput
+                                                                            style={[styles.input, { width: "18%" }]}
+                                                                            value={row.CutPiece}
+                                                                            onChangeText={(text) => handleInputChangeRGR(text, index, 'CutPiece')}
+                                                                            keyboardType="numeric"
+                                                                            placeholder="Cut_piece"
+                                                                            placeholderTextColor={"#000"}
+
+                                                                        />
+                                                                    </View>
+                                                                    <View style={{ flexDirection: "row" }}>
+                                                                        <Text style={[styles.headerText1, { marginRight: 30, marginTop: "2%" }]}>Meter</Text>
+
+                                                                        <TextInput
+                                                                            style={[styles.input, { width: "18%" }]}
+                                                                            value={row.Meter}
+                                                                            onChangeText={(text) => handleInputChangeRGR(text, index, 'Meter')}
+                                                                            keyboardType="numeric"
+                                                                            placeholder="Meter"
+                                                                            placeholderTextColor={"#000"}
+
+                                                                        />
+                                                                    </View>
+                                                                    <View style={{ flexDirection: "row" }}>
+                                                                        <Text style={[styles.headerText1]}>Image</Text>
+
+                                                                        <TouchableOpacity onPress={() => { handleImagePickerRGR(index); setShow1(1) }}>
 
 
+                                                                            {
+                                                                                (() => {
 
-                                    {/*                          
+                                                                                    if (show1 === 1) {
+                                                                                        return (
+                                                                                            <View>
+                                                                                                <Image
+                                                                                                    source={row.PhotopathRGR}
+                                                                                                    style={{ width: 40, height: 40, alignSelf: 'flex-start', marginLeft: 20 }}
+
+                                                                                                />
+                                                                                            </View>
+                                                                                        )
+                                                                                    } else {
+                                                                                        return (
+                                                                                            <Image
+                                                                                                source={require('../Images/camera.png')}
+                                                                                                style={{ width: 40, height: 40, alignSelf: 'flex-start', marginLeft: 20 }}
+
+                                                                                            />
+                                                                                        )
 
 
+                                                                                    }
 
-                                      FABRIC DISPATCH FORM 
-                                    
-                                    
-                                    
-                                    
-                
-                                      
-*/}
+                                                                                })()
+                                                                            }</TouchableOpacity>
 
-                                    {remaining_goods_returnform ? <View style={{ justifyContent: "space-evenly", width: "110%", }}>
-                                        <ScrollView horizontal={true}>
-                                            <View style={[styles.table, { marginRight: 120, marginLeft: 10, width: 700 }]}>
-                                                <View style={styles.header1}>
-                                                    <Text style={styles.headerText1}>GP. NO.</Text>
-                                                    <Text style={styles.headerText1}>Yarn Count</Text>
-                                                    <Text style={[styles.headerText1, { marginLeft: 0 }]}>Weight</Text>
-                                                    <Text style={[styles.headerText1, { marginLeft: 0 }]}>Cut Piece</Text>
-                                                    <Text style={[styles.headerText1, { marginRight: 110 }]}>Meter</Text>
+                                                                    </View>
+                                                                    <View style={[styles.rowButtons, { marginLeft: "-10%", marginTop: "5%" }]}>
+                                                                        {index !== 0 && (
+                                                                            <TouchableOpacity style={{ backgroundColor: "#135D66", width: "25%", borderRadius: 30 }} onPress={() => handleRemoveRowRGR(index)}>
+                                                                                <Text style={styles.button}>- Row</Text>
+                                                                            </TouchableOpacity>
+                                                                        )}
+                                                                        <TouchableOpacity style={{ backgroundColor: "#135D66", width: "25%", borderRadius: 30, marginLeft: "1%" }} onPress={handleAddRowRGR}>
+                                                                            <Text style={styles.button}>+ Row</Text>
+                                                                        </TouchableOpacity>
 
-                                                </View>
+                                                                    </View>
+                                                                    <Text style={{ color: "#000", fontSize: 20 }}>_____________________________________</Text>
 
-                                                {remaining_goods_return.map((row, index) => (
-                                                    <View key={index} style={styles.rowContainer}>
-                                                        <SafeAreaView style={[styles.row, { width: 600 }]}>
-                                                            <TextInput
-                                                                style={[styles.input, { width: "18%" }]}
-                                                                value={row.GpNo}
-                                                                onChangeText={(text) => handleInputChangeRGR(text, index, 'GpNo')}
-                                                                keyboardType="numeric"
-                                                                placeholder="GP_NO"
-                                                                placeholderTextColor={"#000"}
-                                                            />
-                                                            <TextInput
-                                                                style={[styles.input, { width: "18%" }]}
-                                                                value={row.YarnCount}
-                                                                onChangeText={(text) => handleInputChangeRGR(text, index, 'YarnCount')}
-                                                                keyboardType="numeric"
-                                                                placeholder="Yarn_count"
-                                                                placeholderTextColor={"#000"}
 
-                                                            />
-                                                            <TextInput
-                                                                style={[styles.input, { width: "18%" }]}
-                                                                value={row.Weight}
-                                                                onChangeText={(text) => handleInputChangeRGR(text, index, 'Weight')}
-                                                                keyboardType="numeric"
-                                                                placeholder="Weight"
-                                                                placeholderTextColor={"#000"}
+                                                                </SafeAreaView>
 
-                                                            />
-                                                            <TextInput
-                                                                style={[styles.input, { width: "18%" }]}
-                                                                value={row.CutPiece}
-                                                                onChangeText={(text) => handleInputChangeRGR(text, index, 'CutPiece')}
-                                                                keyboardType="numeric"
-                                                                placeholder="Cut_piece"
-                                                                placeholderTextColor={"#000"}
 
-                                                            />
-                                                            <TextInput
-                                                                style={[styles.input, { width: "18%" }]}
-                                                                value={row.Meter}
-                                                                onChangeText={(text) => handleInputChangeRGR(text, index, 'Meter')}
-                                                                keyboardType="numeric"
-                                                                placeholder="Meter"
-                                                                placeholderTextColor={"#000"}
-
-                                                            />
-                                                            <View style={styles.rowButtons}>
-                                                                {index !== 0 && (
-                                                                    <TouchableOpacity onPress={() => handleRemoveRowRGR(index)}>
-                                                                        <Text style={styles.button}>-</Text>
-                                                                    </TouchableOpacity>
-                                                                )}
-                                                                <TouchableOpacity onPress={handleAddRowRGR}>
-                                                                    <Text style={styles.button}>+</Text>
-                                                                </TouchableOpacity>
                                                             </View>
 
-
-                                                        </SafeAreaView>
+                                                        ))}
 
 
                                                     </View>
 
-                                                ))}
+                                                    {/* <Text style={{ marginRight: 250 }}></Text> */}
+                                                    <TouchableOpacity style={styles.submitButton} onPress={() => HandleSubmitRGR()}>
+                                                        <Text style={styles.submitButtonText}>Submit</Text>
+                                                    </TouchableOpacity>
 
+                                                </View> : null}
 
                                             </View>
 
-                                            {/* <Text style={{ marginRight: 250 }}></Text> */}
-                                        </ScrollView>
-                                        <TouchableOpacity style={styles.submitButton} onPress={() => HandleSubmitRGR()}>
-                                            <Text style={styles.submitButtonText}>Submit</Text>
+                                        </View>
+                                    )}
+                                    <View style={{ marginTop: "5%", alignItems: 'center', marginLeft: "-5%" }}>
+                                        <TouchableOpacity
+                                            style={styles.submitButton}
+                                            onPress={() => OrderFinished()}>
+                                            <Text style={styles.submitButtonText}>Order Completed</Text>
                                         </TouchableOpacity>
-
-                                    </View> : null}
-
-                                    <TouchableOpacity style={[styles.button1, { backgroundColor: "red", alignItems: "center" }]} onPress={() => ToggleScreens()}>
-                                        <Text style={[styles.buttonText, { color: "#fff" }]}>Cancel</Text>
-                                    </TouchableOpacity>
+                                    </View>
 
                                 </View>
+                                : null
+                        }
 
-                            </View>
-                        )}
+
+
+
 
                     </View >
-                    <View style={{ marginTop: "5%" }}>
-                        <TouchableOpacity style={styles.submitButton} onPress={() => console.log('Table Data:', Weft)}>
-                            <Text style={styles.submitButtonText}>Order Completed</Text>
-                        </TouchableOpacity>
-                    </View>
 
-                    <Text style={{ marginTop: "18%" }}></Text>
-                    {
+
+
+
+                    {/* {
                         showmsg ? <View style={{ flex: 1, alignItems: "flex-end", justifyContent: "flex-end" }}>
                             <View style={{
                                 bottom: 0,
@@ -1508,7 +1743,8 @@ const ConfirmOrders = ({ navigation }) => {
 
                             </View>
                         </View> : null
-                    }
+                    } */}
+
                     <Modal
                         animationType="slide"
                         transparent={true}
@@ -1528,7 +1764,7 @@ const ConfirmOrders = ({ navigation }) => {
                                     <Pressable
                                         style={[styles.button1, styles.buttonClose1]}
                                         onPress={() => yesbutton(!modalVisible)}>
-                                        <Text style={styles.textStyle1}>close</Text>
+                                        <Text style={styles.textStyle1}>Close</Text>
                                     </Pressable>
 
                                 </View>
@@ -1537,16 +1773,32 @@ const ConfirmOrders = ({ navigation }) => {
                     </Modal>
                 </View >
             </ScrollView >
-            <View style={{ flexDirection: "row", justifyContent: 'space-evenly', borderWidth: 1, borderColor: "#0A5D47" }}>
-                <View style={{ justifyContent: "center", alignItems: "center", backgroundColor: "#0A5D47", width: "52%", borderRadius: 20 }}>
-                    <Text style={{ color: "#fff", fontSize: 20, padding: 5 }}>Confirmed Orders</Text>
-                </View>
-                <Text style={{ color: "#0A5D47", fontSize: 20 }}>|</Text>
-                <View style={{ justifyContent: "center", alignItems: "center" }}>
-                    <TouchableOpacity onPress={() => navigation.navigate("Live orders")}>
-                        <Text style={{ color: "#0A5D47", fontSize: 20 }}>Live Orders</Text>
+
+
+
+            <View style={{ flexDirection: "row", borderWidth: 1, height: 50, borderColor: "#0A5D47" }}>
+
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center", }}>
+                    <TouchableOpacity
+                        style={{ justifyContent: "center", alignItems: "center", }}
+                        onPress={() => navigation.goBack()}
+                    >
+                        <Text style={{ color: "#003C43", fontSize: 20 }}>Live Orders</Text>
                     </TouchableOpacity>
                 </View>
+
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                    <TouchableOpacity
+                        style={{ width: '100%', height: '100%', backgroundColor: "#135D66", justifyContent: "center", alignItems: "center", }}
+
+                    >
+                        <Text style={{ color: "#fff", fontSize: 20, }}>Confirmed Orders</Text>
+                    </TouchableOpacity>
+                </View>
+
+
+
+
             </View>
         </SafeAreaView >
     )
@@ -1557,7 +1809,24 @@ export default ConfirmOrders
 
 const styles = StyleSheet.create({
     container: {
-        padding: 20,
+        flex: 1,
+        backgroundColor: '#fff',
+    },
+    Card: {
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: "6%",
+        borderWidth: 1.5,
+        borderRadius: 30,
+        borderColor: "grey",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        backgroundColor:"#fff"
     },
     heading: {
         fontSize: 24,
@@ -1576,7 +1845,8 @@ const styles = StyleSheet.create({
     headerText1: {
         fontWeight: 'bold',
         marginLeft: 0,
-        color: "#000"
+        color: "#000",
+        paddingRight: "5%"
     },
 
     ordersContainer: {
@@ -1586,10 +1856,10 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     orderContainer: {
-        padding: 15,
-        borderRadius: 10,
-        marginBottom: 10,
-        backgroundColor: "#0A5D47",
+        padding: 10,
+        borderRadius: 15,
+        borderWidth: 2,
+        borderColor: "#003C43",
     },
     startedOrder: {
         backgroundColor: '#4CAF50', // Green for started orders
@@ -1598,15 +1868,12 @@ const styles = StyleSheet.create({
         backgroundColor: '#F44336', // Red for cancelled orders
     },
     orderText: {
-        color: '#fff', // Text color for better contrast
+        color: 'black', // Text color for better contrast
         fontSize: 16,
+
     },
     buttonContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-evenly',
-        backgroundColor: '#0E8C6B',
-        borderRadius: 10,
-        paddingVertical: 10,
         alignItems: 'center',
     },
     startButton: {
@@ -1624,19 +1891,40 @@ const styles = StyleSheet.create({
         marginHorizontal: 5,
     },
     buttonText: {
-        color: '#fff',
+        color: '#000',
         fontSize: 16,
+        fontWeight: "600"
     },
     button1: {
-        alignItems: "center",
-        backgroundColor: '#0E8C6B',
-        paddingVertical: 10,
+        alignItems: 'flex-start',
+        justifyContent: "space-between",
+        backgroundColor: '#F5F5F5',
+        paddingVertical: 15,
         paddingHorizontal: 20,
-        borderRadius: 5,
-        marginBottom: 10,
-        width: "70%",
+        borderRadius: 15,
+        marginBottom: 15,
+        width: width * 0.9,
+        flexDirection: "row",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 2,
     },
-
+    button: {
+        width: '100%',
+        color: "#fff",
+        paddingVertical: "5%",
+        borderRadius: 30,
+        justifyContent: "center",
+        alignItems: "center",
+        marginLeft: "35%",
+        fontSize: 18,
+        fontWeight: "600"
+    },
     addButton: {
         backgroundColor: '#6495ED',
         padding: 15,
@@ -1650,7 +1938,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     row: {
-        flexDirection: 'row',
+        flexDirection: 'column',
         justifyContent: "space-between",
         padding: 10,
         borderBottomColor: '#000',
@@ -1661,29 +1949,35 @@ const styles = StyleSheet.create({
         borderColor: '#000',
         marginBottom: 20,
         marginRight: 0,
-        width: 1200
+        width: width * 0.85
     },
     submitButton: {
-        backgroundColor: 'green',
-        padding: 15,
-        borderRadius: 5,
+        width: width * 0.8,
+        backgroundColor: '#FF7722',
+        padding: 10,
+        borderRadius: 15,
         alignItems: 'center',
-        marginBottom: 20
+        marginBottom: 20,
+        marginLeft: 30
     },
     submitButtonText: {
         color: 'white',
         fontWeight: 'bold',
-        fontSize: 16,
+        fontSize: 18,
     },
     rowContainer: {
         flexDirection: 'row',
         marginBottom: 20,
     },
     rowButtons: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         marginLeft: 20,
-        marginRight: 0
+        marginRight: 0,
+        flexDirection: "row",
+        width: "100%",
+        textDecorationLine: "underline"
     },
     label: {
         fontSize: 18,
@@ -1694,13 +1988,13 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     input: {
-        width: '25%',
+        width: width * 0.3,
         height: 40,
         borderColor: 'gray',
         borderWidth: 1,
-        marginBottom: 10,
+        marginBottom: 20,
         paddingHorizontal: 10,
-        margin: 5
+        color: "#000"
     },
 
     dateText: {
@@ -1709,7 +2003,8 @@ const styles = StyleSheet.create({
         borderBottomColor: 'gray',
         paddingBottom: 5,
         marginRight: 30,
-        color: "#000"
+        color: "#000",
+        fontWeight: "500"
     },
     centeredView: {
         flex: 1,
@@ -1736,6 +2031,7 @@ const styles = StyleSheet.create({
         backgroundColor: "green",
         margin: "5%",
         width: 200,
+        justifyContent: "center"
     },
     textStyle1: {
         color: 'white',
@@ -1755,14 +2051,12 @@ const styles = StyleSheet.create({
         marginLeft: "18%"
     },
     tableHeader: {
-        width: 400,
+        width: width * 0.9,
         flexDirection: 'row',
         justifyContent: 'space-between',
         padding: 10,
         backgroundColor: '#0E8C6B',
         marginBottom: 15,
-
-
     },
     headerText: {
         fontWeight: 'bold',

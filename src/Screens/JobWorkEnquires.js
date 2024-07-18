@@ -4,8 +4,9 @@ import axios from 'axios';
 import DatePicker from '@react-native-community/datetimepicker'; // Import the DatePicker component
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
+import Icon from 'react-native-vector-icons/Ionicons';
 
-const { width } = Dimensions.get('window');
+const { width,height } = Dimensions.get('window');
 
 const JobWorkEnquires = ({ navigation }) => {
   const [enquiries, setEnquiries] = useState([]);
@@ -26,7 +27,7 @@ const JobWorkEnquires = ({ navigation }) => {
   const [mobileno, setMobileNo] = useState("");
   const [gstno, setGSTNO] = useState("")
 
-  const tableHead = ['Enquiry No', 'Enquiry Date'];
+  const tableHead = ['Enquiry No', 'Date', 'Party Name'];
 
   const [showmsg, setShowMsg] = useState(true)
   const [isConected, setisConnected] = useState(false)
@@ -93,7 +94,7 @@ const JobWorkEnquires = ({ navigation }) => {
       const sortedEnquiries = response.data.sort((a, b) => b.EnquiryId - a.EnquiryId);
       setEnquiries(sortedEnquiries);
     } catch (error) {
-      alert('Error fetching data');
+      Alert.alert('Error fetching data');
     }
   };
 
@@ -103,6 +104,7 @@ const JobWorkEnquires = ({ navigation }) => {
       setSelectedEnquiry(response.data[0]);
       response.data.map((item) => {
         console.log("FQ = ", item.FabricQuality)
+        console.log("Image", item.Photopath)
         calculatePPI(item.FabricQuality)
       })
     } catch (error) {
@@ -244,8 +246,8 @@ const JobWorkEnquires = ({ navigation }) => {
       let data = qs.stringify({
         'EnquiryId': selectedEnquiry.EnquiryId,
         'LoomTraderId': Id,
-        'DatePossibleFrom': fromDate || selectedEnquiry.BookingFrom.date.substring(0, 10),
-        'DatePossibleTo': toDate || selectedEnquiry.BookingTo.date.substring(0, 10),
+        'DatePossibleFrom': fromDate,
+        'DatePossibleTo': toDate,
         'JobRateExp': counterOffer,
         'Status': false,
         'LoomPossible': loomPossible,
@@ -263,63 +265,23 @@ const JobWorkEnquires = ({ navigation }) => {
 
       axios.request(config)
         .then(response => {
+          console.log(fromDate, toDate, loomPossible, counterOffer, selectedEnquiry.EnquiryId, Id)
           console.log(response.data)
         })
         .catch((error) => {
           console.log(error);
         });
-      setShowSuccessModal(true);
+        Alert.alert("Data Submitted Successfully")
       setShowED(false);
       setShowE(true)
     }
   }
 
 
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successAnimation] = useState(new Animated.Value(0));
 
-  useEffect(() => {
-    if (showSuccessModal) {
-      animateSuccess();
-    }
-  }, [showSuccessModal]);
 
-  const animateSuccess = () => {
-    Animated.timing(successAnimation, {
-      toValue: 1,
-      duration: 1000,
-      easing: Easing.linear,
-      useNativeDriver: true
-    }).start(() => {
-      // Animation complete
-      setTimeout(() => {
-        setShowSuccessModal(false);
-      }, 2000); // Close modal after 2 seconds
-    });
-  };
 
-  const renderSuccessModal = () => {
-    return (
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={showSuccessModal}
-        onRequestClose={() => setShowSuccessModal(false)}
-      >
-        <View style={styles.modalContainer}>
-          <Animated.View style={[styles.modalContent, { opacity: successAnimation }]}>
-            <Image
-              source={require("../Images/success.png")}
-              style={{ width: 80, height: 80, marginBottom: 20 }}
-            />
-            <Text style={styles.modalMessage}>Data Submitted Successfully</Text>
-          </Animated.View>
-        </View>
-      </Modal>
-    );
-
-  };
-
+  const [showlooms, setShowLooms] = useState(false)
 
 
   const calculatePPI = (fabricQuality) => {
@@ -340,7 +302,7 @@ const JobWorkEnquires = ({ navigation }) => {
     return (
       <View style={styles.header}>
         {tableHead.map((item, index) => (
-          <Text key={index} style={[styles.headerText, { width: index === 0 ? width * 0.5 : width * 0.35 }]}>
+          <Text key={index} style={[styles.headerText, { width: index === 0 ? width * 0.3 : width * 0.35 }]}>
             {item}
           </Text>
         ))}
@@ -353,6 +315,16 @@ const JobWorkEnquires = ({ navigation }) => {
     setShowED(false)
   }
 
+  const handleBlockPress = (enquiries) => {
+    setSelectedLoom(enquiries);
+    setModalVisible(true);
+    console.log(selectedLoom)
+  };
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedLoom, setSelectedLoom] = useState(null);
+
+
   const renderRows = () => {
     return enquiries.map((enquiry, index) => (
       <TouchableOpacity
@@ -361,8 +333,13 @@ const JobWorkEnquires = ({ navigation }) => {
         onPress={() => {
           fetchEnquiryDetails(enquiry.EnquiryId);
         }}>
-        <Text style={[styles.text, styles.cell, { width: width * 0.5 }]}>{enquiry.EnquiryNo}</Text>
-        <Text style={[styles.text, styles.cell, { width: width * 0.35 }]}>{enquiry.EnquiryDate.date.substring(0, 10)}</Text>
+        <Text style={[styles.text, styles.cell, { width: width * 0.25 }]}>{enquiry.EnquiryNo}</Text>
+        <Text style={[styles.text, styles.cell, { width: width * 0.43 }]}>{enquiry.EnquiryDate.date.substring(0, 10)}</Text>
+        <Text style={[styles.text, styles.cell, { width: width * 0.20 }]}>{enquiry.Name}</Text>
+        <TouchableOpacity style={{ width: width * 0.10 }} onPress={() => handleBlockPress(enquiry)}>
+          <Icon name="information-circle" size={22} color="grey" />
+        </TouchableOpacity>
+
       </TouchableOpacity>
     ));
   };
@@ -395,7 +372,7 @@ const JobWorkEnquires = ({ navigation }) => {
         <View style={styles.detailGroup}>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Fabric Quality</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.FabricQuality}</Text>
+            <Text style={styles.detailValue}>{selectedEnquiry.FabricQuality}"</Text>
           </View>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Fabric Length</Text>
@@ -403,9 +380,9 @@ const JobWorkEnquires = ({ navigation }) => {
           </View>
         </View>
         <View style={styles.detailGroup}>
-          <View style={styles.detailItem}>
+          <View style={[styles.detailItem]}>
             <Text style={styles.detailLabel}>Loom Required</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.LoomRequired}</Text>
+            <Text style={styles.detailValue}>{selectedEnquiry.LoomNo}</Text>
           </View>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Agent Name</Text>
@@ -414,11 +391,11 @@ const JobWorkEnquires = ({ navigation }) => {
         </View>
         <View style={styles.detailGroup}>
           <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Machine Type</Text>
+            <Text style={styles.detailLabel}>Loom Type</Text>
             <Text style={styles.detailValue}>{selectedEnquiry.MachineType}</Text>
           </View>
           <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Width</Text>
+            <Text style={styles.detailLabel}>Loom Width</Text>
             <Text style={styles.detailValue}>{selectedEnquiry.Width}</Text>
           </View>
         </View>
@@ -444,8 +421,8 @@ const JobWorkEnquires = ({ navigation }) => {
         </View>
         <View style={styles.detailGroup}>
           <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>FabricWidth</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.FabricWidth}</Text>
+            <Text style={styles.detailLabel}>On Table Fabric Width</Text>
+            <Text style={styles.detailValue}>{selectedEnquiry.FabricWidth}"</Text>
           </View>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>DeliveryDate</Text>
@@ -453,103 +430,112 @@ const JobWorkEnquires = ({ navigation }) => {
           </View>
         </View>
         <View style={styles.detailGroup}>
-          <View style={[styles.detailItem]}>
-            <Text style={styles.detailLabel}>Loom No</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.LoomNo}</Text>
-          </View>
-          <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>PPI</Text>
-            <Text style={styles.detailValue}>{calculatePPI(selectedEnquiry.FabricQuality)}</Text>
-          </View>
+
         </View>
         <View style={[styles.detailItem, { marginLeft: "10%" }]}>
           <Text style={styles.detailLabel}>Description</Text>
           <Text style={styles.detailValue}>{selectedEnquiry.Description}</Text>
         </View>
-        <View style={[styles.detailItem, { marginLeft: "10%",margin:"5%" }]}>
+        <View style={[styles.detailItem, { marginLeft: "10%", margin: "5%" }]}>
           <Text style={styles.detailLabel}>Design </Text>
-          <Image
-            source={{ uri: selectedEnquiry.Photopath }}
-            style={{
-              marginTop: 10,
-              width: 200,
-              height: 200,
-            }}
-          />
+          {
+            selectedEnquiry.Photopath ? <Image
+              source={{ uri: selectedEnquiry.Photopath }}
+              style={{
+                marginTop: 10,
+                width: 200,
+                height: 200,
+              }}
+            /> : <Text>Design not provided</Text>
+          }
         </View>
 
-        <View style={styles.detailGroup}>
-          {selectedEnquiry.SelvageJacquard === 1 ? (
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Selvadge Jacquard</Text>
-              <Text style={[styles.detailValue, { color: '#007bff' }]}>Required</Text>
-            </View>
-          ) : null}
-          {selectedEnquiry.TopBeam === 1 ? (
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Top Beam</Text>
-              <Text style={[styles.detailValue, { color: '#007bff' }]}>Required</Text>
-            </View>
-          ) : null}
-          {selectedEnquiry.Cramming === 1 ? (
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Cramming</Text>
-              <Text style={[styles.detailValue, { color: '#007bff' }]}>Required</Text>
-            </View>
-          ) : null}
-          {selectedEnquiry.LenoDesignEquipment === 1 ? (
-            <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Leno Design Equipment</Text>
-              <Text style={[styles.detailValue, { color: '#007bff' }]}>Required</Text>
-            </View>
-          ) : null}
-        </View>
-        <View style={[styles.detailItem, { borderBottomWidth: 1, marginTop: "6%" }]}>
+        <View style={{ flex: 1, justifyContent: "center",width:width*0.99 ,marginLeft:width*-0.05}}>
+          <View style={[styles.detailGroup, { flexDirection: "column", borderWidth: 1.5, borderColor: "#000", marginRight: "6%" }]}>
+            <Text style={{ color: "#003C43", fontSize: 20, fontWeight: "600", margin: "5%" }}>Other Loom Attachments</Text>
 
-          <View style={{ marginHorizontal: "5%" }}>
+            {selectedEnquiry.SelvageJacquard === 1 ? (
+              <View style={[styles.detailItem, { flexDirection: "row", marginLeft: "5%", marginBottom: "5%",width:width*0.7}]}>
+                <Text style={styles.detailLabel}>Selvadge Jacquard</Text>
+                <Text style={[styles.detailValue, { color: '#007bff', marginLeft: width*0.10 }]}>Required</Text>
+              </View>
+            ) : null}
+            {selectedEnquiry.TopBeam === 1 ? (
+              <View style={[styles.detailItem, { flexDirection: "row", marginLeft: "5%", marginBottom: "5%",width:width*0.7 }]}>
+                <Text style={styles.detailLabel}>Top Beam</Text>
+                <Text style={[styles.detailValue, { color: '#007bff', marginLeft: width*0.10 }]}>Required</Text>
+              </View>
+            ) : null}
+            {selectedEnquiry.Cramming === 1 ? (
+              <View style={[styles.detailItem, { flexDirection: "row", marginLeft: "5%", marginBottom: "5%" ,width:width*0.7}]}>
+                <Text style={styles.detailLabel}>Cramming</Text>
+                <Text style={[styles.detailValue, { color: '#007bff', marginLeft:  width*0.10}]}>Required</Text>
+              </View>
+            ) : null}
+            {selectedEnquiry.LenoDesignEquipment === 1 ? (
+              <View style={[styles.detailItem, { flexDirection: "row", marginLeft: "5%", marginBottom: "5%",width:width*0.7 }]}>
+                <Text style={styles.detailLabel}>Leno Design Equipment</Text>
+                <Text style={[styles.detailValue, { color: '#007bff', marginLeft:  width*0.10 }]}>Required</Text>
+              </View>
+            ) : null}
+          </View>
+        </View>
+        <View style={[styles.detailItem, { borderWidth: 1, marginTop: "6%", margin: "3%",width:width*0.90 }]}>
+          <Text style={{ color: "#003C43", fontSize: 18, fontWeight: "600", margin: "5%",width:width*0.60  }}>Check Loom Availability</Text>
+
+          <View style={{ marginHorizontal: "5%", marginVertical: "5%" }}>
             <View style={{ flexDirection: "row" }}>
-              <TextInput
-                style={[styles.textInput, { borderWidth: 1, width: "70%", borderColor: "#000" }]}
-                value={fromDate}
-                onChangeText={setFromDate}
-                keyboardType="numeric"
-                placeholderTextColor={'#000'}
-                placeholder='YYYY-MM-DD'
-              />
-              <TouchableOpacity onPress={() => setFromDatePickerVisible(true)}>
-                <ImageBackground
-                  source={require('../Images/calendar.png')}
-                  style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#006A4E", marginLeft: "20%", marginTop: "10%" }}
-                  imageStyle={{ borderRadius: 0 }}
-                />
+              <View style={{ flexDirection: "column", width: "100%" }}>
+                <Text style={{ fontSize: 16, fontWeight: "600", color: "grey" }}>From Date</Text>
+                <View style={{ flexDirection: "row" }}>
+                  <TextInput
+                    style={[styles.textInput, { borderWidth: 1, width: width*0.60, borderColor: "#000",height:height*0.06  }]}
+                    value={fromDate}
+                    onChangeText={setFromDate}
+                    keyboardType="numeric"
+                    placeholderTextColor={'#000'}
+                    placeholder='YYYY-MM-DD'
+                  />
+                  <TouchableOpacity onPress={() => setFromDatePickerVisible(true)}>
+                    <ImageBackground
+                      source={require('../Images/calendar.png')}
+                      style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#006A4E", marginLeft: "20%", marginTop: "2%" }}
+                      imageStyle={{ borderRadius: 0 }}
+                    />
 
-              </TouchableOpacity>
-              {fromDatePickerVisible && (
-                <DatePicker
-                  value={fromDate ? new Date(fromDate) : new Date()} // Initialize with fromDate state value, default to current date if fromDate is not set
-                  mode="date"
-                  display="default"
-                  onChange={handleFromDateChange}
-                />
-              )}
+                  </TouchableOpacity>
+                </View>
+                {fromDatePickerVisible && (
+                  <DatePicker
+                    value={fromDate ? new Date(fromDate) : new Date()} // Initialize with fromDate state value, default to current date if fromDate is not set
+                    mode="date"
+                    display="default"
+                    onChange={handleFromDateChange}
+                  />
+                )}
+              </View>
+
             </View>
-            <View style={{ flexDirection: "row", marginTop: "5%" }}>
+            <View style={{ flexDirection: "column", marginTop: "5%" }}>
+              <Text style={{ fontSize: 16, fontWeight: "600", color: "grey" }}>To Date</Text>
 
-              <TextInput
-                style={[styles.textInput, { borderWidth: 1, width: "70%", borderColor: "#000" }]}
-                value={toDate}
-                onChangeText={setToDate}
-                keyboardType="numeric"
-                placeholderTextColor={'#000'}
-                placeholder='YYYY-MM-DD'
-              />
-              <TouchableOpacity onPress={() => setToDatePickerVisible(true)}>
-                <ImageBackground
-                  source={require('../Images/calendar.png')}
-                  style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#006A4E", marginLeft: "20%", marginTop: "10%" }}
-                  imageStyle={{ borderRadius: 0 }}
+              <View style={{ flexDirection: "row" }}>
+                <TextInput
+                  style={[styles.textInput, { borderWidth: 1,  width: width*0.60, borderColor: "#000" ,height:height*0.06 }]}
+                  value={toDate}
+                  onChangeText={setToDate}
+                  keyboardType="numeric"
+                  placeholderTextColor={'#000'}
+                  placeholder='YYYY-MM-DD'
                 />
-              </TouchableOpacity>
+                <TouchableOpacity onPress={() => setToDatePickerVisible(true)}>
+                  <ImageBackground
+                    source={require('../Images/calendar.png')}
+                    style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#006A4E", marginLeft: "20%", marginTop: "2%" }}
+                    imageStyle={{ borderRadius: 0 }}
+                  />
+                </TouchableOpacity>
+              </View>
               {toDatePickerVisible && (
                 <DatePicker
                   value={toDate ? new Date(toDate) : new Date()} // Initialize with toDate state value, default to current date if toDate is not set
@@ -559,29 +545,36 @@ const JobWorkEnquires = ({ navigation }) => {
                 />
               )}
             </View>
-            <TouchableOpacity style={styles.checkAvailabilityButton} onPress={() => postLoomData()}>
+            <TouchableOpacity style={styles.checkAvailabilityButton} onPress={() => { postLoomData(); setShowLooms(true) }}>
               <Text style={styles.checkAvailabilityText}>Check Availability</Text>
             </TouchableOpacity>
 
-            <View style={{ flexDirection: 'row', marginTop: 20, width: "50%", marginBottom: 20 }}>
+            <View style={{ flexDirection: 'column', marginTop: 20, width: "50%", marginBottom: 20 }}>
               <Text style={{ fontSize: 16, color: "#000" }}>Available Loom No : </Text>
 
-              {loomdata.map((item, index) => (
-                <View key={index} >
-                  <Text style={{ fontSize: 17, fontWeight: 500, color: "#000" }}> {item.LoomNo} </Text>
-                </View>
-              ))}
+              {
+                showlooms ?
+
+                  loomdata.length ?
+                    loomdata.map((item, index) => (
+                      <View key={index} >
+                        <Text style={{ fontSize: 17, fontWeight: 500, color: "#000" }}> {item.LoomNo} </Text>
+                      </View>
+                    )) : <Text style={{ fontSize: 17, fontWeight: 500, color: "#000" }}> No Loom Available </Text>
+
+                  : null}
             </View>
           </View>
         </View>
-        <View style={[styles.detailItem, { marginTop: "7%", width: "70%", marginLeft: 15 }]}>
+        <View style={[styles.detailItem, { marginTop: "7%", width: width*0.5, marginLeft: 15 }]}>
           <Text style={styles.detailLabel}>Loom Possible To Assign</Text>
           <TextInput
-            style={[styles.textInput, { borderWidth: 1, borderColor: "#000", marginTop: "5%" }]}
+            style={[styles.textInput, { borderWidth: 1, borderColor: "#000", marginTop: "5%",width:width*0.7,height:height*0.05,}]}
             value={loomPossible}
             onChangeText={setLoomPossible}
             keyboardType="numeric"
-            placeholderTextColor={"#000"}
+            placeholderTextColor={"grey"}
+            placeholder='Loom possible To Assign'
           />
         </View>
 
@@ -591,14 +584,15 @@ const JobWorkEnquires = ({ navigation }) => {
         </View>
 
         <View style={[styles.detailItem, { marginTop: "7%", width: "100%", marginLeft: 15 }]}>
-          <Text style={styles.detailLabel}>Counter Offer</Text>
+          <Text style={styles.detailLabel}>Send Counter Offer</Text>
           <View style={{ flexDirection: "row" }}>
             <TextInput
-              style={[styles.textInput, { borderWidth: 1, borderColor: "#000", width: "70%", marginTop: "5%" }]}
+              style={[styles.textInput, { borderWidth: 1, borderColor: "#000", width:width*0.6,height:height*0.05, marginTop: "5%" }]}
               value={counterOffer}
               onChangeText={setCounterOffer}
               keyboardType="numeric"
-              placeholderTextColor={"#000"}
+              placeholderTextColor={"grey"}
+              placeholder='counterOffer'
             />
             <Text style={[styles.detailLabel, { marginLeft: "5%", marginTop: "5%" }]}>In Paise</Text>
 
@@ -608,20 +602,20 @@ const JobWorkEnquires = ({ navigation }) => {
         <View style={styles.buttonContainer}>
 
           <TouchableOpacity
-            style={[styles.checkAvailabilityButton, { backgroundColor: "#135D66", borderWidth: 0 }]}
-            onPress={() => EnquiryConfirm()}
+            style={[styles.checkAvailabilityButton, { backgroundColor: "#135D66", borderWidth: 0,height:height*0.06,width:width*0.45 }]}
+            onPress={() => { EnquiryConfirm() }}
           >
             <Text style={styles.checkAvailabilityText1}> Submit </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.checkAvailabilityButton, { backgroundColor: "#FF7722", borderColor: '#FF7722' }]}
+            style={[styles.checkAvailabilityButton, { backgroundColor: "#FF7722", borderColor: '#FF7722',height:height*0.06,width:width*0.45  }]}
             onPress={() => NotInterested()}
           >
             <Text style={styles.checkAvailabilityText1}> Not Interested </Text>
           </TouchableOpacity>
         </View>
-
+      
       </ScrollView>
     );
   };
@@ -629,39 +623,39 @@ const JobWorkEnquires = ({ navigation }) => {
   return (
 
     <View>
+
+      <View style={{ backgroundColor: "#003C43", flexDirection: "row", alignItems: 'center', height: 50 }}>
+        {
+          showE ?
+            <TouchableOpacity style={{ padding: "2%" }}
+              onPress={() => navigation.openDrawer()}
+            >
+              <Image
+                source={require("../Images/drawer1.png")}
+                style={{ width: 28, height: 22, marginLeft: 10, padding: "5%" }}
+
+              />
+            </TouchableOpacity>
+            :
+            <TouchableOpacity style={{ padding: "2%" }} onPress={() => { setShowE(true); setShowED(false); setLoomdata([]) }}>
+              <ImageBackground
+                source={require("../Images/back.png")}
+                style={{ width: 32, height: 32, alignSelf: 'flex-start', marginLeft: 10, padding: "5%" }}
+                imageStyle={{ borderRadius: 0 }}
+              />
+            </TouchableOpacity>
+        }
+
+        <View style={{ flex: 0.9, alignItems: 'center' }}>
+          <Text style={{ fontSize: 26, color: "white", fontWeight: 500 }}> Job Enquiry </Text>
+        </View>
+
+      </View>
+
       <ScrollView
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
-        <View style={{ backgroundColor: "#003C43", flexDirection: "row", alignItems: 'center', height: 50 }}>
-          {
-            showE ?
-              <TouchableOpacity
-                onPress={() => navigation.openDrawer()}
-              >
-                <Image
-                  source={require("../Images/drawer1.png")}
-                  style={{ width: 28, height: 22, marginLeft: 10, }}
-
-                />
-              </TouchableOpacity>
-              :
-              <TouchableOpacity onPress={() => { setShowE(true); setShowED(false); setLoomdata([]) }}>
-                <ImageBackground
-                  source={require("../Images/back.png")}
-                  style={{ width: 32, height: 28, alignSelf: 'flex-start', marginLeft: 10 }}
-                  imageStyle={{ borderRadius: 0 }}
-                />
-              </TouchableOpacity>
-          }
-
-          <View style={{ flex: 0.9, alignItems: 'center' }}>
-            <Text style={{ fontSize: 26, color: "white", fontWeight: 500 }}> Job Enquiry </Text>
-          </View>
-
-        </View>
-
-
         {showE ? (
           <>
             {renderHeader()}
@@ -670,34 +664,49 @@ const JobWorkEnquires = ({ navigation }) => {
 
         ) : null}
         {showED ? (
-          <View style={styles.dataWrapper}>{renderEnquiryDetails()}{renderSuccessModal()}</View>
+          <View style={styles.dataWrapper}>{renderEnquiryDetails()}</View>
 
         ) : null}
       </ScrollView>
-      {
-        showmsg ? <View style={{ flex: 1, alignItems: "flex-end", justifyContent: "flex-end", marginTop: "2%" }}>
-          <View style={{
-            bottom: 0,
-            height: 20,
-            width: '100%',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: isConected ? 'green' : 'red'
 
-          }}>
-            <Text style={{ color: "#fff" }}>
-              {(() => {
-                if (isConected === true) {
-                  'Back Online'
-                } else {
-                  'No Internet'
-                }
-              })}
-            </Text>
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContainer}>
+            <TouchableOpacity style={styles.backButton} onPress={() => setModalVisible(false)}>
+              <Text style={styles.backButtonText}>Back</Text>
+            </TouchableOpacity>
+            {selectedLoom && (
+              <View style={{margin:"10%"}}>
+                <Text style={styles.modalText}>Loom Details</Text>
+                <View style={styles.detailContainer}>
+                  <Text style={styles.detailTitle}>Owner name:</Text>
+                  <Text style={[styles.detailText, { marginLeft: "5%" }]}>{selectedLoom.OwnerName}</Text>
+                </View>
+                <View style={styles.detailContainer}>
+                  <Text style={styles.detailTitle}>Address:</Text>
+                  <Text style={[styles.detailText, { marginLeft: "5%" }]}>{selectedLoom.Address}</Text>
+                </View>
+                <View style={styles.detailContainer}>
+                  <Text style={styles.detailTitle}>City:</Text>
+                  <Text style={[styles.detailText, { marginLeft: "5%" }]}>{selectedLoom.City}</Text>
+                </View>
+                <View style={styles.detailContainer}>
+                  <Text style={styles.detailTitle}>Pincode:</Text>
+                  <Text style={[styles.detailText, { marginLeft: "5%" }]}>{selectedLoom.Pincode}</Text>
+                </View>
+              </View>
+            )}
 
           </View>
-        </View> : null
-      }
+        </View>
+      </Modal>
+      
+
     </View>
   );
 };
@@ -707,19 +716,19 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', borderBottomWidth: 2, borderBottomColor: '#007bff', paddingBottom: 10, marginBottom: 10 },
   headerText: { fontWeight: 'bold', textAlign: 'center', color: '#333', fontSize: 16, marginTop: "5%" },
   row: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#ccc', paddingTop: 10, paddingBottom: 10 },
-  rowEven: { backgroundColor: 'rgba(19, 93, 102, 0.3)' },
+  rowEven: { backgroundColor: '#EAEEE9' },
   rowOdd: { backgroundColor: '#fff' },
   text: { textAlign: 'center', color: '#333', fontSize: 14 },
   cell: { padding: 5 },
   dataWrapper: { marginTop: 10 },
-  detailsContainer: { paddingHorizontal: 5, paddingTop: 20, backgroundColor: 'white' },
+  detailsContainer: { paddingHorizontal: 5, paddingTop: 20, backgroundColor: 'white',flex:1 },
   detailGroup: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20, marginLeft: "10%" },
   detailItem: { flex: 1, marginTop: "2%" },
   detailLabel: { fontWeight: 'bold', color: '#555', fontSize: 16 },
   detailValue: { color: '#333', fontSize: 16 },
   textInput: { borderColor: '#ccc', paddingLeft: 10, fontSize: 16, borderRadius: 5, height: 40, color: "#000" },
   buttonContainer: { flexDirection: 'row', justifyContent: "space-evenly", marginTop: 20, marginBottom: "40%" },
-  checkAvailabilityButton: { backgroundColor: 'white', padding: 10, alignItems: 'center', borderRadius: 10, marginTop: 20, marginBottom: 10, borderColor: '#003C43', borderWidth: 2 },
+  checkAvailabilityButton: { backgroundColor: 'white', padding: height*0.01, alignItems: 'center', borderRadius: 10, marginTop: 20, marginBottom: 10, borderColor: '#003C43', borderWidth: 2, width: width*0.80,height:height*0.06 },
   checkAvailabilityText: { color: '#003C43', fontSize: 20, },
   checkAvailabilityText1: { color: '#fff', fontSize: 20, fontWeight: '500' },
   modalContainer: {
@@ -738,7 +747,62 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center'
-  }
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContainer: {
+    width: '80%',
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  modalText: {
+    fontSize: 22,
+    marginBottom: "15%",
+    color: "#000",
+    fontWeight: "600",
+
+  },
+  detailContainer: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    marginBottom: 10,
+    width: "100%"
+  },
+  detailTitle: {
+    color: "#000",
+    fontWeight: "600",
+    fontSize: 18,
+    marginBottom: 15
+  },
+  detailText: {
+    color: '#000',
+    fontWeight: "400",
+    fontSize: 18
+  },
+  backButton: {
+    backgroundColor: "#ff0000",
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+    alignSelf: 'flex-end',
+  },
+  backButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
 });
 
 export default JobWorkEnquires;

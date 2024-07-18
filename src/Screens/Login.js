@@ -1,49 +1,43 @@
-import React, { useState } from 'react';
-import { ToastAndroid, Text, ActivityIndicator, TextInput, Alert, StyleSheet, Image, View, TouchableOpacity, StatusBar, SafeAreaView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ToastAndroid, Text, ActivityIndicator, TextInput, Alert, StyleSheet, Image, View, TouchableOpacity, StatusBar, SafeAreaView, ScrollView } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import AnimatedLoader from 'react-native-animated-loader';
+import LottieView from 'lottie-react-native';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
+const Login = ({ navigation, route }) => {
+    const { email = '', password = '' } = route.params || {};
 
-const Login = ({ navigation }) => {
     const [Email, setEmail] = useState('');
     const [Password, setPassword] = useState('');
     const [show, setShow] = useState(false);
     const [show1, setShow1] = useState(0);
-    const [visible, setVisible] = useState(false)
-    const dataArray = [Email, Password];
+    const [visible, setVisible] = useState(false);
+    const [showAnimation, setShowAnimation] = useState(false);
+    const [response, setResponse] = useState([]);
     const [otp, setOtp] = useState('');
     const [newpassword, setNewpassword] = useState('');
 
+    useEffect(() => {
+        if (email) setEmail(email);
+        if (password) setPassword(password);
+    }, [email, password]);
 
     const validateInputs = () => {
+        setShowAnimation(true)
         if (!Email || !Password) {
             Alert.alert("Please fill in all the fields");
             return false;
-        }else{
-            NewLogin()
+        } else {
+            NewLogin();
         }
         return true;
     }
 
     const clear = () => {
-        setEmail(""),
-            setPassword("")
+        setEmail("");
+        setPassword("");
     }
-
-    const checkcrediantials = () => {
-        console.log("Started")
-
-        if (!Email, !Password) {
-            Alert.alert("! Please Fillup Crediantials Properly")
-        } else {
-            getAPIData();
-        }
-        console.log("Ended")
-    }
-
-
 
     const getAPIData = async () => {
         try {
@@ -52,26 +46,27 @@ const Login = ({ navigation }) => {
             result = await result.json();
 
             result.length ? result.map((item) => {
-                (() => {
-
-                    if (Email === item.AppUserId && Password === item.Password) {
-                        console.log("successful")
-                        console.log(item.id)
-                        navigation.navigate("Data", { item1: item })
-                        clear();
-                    } else {
-                    }
-                })()
-            }
-            ) : null
+                if (Email === item.AppUserId && Password === item.Password) {
+                    console.log("successful");
+                    console.log(item.id);
+                    showRedirectAnimation(item);
+                    clear();
+                }
+            }) : null;
         } catch (error) {
-            console.log("Error", error)
+            console.log("Error", error);
         }
         setShow(false);
     }
 
-    const [response, setResponse] = useState([])
+    const showRedirectAnimation = (item) => {
+        setShowAnimation(true);
+        setTimeout(() => {
 
+            navigation.navigate("Data", { item1: item });
+            setShowAnimation(false);
+        }, 3000); // Adjust the timeout as needed
+    };
 
     const NewLogin = () => {
         const qs = require('qs');
@@ -92,19 +87,18 @@ const Login = ({ navigation }) => {
 
         axios.request(config)
             .then((response) => {
-                console.log(response.data.Name)
-                let item = response.data
-                navigation.navigate("Data", { item1: item })
-                console.log("Login Name", item.AppUserId)
+                console.log(response.data.Name);
+                let item = response.data;
+                showRedirectAnimation(item);
             })
             .catch((error) => {
                 console.log(error);
+                setShowAnimation(false);
+                Alert.alert("Please Check The Crediantials Again")
             });
     }
 
-
     const verifyotp = async () => {
-
         let config = {
             method: 'get',
             maxBodyLength: Infinity,
@@ -120,17 +114,15 @@ const Login = ({ navigation }) => {
             .catch((error) => {
                 console.log(error);
             });
-
     }
-
 
     const handleLogin = () => {
         setShow(true);
         if (!Email) {
-            Alert.alert("Please Insert Your Email")
+            Alert.alert("Please Insert Your Email");
             setShow(false);
         } else if (!Password) {
-            Alert.alert("Please Insert Your Password")
+            Alert.alert("Please Insert Your Password");
             setShow(false);
         } else {
             getAPIData();
@@ -156,88 +148,54 @@ const Login = ({ navigation }) => {
 
         axios.request(config)
             .then((response) => {
-                console.log(response.data)
-                setShow1(0)
+                console.log(response.data);
+                setShow1(0);
             })
             .catch((error) => {
                 console.log(error);
             });
     }
 
-
-
-
     return (
         <SafeAreaView style={styles.container}>
-
-
+            <StatusBar backgroundColor={"#003C43"}></StatusBar>
             <LinearGradient
                 start={{ x: 0, y: 0 }}
                 end={{ x: 0, y: 0.8 }}
-                style={{ flex: 1, }}
+                style={{ flex: 1 }}
                 colors={["#003C43", "#77B0AA"]}>
-
-
                 <View style={{ flex: 0.7, alignItems: 'center', justifyContent: 'center' }}>
+
                     <Image
-                        style={{
-                            height: "100%",
-                            width: "120%",
-                            marginLeft: 20,
-                            // backgroundColor: '#003C43',
-                        }}
+                        style={{ height: "100%", width: "120%", marginLeft: 20 }}
                         source={require("../Images/company.png")}
-
                     />
-
                     {
-                        show ? <AnimatedLoader
-                            visible={true}
-                            overlayColor="rgba(255,255,255,0.75)"
-                            animationStyle={styles.lottie}
-                            speed={5}
-                        /> : null
+                        show ? <ActivityIndicator size="large" color="#FFF" /> : null
                     }
                 </View>
-
                 <View style={{ flex: 1.5, backgroundColor: 'white', borderTopLeftRadius: 60, borderTopRightRadius: 60 }}>
-
                     {(() => {
-
                         if (show1 === 1) {
                             return (
                                 <View>
                                     <View style={{ alignItems: 'center' }}>
-                                        <Text style={{
-                                            fontSize: 35,
-                                            color: "#003C43",
-                                            marginTop: '15%',
-                                            fontWeight: "700"
-                                        }}> Verify OTP </Text>
-
+                                        <Text style={styles.title}> Verify OTP </Text>
                                         <View style={styles.input}>
-
-
                                             <Icon name="form-textbox-password" color="#003C43" size={32} padding={8} marginLeft={8} />
-
                                             <TextInput
                                                 style={{ marginLeft: "5%", color: "black", width: "70%" }}
                                                 placeholder='OTP'
                                                 placeholderTextColor={"#003C43"}
                                                 onChangeText={(txt) => setOtp(txt)}
                                                 value={otp}
-
                                             />
                                         </View>
-
-
                                         <TouchableOpacity
-                                            style={{ width: "70%", marginTop: "8%", borderRadius: 20, backgroundColor: "#003C43", justifyContent: "center", alignItems: "center" }}
+                                            style={styles.verifyButton}
                                             onPress={() => verifyotp()}>
-                                            <Text style={{ color: "#fff", fontSize: 25, padding: 8, marginLeft: "3%", fontWeight: "500" }}> Verify </Text>
-
+                                            <Text style={styles.buttonText}> Verify </Text>
                                         </TouchableOpacity>
-
                                     </View>
                                 </View>
                             )
@@ -246,140 +204,90 @@ const Login = ({ navigation }) => {
                             return (
                                 <View>
                                     <View style={{ alignItems: 'center' }}>
-                                        <Text style={{
-                                            fontSize: 30,
-                                            color: "#003C43",
-                                            marginTop: '15%',
-                                            fontWeight: "700"
-                                        }}> Reset Password </Text>
-
+                                        <Text style={styles.title}> Reset Password </Text>
                                         <View style={styles.input}>
-
-
                                             <Icon name="lock-open-outline" color="#003C43" size={32} padding={8} marginLeft={8} />
-
                                             <TextInput
                                                 style={{ marginLeft: "5%", color: "black", width: "70%" }}
                                                 placeholder='New password'
                                                 placeholderTextColor={"#003C43"}
                                                 onChangeText={(txt) => setNewpassword(txt)}
                                                 value={newpassword}
-
                                             />
                                         </View>
-
-
                                         <TouchableOpacity
-                                            style={{ width: "70%", marginTop: "10%", borderRadius: 20, backgroundColor: "#FF7722", justifyContent: "center", alignItems: "center" }}
+                                            style={styles.resetButton}
                                             onPress={() => reset()}>
-                                            <Text style={{ color: "#fff", fontSize: 25, padding: 8, marginLeft: "3%", fontWeight: "500" }}> Confirm </Text>
-
+                                            <Text style={styles.buttonText}> Confirm </Text>
                                         </TouchableOpacity>
-
                                     </View>
                                 </View>
                             )
                         }
-
                         else {
                             return (
-                                <View>
+                                <ScrollView>
                                     <View style={{ alignItems: 'center' }}>
-                                        <Text style={{
-                                            fontSize: 35,
-                                            color: "#003C43",
-                                            marginTop: 20,
-                                            fontWeight: "700"
-                                        }}> Login </Text>
-
-                                        <View style={{
-                                            width: "85%",
-                                            flexDirection: "row",
-                                            borderWidth: 2,
-                                            borderColor: "#003C43",
-                                            borderRadius: 20,
-                                            marginTop: "10%",
-
-                                        }}>
-
-
+                                        <Text style={styles.title}> Login </Text>
+                                        <View style={styles.inputContainer}>
                                             <Icon name="email-outline" color="#003C43" size={32} padding={8} marginLeft={8} />
-
                                             <TextInput
-                                                style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                                style={styles.inputField}
                                                 placeholder='Email'
                                                 placeholderTextColor={"#003C43"}
                                                 onChangeText={(txt) => setEmail(txt)}
                                                 value={Email}
-
                                             />
                                         </View>
-
-                                        <View style={{
-                                            width: "85%",
-                                            flexDirection: "row",
-                                            borderWidth: 1.5,
-                                            borderColor: "#003C43",
-                                            borderRadius: 20,
-                                            marginTop: "5%"
-                                        }}>
-
-
+                                        <View style={styles.inputContainer}>
                                             <Icon name="lock-open-outline" color="#003C43" size={30} padding={8} marginLeft={8} />
-
                                             <TextInput
-                                                style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                                style={styles.inputField}
                                                 placeholder='Password'
                                                 placeholderTextColor={"#003C43"}
                                                 onChangeText={(txt) => setPassword(txt)}
                                                 value={Password}
                                                 secureTextEntry={true}
-
                                             />
                                         </View>
                                     </View>
-
-                                    <View style={{ alignItems: 'flex-end', marginTop: 2, paddingRight: 45 }}>
-                                        <TouchableOpacity
-                                            onPress={() => setShow1(1)}
-                                        >
-                                            <Text style={{ color: "#FF7722", fontSize: 15, fontWeight: "500" }}> Forgot password ? </Text>
-
+                                    <View style={styles.forgotPasswordContainer}>
+                                        <TouchableOpacity onPress={() => setShow1(1)}>
+                                            <Text style={styles.forgotPasswordText}> Forgot password ? </Text>
                                         </TouchableOpacity>
-
                                     </View>
-
                                     <View style={{ alignItems: 'center' }}>
-
                                         <TouchableOpacity
-                                            style={{ width: "70%", marginTop: "8%", borderRadius: 20, backgroundColor: "#003C43", justifyContent: "center", alignItems: "center" }}
+                                            style={styles.loginButton}
                                             onPress={() => validateInputs()}
-                                            >
-                                            <Text style={{ color: "#fff", fontSize: 25, padding: 8, marginLeft: "3%", fontWeight: "500" }}>Log In</Text>
-
+                                        >
+                                            <Text style={styles.buttonText}>Log In</Text>
                                         </TouchableOpacity>
-
-                                        <View style={{ marginTop: "20%", marginBottom: 10 }}>
-                                            <Text style={{ color: "#FF7722", fontSize: 15, fontWeight: "500" }}> Don't have an account ? </Text>
+                                        <View style={styles.signUpContainer}>
+                                            <Text style={styles.signUpText}> Don't have an account ? </Text>
                                         </View>
-
                                         <TouchableOpacity
-                                            style={{ width: "70%", borderRadius: 20, justifyContent: "center", alignItems: "center", borderWidth: 2, borderColor: "#003C43" }}
+                                            style={styles.signUpButton}
                                             onPress={() => navigation.navigate("LoginOptions")}>
-                                            <Text style={{ color: "#003C43", fontSize: 25, padding: 7, marginLeft: "3%", fontWeight: "500" }}>Sign Up</Text>
+                                            <Text style={styles.signUpButtonText}>Sign Up</Text>
                                         </TouchableOpacity>
                                     </View>
-                                </View>
+                                </ScrollView>
                             );
                         }
                     })()}
-
-
                 </View>
-
             </LinearGradient>
-
-
+            {showAnimation && (
+                <View style={styles.animationContainer}>
+                    <LottieView
+                        source={require('../Animation/car_animation.json')}
+                        autoPlay
+                        loop
+                    />
+                    <Text style={styles.redirectText}>Authenticanting User...</Text>
+                </View>
+            )}
         </SafeAreaView>
     );
 };
@@ -387,6 +295,12 @@ const Login = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    title: {
+        fontSize: 35,
+        color: "#003C43",
+        marginTop: '15%',
+        fontWeight: "700",
     },
     input: {
         width: "83%",
@@ -396,8 +310,97 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         marginTop: '10%',
         marginBottom: 10,
-        padding: 2
-
+        padding: 2,
+    },
+    verifyButton: {
+        width: "70%",
+        marginTop: "8%",
+        borderRadius: 20,
+        backgroundColor: "#003C43",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    resetButton: {
+        width: "70%",
+        marginTop: "10%",
+        borderRadius: 20,
+        backgroundColor: "#FF7722",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    loginButton: {
+        width: "70%",
+        marginTop: "8%",
+        borderRadius: 20,
+        backgroundColor: "#003C43",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    buttonText: {
+        color: "#fff",
+        fontSize: 25,
+        padding: 8,
+        marginLeft: "3%",
+        fontWeight: "500",
+    },
+    inputContainer: {
+        width: "85%",
+        flexDirection: "row",
+        borderWidth: 1.5,
+        borderColor: "#003C43",
+        borderRadius: 20,
+        marginTop: "5%",
+    },
+    inputField: {
+        marginLeft: "5%",
+        color: "black",
+        width: "70%",
+    },
+    forgotPasswordContainer: {
+        alignItems: 'flex-end',
+        marginTop: 2,
+        paddingRight: 45,
+    },
+    forgotPasswordText: {
+        color: "#FF7722",
+        fontSize: 15,
+        fontWeight: "500",
+    },
+    signUpContainer: {
+        marginTop: "20%",
+        marginBottom: 10,
+    },
+    signUpText: {
+        color: "#FF7722",
+        fontSize: 15,
+        fontWeight: "500",
+    },
+    signUpButton: {
+        width: "70%",
+        borderRadius: 20,
+        justifyContent: "center",
+        alignItems: "center",
+        borderWidth: 2,
+        borderColor: "#003C43",
+    },
+    signUpButtonText: {
+        color: "#003C43",
+        fontSize: 25,
+        padding: 7,
+        marginLeft: "3%",
+        fontWeight: "500",
+    },
+    animationContainer: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(255,255,255,0.75)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    redirectText: {
+        marginTop: 20,
+        fontSize: 20,
+        color: "#003C43",
+        fontWeight: "bold",
     },
 });
 

@@ -7,6 +7,7 @@ import {
   DrawerItem
 } from '@react-navigation/drawer';
 import { PermissionsAndroid } from 'react-native';
+import Geolocation from 'react-native-geolocation-service';
 
 
 import Login from './src/Screens/Login';
@@ -26,6 +27,8 @@ import CompletedOrders from './src/Screens/CompletedOrders';
 import GetYarnRates from './src/Screens/GetYarnRates';
 import LiveOrders from './src/Screens/LiveOrders';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import Icons from 'react-native-vector-icons/MaterialIcons';
+import Iconsn from 'react-native-vector-icons/MaterialCommunityIcons';
 
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -45,6 +48,34 @@ import Navigator from './src/Screens/Navigator';
 import ConfirmOrders from './src/Screens/ConfirmOrders';
 import Profile from './src/Screens/Profile';
 import GeneratedEnquires from './src/Screens/GeneratedEnquires';
+import NewEnquiry from './src/Screens/NewEnquiry';
+import SelfInfo from './src/Screens/SelfInfo';
+import EditProfile from './src/Screens/EditProfile';
+import EditLooms from './src/Screens/EditLooms';
+import ContactEdit from './src/Screens/ContactEdit';
+import AddContacts from './src/Screens/AddContacts';
+import MyLooms from './src/Screens/MyLooms';
+import YarnUsers from './src/Screens/YarnUsers';
+import TraderUsers from './src/Screens/TraderUsers';
+import LoomUsers from './src/Screens/LoomUsers';
+import Users from './src/Screens/Users';
+import KnottingOffersT from './src/Screens/KnottingOffersT';
+import KnottingOffersL from './src/Screens/KnottingOffersL';
+import KnottingResponses from './src/Screens/KnottingResponses';
+import GenerateKnottingoffers from './src/Screens/GenerateKnottingoffers';
+import KLBookings from './src/Screens/KLBookings';
+import YarnMsg from './src/Screens/YarnMsg';
+import YarnTmsg from './src/Screens/YarnTmsg';
+import BroadCastScreen from './src/Screens/BroadCastScreen';
+import LoomMsgs from './src/Screens/LoomMsgs';
+import TraderMsgs from './src/Screens/TraderMsgs';
+import BroadCastYarn from './src/Screens/BroadCastYarn';
+import TraderChat from './src/Screens/TraderChat';
+import TraderChatDisplay from './src/Screens/TraderChatDisplay';
+import BroadCastTrader from './src/Screens/BroadCastTrader';
+import LiveBooking from './src/Screens/LiveBooking';
+import BookLoomForm from './src/Screens/BookLoomForm';
+import SignUpYarn from './src/Screens/SignUpYarn';
 
 
 
@@ -95,27 +126,7 @@ const LoomDrawerNavigator = () => (
       }} />
 
 
-    <LoomDrawer.Screen
 
-      name="Profile"
-      component={Profile}
-      options={{
-        drawerActiveBackgroundColor: '#fff',
-        drawerActiveTintColor: '#000',
-        drawerInactiveTintColor: '#000',
-        drawerIcon: ({ focused }) => (
-          <Icon name={focused ? 'user' : 'user'} size={25} color={'grey'} />
-        ),
-        title: 'Profile',
-        drawerLabelStyle: {
-          marginLeft: 0,
-          fontFamily: 'Roboto-Medium',
-          fontSize: 18,
-
-        },
-
-
-      }} />
 
 
     <LoomDrawer.Screen
@@ -207,6 +218,47 @@ const LoomDrawerNavigator = () => (
 
       }} />
 
+    <TraderDrawer.Screen
+
+      name="KnottingOffersL"
+      component={KnottingOffersL}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icons name={focused ? 'discount' : 'discount'} size={25} color={'grey'} />
+        ),
+        title: 'Knotting Offers',
+        drawerLabelStyle: {
+          marginLeft: 10,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 18,
+
+        },
+
+      }} />
+
+    <LoomDrawer.Screen
+
+      name="CalculationsTrader"
+      component={CalculationsTrader}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'calculator' : 'calculator'} size={25} color={'grey'} />
+        ),
+        title: 'Calculations',
+        drawerLabelStyle: {
+          marginLeft: 5,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 18,
+
+        },
+
+      }} />
 
     <LoomDrawer.Screen
 
@@ -251,7 +303,27 @@ const LoomDrawerNavigator = () => (
 
       }} />
 
+    <LoomDrawer.Screen
 
+      name="Profile"
+      component={Profile}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'user' : 'user'} size={25} color={'grey'} />
+        ),
+        title: 'Profile',
+        drawerLabelStyle: {
+          marginLeft: 0,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 18,
+
+        },
+
+
+      }} />
 
     <LoomDrawer.Screen
 
@@ -280,6 +352,8 @@ const LoomDrawerNavigator = () => (
 // Define drawer navigator for trader
 const TraderDrawer = createDrawerNavigator();
 const TraderDrawerNavigator = () => (
+
+
   <TraderDrawer.Navigator initialRouteName='Storage' drawerContent={props => <CustomDrawer {...props} />}
     screenOptions={{
       headerShown: false,
@@ -349,6 +423,27 @@ const TraderDrawerNavigator = () => (
           <Icon name={focused ? 'briefcase' : 'briefcase'} size={25} color={'grey'} />
         ),
         title: 'PlanLooms',
+        drawerLabelStyle: {
+          marginLeft: 10,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 15,
+
+        },
+
+      }} />
+
+    <TraderDrawer.Screen
+
+      name="KnottingOffersT"
+      component={KnottingOffersT}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icons name={focused ? 'discount' : 'discount'} size={25} color={'grey'} />
+        ),
+        title: 'Knotting Offers',
         drawerLabelStyle: {
           marginLeft: 10,
           fontFamily: 'Roboto-Medium',
@@ -444,6 +539,29 @@ const TraderDrawerNavigator = () => (
 
     <TraderDrawer.Screen
 
+      name="Profile"
+      component={Profile}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'user' : 'user'} size={25} color={'grey'} />
+        ),
+        title: 'Profile',
+        drawerLabelStyle: {
+          marginLeft: 10,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 15,
+
+        },
+
+
+      }} />
+
+
+    <TraderDrawer.Screen
+
       name="Storage"
       component={Storage}
       options={{
@@ -465,6 +583,370 @@ const TraderDrawerNavigator = () => (
   </TraderDrawer.Navigator>
 );
 
+// Define drawer navigator for trader
+const AdminDrawer = createDrawerNavigator();
+const AdminDrawerNavigator = () => (
+
+  <AdminDrawer.Navigator initialRouteName='Storage' drawerContent={props => <CustomDrawer {...props} />}
+    screenOptions={{
+      headerShown: false,
+      drawerActiveBackgroundColor: '#033E3E',
+      drawerActiveTintColor: '#FFF',
+      drawerInactiveTintColor: '#033E3E',
+      drawerLabelStyle: {
+        marginLeft: 10,
+        fontFamily: 'Roboto-Medium',
+        fontSize: 15,
+      },
+    }}
+  >
+
+    <AdminDrawer.Screen
+
+      name="Home"
+      component={Home}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'home' : 'home'} size={25} color={'grey'} />
+        ),
+        title: 'Home',
+        drawerLabelStyle: {
+          marginLeft: 10,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 15,
+
+        },
+
+      }} />
+
+
+    <AdminDrawer.Screen
+
+      name="Users"
+      component={Users}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'user' : 'user'} size={25} color={'grey'} />
+        ),
+        title: 'Users',
+        drawerLabelStyle: {
+          marginLeft: 10,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 15,
+
+        },
+
+      }} />
+
+    <AdminDrawer.Screen
+
+      name="Loom Users"
+      component={LoomUsers}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'gears' : 'gears'} size={25} color={'grey'} />
+        ),
+        title: 'Loom Users',
+        drawerLabelStyle: {
+          marginLeft: 10,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 15,
+
+        },
+
+      }} />
+
+    <AdminDrawer.Screen
+
+      name="TraderUsers"
+      component={TraderUsers}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'briefcase' : 'briefcase'} size={25} color={'grey'} />
+        ),
+        title: 'Trader Users',
+        drawerLabelStyle: {
+          marginLeft: 10,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 15,
+
+        },
+
+      }} />
+
+    <AdminDrawer.Screen
+
+      name="YarnUsers"
+      component={YarnUsers}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'user-circle' : 'user-circle'} size={25} color={'grey'} />
+        ),
+        title: 'Yarn Users',
+        drawerLabelStyle: {
+          marginLeft: 5,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 15,
+
+        },
+
+      }} />
+
+
+    <AdminDrawer.Screen
+
+      name="Storage"
+      component={Storage}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'sign-out' : 'sign-out'} size={25} color={'grey'} />
+        ),
+        title: 'Exit',
+        drawerLabelStyle: {
+          marginLeft: 10,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 15,
+
+        },
+
+      }} />
+  </AdminDrawer.Navigator>
+);
+
+
+// Define drawer navigator for trader
+const DefaultDrawer = createDrawerNavigator();
+const DefaultDrawerNavigator = () => (
+
+  <DefaultDrawer.Navigator initialRouteName='Storage' drawerContent={props => <CustomDrawer {...props} />}
+    screenOptions={{
+      headerShown: false,
+      drawerActiveBackgroundColor: '#033E3E',
+      drawerActiveTintColor: '#FFF',
+      drawerInactiveTintColor: '#033E3E',
+      drawerLabelStyle: {
+        marginLeft: 10,
+        fontFamily: 'Roboto-Medium',
+        fontSize: 15,
+      },
+    }}
+  >
+
+
+    <DefaultDrawer.Screen
+
+      name="Storage"
+      component={Storage}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'sign-out' : 'sign-out'} size={25} color={'grey'} />
+        ),
+        title: 'Exit',
+        drawerLabelStyle: {
+          marginLeft: 10,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 15,
+
+        },
+
+      }} />
+    <DefaultDrawer.Screen
+
+      name="Home"
+      component={Home}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'home' : 'home'} size={25} color={'grey'} />
+        ),
+        title: 'Home',
+        drawerLabelStyle: {
+          marginLeft: 0,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 18,
+
+        },
+
+
+      }} />
+  </DefaultDrawer.Navigator>
+);
+
+
+// Define drawer navigator for trader
+const YarnDrawer = createDrawerNavigator();
+const YarnDrawerNavigator = () => (
+
+  <YarnDrawer.Navigator initialRouteName='Storage' drawerContent={props => <CustomDrawer {...props} />}
+    screenOptions={{
+      headerShown: false,
+      drawerActiveBackgroundColor: '#033E3E',
+      drawerActiveTintColor: '#FFF',
+      drawerInactiveTintColor: '#033E3E',
+      drawerLabelStyle: {
+        marginLeft: 10,
+        fontFamily: 'Roboto-Medium',
+        fontSize: 15,
+      },
+    }}
+  >
+
+    <YarnDrawer.Screen
+
+      name="Home"
+      component={Home}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'home' : 'home'} size={25} color={'grey'} />
+        ),
+        title: 'Home',
+        drawerLabelStyle: {
+          marginLeft: 0,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 18,
+
+        },
+
+
+      }} />
+
+    <YarnDrawer.Screen
+
+      name="LoomMsgs"
+      component={LoomMsgs}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Iconsn name={focused ? 'android-messages' : 'android-messages'} size={25} color={'grey'} />
+        ),
+        title: 'Loom Messages',
+        drawerLabelStyle: {
+          marginLeft: 0,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 18,
+
+        },
+
+
+      }} />
+
+    <YarnDrawer.Screen
+
+      name="TraderMsgs"
+      component={TraderMsgs}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Iconsn name={focused ? 'message-text-outline' : 'message-text-outline'} size={25} color={'grey'} />
+        ),
+        title: 'Trader Messages',
+        drawerLabelStyle: {
+          marginLeft: 0,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 18,
+
+        },
+
+
+      }} />
+
+    <YarnDrawer.Screen
+
+      name="CalculationsTrader"
+      component={CalculationsTrader}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'calculator' : 'calculator'} size={25} color={'grey'} />
+        ),
+        title: 'Calculations',
+        drawerLabelStyle: {
+          marginLeft: 5,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 18,
+
+        },
+
+
+      }} />
+
+    <YarnDrawer.Screen
+
+      name="Profile"
+      component={Profile}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'user' : 'user'} size={25} color={'grey'} />
+        ),
+        title: 'Profile',
+        drawerLabelStyle: {
+          marginLeft: 0,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 18,
+
+        },
+
+
+      }} />
+
+    <YarnDrawer.Screen
+
+      name="Storage"
+      component={Storage}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'sign-out' : 'sign-out'} size={25} color={'grey'} />
+        ),
+        title: 'Exit',
+        drawerLabelStyle: {
+          marginLeft: 10,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 15,
+
+        },
+
+      }} />
+
+  </YarnDrawer.Navigator>
+);
 
 const App = () => {
 
@@ -478,6 +960,7 @@ const App = () => {
   const permission = async () => {
     PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
     PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA);
+    PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION)
 
   }
 
@@ -504,9 +987,25 @@ const App = () => {
     getData();
   }, [])
 
+  const [location, setLocation] = useState(null);
+
+  useEffect(() => {
+    const hasLocationPermission = async () => {
+      Geolocation.getCurrentPosition((position) => {
+        setLocation(position);
+      }, (error) => {
+        console.log(error.code, error.message);
+      }, {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 10000
+      });
+    };
+    hasLocationPermission();
+  }, []);
 
 
-  const DrawerNavigator = loomOrtrader == 'L' ? LoomDrawerNavigator : TraderDrawerNavigator;
+  const DrawerNavigator = loomOrtrader == 'L' ? LoomDrawerNavigator : loomOrtrader == 'T' ? TraderDrawerNavigator : loomOrtrader == 'A' ? AdminDrawerNavigator : loomOrtrader == 'Y' ? YarnDrawerNavigator : DefaultDrawerNavigator;
 
   return (
     <NavigationContainer>
@@ -525,8 +1024,28 @@ const App = () => {
         <Stack.Screen name="LoomBooking" component={LoomBooking} />
         <Stack.Screen name="ConfirmEnquires" component={ConfirmEnquires} />
         <Stack.Screen name="NoInternet" component={NoInternetScreen} />
-        <Stack.Screen name="Confirm_Orders" component={ConfirmOrders} />
+        <Stack.Screen name="ConfirmOrds" component={ConfirmOrders} />
         <Stack.Screen name="Generated_Enquires" component={GeneratedEnquires} />
+        <Stack.Screen name="NewEnquiry" component={NewEnquiry} />
+        <Stack.Screen name="SelfInfo" component={SelfInfo} />
+        <Stack.Screen name="EditProfile" component={EditProfile} />
+        <Stack.Screen name="EditLooms" component={EditLooms} />
+        <Stack.Screen name="ContactEdit" component={ContactEdit} />
+        <Stack.Screen name="AddContacts" component={AddContacts} />
+        <Stack.Screen name="MyLooms" component={MyLooms} />
+        <Stack.Screen name="KnottingResponses" component={KnottingResponses} />
+        <Stack.Screen name="GenerateKnottingoffers" component={GenerateKnottingoffers} />
+        <Stack.Screen name="KLBookings" component={KLBookings} />
+        <Stack.Screen name="YarnMsg" component={YarnMsg} />
+        <Stack.Screen name="YarnTmsg" component={YarnTmsg} />
+        <Stack.Screen name="BroadCastScreen" component={BroadCastScreen} />
+        <Stack.Screen name="BroadCastYarn" component={BroadCastYarn} />
+        <Stack.Screen name="TraderChat" component={TraderChat} />
+        <Stack.Screen name="TraderChatDisplay" component={TraderChatDisplay} />
+        <Stack.Screen name="BroadCastTrader" component={BroadCastTrader} />
+        <Stack.Screen name="LiveBooking" component={LiveBooking} />
+        <Stack.Screen name="BookLoomForm" component={BookLoomForm} />
+        <Stack.Screen name="SignUpYarn" component={SignUpYarn} />
 
 
       </Stack.Navigator>

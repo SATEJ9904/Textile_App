@@ -3,6 +3,7 @@ import { TouchableOpacity, SafeAreaView, StyleSheet, Text, View, Image, StatusBa
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 import LottieView from 'lottie-react-native';
+import Geolocation from 'react-native-geolocation-service';
 
 
 const Home = ({ navigation }) => {
@@ -79,14 +80,6 @@ const Home = ({ navigation }) => {
     console.log("refreshed");
   }, []);
 
-  useEffect(() => {
-    if (!isConnected) {
-      'No Internet';
-    } else {
-      navigation.navigate("Home");
-    }
-  }, [isConnected, navigation]);
-
 
   return (
     <SafeAreaView style={styles.container}>
@@ -95,6 +88,7 @@ const Home = ({ navigation }) => {
       <View style={{ backgroundColor: "#003C43", flexDirection: "row", alignItems: 'center', height: 50 }}>
 
         <TouchableOpacity
+          style={{ padding: "2%" }}
           onPress={() => navigation.openDrawer()}
         >
           <Image
@@ -110,7 +104,7 @@ const Home = ({ navigation }) => {
         </View>
 
       </View>
-{/* 
+      {/* 
       <View style={{ flex: 1 }}>
         <LottieView
           source={require('../Animation/splash.json')}
@@ -127,6 +121,7 @@ const Home = ({ navigation }) => {
 
         <TouchableOpacity
           style={styles.btn}
+          onPress={() => navigation.navigate("SelfInfo")}
         >
           <View style={{ flex: 1, flexDirection: 'row', }}>
 
@@ -145,7 +140,11 @@ const Home = ({ navigation }) => {
             </View>
 
             <View style={{ flex: 0.6, justifyContent: 'center', alignItems: 'center', backgroundColor: '#135D66', borderTopRightRadius: 20, borderBottomRightRadius: 20 }}>
-              <Text style={{ fontSize: 28, color: "white", fontWeight: 600 }}>{loomOrTraderRef.current}</Text>
+
+              <TouchableOpacity onPress={() => navigation.navigate("SelfInfo")} style={{ padding: "5%", flex: 1, width: "100%", justifyContent: "center", alignItems: "center" }}>
+                <Text style={{ fontSize: 28, color: "white", fontWeight: 600 }}>{loomOrTraderRef.current}</Text>
+              </TouchableOpacity>
+
             </View>
 
           </View>
@@ -153,8 +152,6 @@ const Home = ({ navigation }) => {
         </TouchableOpacity>
 
       </View>
-
-
       <ScrollView
         contentContainerStyle={styles.scrollView}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}

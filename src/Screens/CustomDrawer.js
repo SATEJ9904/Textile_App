@@ -6,8 +6,7 @@ import {
   ImageBackground,
   Image,
   TouchableOpacity,
-  ToastAndroid,
-  ScrollView
+  ToastAndroid
 } from 'react-native';
 import {
   DrawerContentScrollView,
@@ -39,6 +38,8 @@ const CustomDrawer = (props) => {
   const [id, setId] = useState("");
   const [mobileno, setMobileNo] = useState("")
   const [gstno, setGSTNO] = useState("")
+  const [registrationNo,setRegistrationNo]=useState("")
+
 
   const handleSignOut = () => {
     firestore()
@@ -62,7 +63,7 @@ const CustomDrawer = (props) => {
         .then(await AsyncStorage.removeItem("PrimaryContact"))
         .then(await AsyncStorage.removeItem("GSTNumber"))
       console.log("data deleted")
-      navigation.navigate("Splash")
+      navigation.navigate("Login")
     } catch (err) {
       console.log('Error', err)
     }
@@ -80,7 +81,7 @@ const CustomDrawer = (props) => {
     const Id = await AsyncStorage.getItem("Id")
     const PrimaryContact = await AsyncStorage.getItem("PrimaryContact")
     const GSTNumber = await AsyncStorage.getItem("GSTNumber")
-
+    const RegistrationNumber = await AsyncStorage.getItem("RegistrationNumber")
 
     setAppUserId(Email)
     setName(Name)
@@ -88,12 +89,13 @@ const CustomDrawer = (props) => {
     setId(Id)
     setMobileNo(PrimaryContact)
     setGSTNO(GSTNumber)
+    setRegistrationNo(RegistrationNumber)
   }
 
 
   return (
 
-    <View style={{ flex: 1, }}>
+    <View style={{ flex: 1,backgroundColor:"#fff" }}>
 
       <DrawerContentScrollView
         {...props}
@@ -134,17 +136,10 @@ const CustomDrawer = (props) => {
         </View> */}
 
         <View style={{
-          height: '27%',
+          height: 170,
           marginTop: -4
         }}>
 
-          {/* <View style={{ height: '50%', alignItems: 'center' }}>
-          <Image
-            source={require('../Images/company.png')}
-            style={{ width: 360, height: 72, }}
-
-          />
-        </View> */}
 
           <ImageBackground
             source={require('../Images/bg.jpg')}
@@ -168,7 +163,7 @@ const CustomDrawer = (props) => {
 
               <View style={{ marginLeft: "7%", }}>
                 <Text style={{ color: "#fff", fontSize: 20, fontWeight: "700", marginBottom: 5 }}>{Name}</Text>
-                <Text style={{ color: "#fff", fontSize: 14, fontWeight: "700" }}>{AppUserId}</Text>
+                <Text style={{ color: "#fff", fontSize: 14, fontWeight: "700" }}>{registrationNo}</Text>
               </View>
             </View>
 
@@ -183,19 +178,17 @@ const CustomDrawer = (props) => {
         </View>
 
 
-        <View style={{ marginTop: "0%" }}>
-          
-            <DrawerItemList
+        <View style={{}}>
+          <DrawerItemList
 
-              {...props}
+            {...props}
 
-            />
-
+          />
 
         </View>
       </DrawerContentScrollView>
 
-      <View style={{ padding: 20, borderTopWidth: 1, borderTopColor: '#ccc' }}>
+      <View style={{ padding: 5, paddingLeft: 10, borderTopWidth: 1, borderTopColor: '#ccc' }}>
         <TouchableOpacity onPress={() => { DeleteStorage(); }} style={{ paddingVertical: 15 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text

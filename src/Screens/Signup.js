@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, ScrollView, Alert, Modal, ActivityIndicator, ToastAndroid } from 'react-native'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, ScrollView, Alert, Modal, ActivityIndicator, ToastAndroid, Dimensions  } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { getAllCountries, getStatesOfCountry, getCitiesOfState, Country, State, City } from 'country-state-city';
 import { Dropdown } from 'react-native-element-dropdown';
@@ -8,7 +8,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import LottieView from 'lottie-react-native';
 
-
+const { width, height } = Dimensions.get('window');
 
 const Signup = ({ navigation }) => {
 
@@ -42,14 +42,6 @@ const Signup = ({ navigation }) => {
     const [show2, setShow2] = useState(false)
     const [modalVisible, setModalVisible] = useState(false);
 
-    const toggleModal = () => {
-      setModalVisible(!modalVisible);
-      setEmail("");
-      setPassword("");
-      setLoomShade("");
-      setShow2(false)
-    };
-
     const showToast = () => {
         ToastAndroid.show("Account Created Successfully", ToastAndroid.SHORT);
     };
@@ -65,7 +57,12 @@ const Signup = ({ navigation }) => {
 
     const dataArray = [ownercontactDetails, managercontactDetails, otherscontactDetails];
 
-
+    const toggleModal = () => {
+        setModalVisible(!modalVisible);
+        setEmail("");
+        setShow4(false)
+        setShow3(true)
+    };
 
     const validateFields = () => {
         if (
@@ -114,6 +111,8 @@ const Signup = ({ navigation }) => {
 
     const postAPI = () => {
 
+        console.log("PostApi called")
+
         if (validateFields()) {
             setShow2(true);
 
@@ -130,15 +129,13 @@ const Signup = ({ navigation }) => {
                     'Password': Password,
                 }
             };
-    
+
             axios.request(config)
                 .then((response) => {
                     console.log(JSON.stringify(response.data));
                     showToast();
+                    postDetails()
                     setShow2(false);
-                    setShow(false);
-                    setShow4(true);
-                    setShow3(false);
                 })
                 .catch((error) => {
                     if (error.response && error.response.status === 500) {
@@ -146,132 +143,176 @@ const Signup = ({ navigation }) => {
                     } else {
                         console.log(error);
                     }
+                    setShow2(false);
                 });
+
         }
 
-      
+
     };
+
+
+    const sendOTP = () => {
+
+        const formdata = new FormData();
+        formdata.append("Email", Email);
+        formdata.append("Name", loomShade);
+
+        const requestOptions = {
+            method: "POST",
+            body: formdata,
+            redirect: "follow"
+        };
+
+        fetch("https://textileapp.microtechsolutions.co.in/php/sendemailotp.php", requestOptions)
+            .then((response) => response.text())
+            .then((result) => {
+                console.log(result)
+                setShow3(false)
+                setShow4(true)
+                setShow2(false);
+            })
+            .catch((error) => {
+                Alert.alert("Some Error Occured while submitting Data Please Try Again")
+                console.error(error)
+            });
+    }
+
 
     const verifyotp = async () => {
 
-        if (validateFields2()) {
-            setShow2(true)
-            let config = {
-                method: 'get',
-                maxBodyLength: Infinity,
-                url: 'https://textileapp.microtechsolutions.co.in/php/verifyotp.php?otp=' + otp,
-                headers: {}
-            };
-    
-            axios.request(config)
-                .then((response) => {
-                    console.log(JSON.stringify(response.data));
-                    showToast();
-                    setShow2(false)
-                    setShow(true)
-                    setShow4(false)
-                    setShow3(false)
-                })
-                .catch((error) => {
-                    console.log(error);
-    
-                });
-        }
-        
-        
+
+
+        setShow2(true)
+        let config = {
+            method: 'get',
+            maxBodyLength: Infinity,
+            url: 'https://textileapp.microtechsolutions.co.in/php/verifyotp.php?otp=' + otp,
+            headers: {}
+        };
+
+        axios.request(config)
+            .then((response) => {
+                console.log(JSON.stringify(response.data));
+                showToast();
+                postAPI();
+                setShow2(false);
+            })
+            .catch((error) => {
+                console.log(error);
+                setShow2(false);
+            });
+
+
+
 
     }
 
 
     const postDetails = () => {
 
-        if (validateFields3()) {
-            setShow2(true)
-            console.log(Email, loomShade, ownerName, gstNo, address, pincode, value, value2, value3, registrationNo, primaryContactNo, "Total no", TotalNoOfLooms)
-            try {
-                const formdata = new FormData();
-                formdata.append("AppUserId", Email);
-                formdata.append("Name", loomShade);
-                formdata.append("OwnerName", ownerName);
-                formdata.append("GSTNumber", gstNo);
-                formdata.append("Address", address);
-                formdata.append("Pincode", pincode);
-                formdata.append("Country", value);
-                formdata.append("State", value2);
-                formdata.append("City", value3);
-                formdata.append("RegistrationNumber", "LU");
-                formdata.append("PrimaryContact", primaryContactNo);
-                formdata.append("TotalLooms", TotalNoOfLooms);
-                formdata.append("LoomOrTrader", "L");
-    
-                const requestOptions = {
-                    method: "POST",
-                    body: formdata,
-                    redirect: "follow"
-                };
-    
-                fetch("https://textileapp.microtechsolutions.co.in/php/postdetail.php", requestOptions)
-                    .then((response) => response.text())
-                    .then((result) => setUserId(result))
-                    .catch((error) => {console.error(error); });
-                setShow(false)
-                setShow1(true)
-                setShow2(false)
-                setShow4(false)
-                console.log("UserId : ", UserId)
-            } catch (err) {
-                console.log("Error : ", err)
-            }
+        console.log("PostDetails called")
+        setShow2(true)
+        console.log(Email, loomShade, ownerName, gstNo, address, pincode, value, value2, value3, registrationNo, primaryContactNo, "Total no", TotalNoOfLooms)
+        try {
+            const formdata = new FormData();
+            formdata.append("AppUserId", Email);
+            formdata.append("Name", loomShade);
+            formdata.append("OwnerName", ownerName);
+            formdata.append("GSTNumber", gstNo);
+            formdata.append("Address", address);
+            formdata.append("Pincode", pincode);
+            formdata.append("Country", value);
+            formdata.append("State", value2);
+            formdata.append("City", value3);
+            formdata.append("RegistrationNumber", "LU");
+            formdata.append("PrimaryContact", primaryContactNo);
+            formdata.append("TotalLooms", TotalNoOfLooms);
+            formdata.append("LoomOrTrader", "L");
+
+            const requestOptions = {
+                method: "POST",
+                body: formdata,
+                redirect: "follow"
+            };
+
+            fetch("https://textileapp.microtechsolutions.co.in/php/postdetail.php", requestOptions)
+                .then((response) => response.text())
+                .then((result) => getContact(result))
+                .catch((error) => { console.error(error); });
+
+
+            console.log("UserId : ", UserId)
+        } catch (err) {
+            console.log("Error : ", err)
         }
 
-       
+
+
     }
 
 
 
 
-    const getContact = () => {
+    const getContact = (result) => {
+
+        console.log("GetContact called")
 
         if (validateFields()) {
-            setShow2(true)
 
-        try {
-            let config = {
-                method: 'post',
-                maxBodyLength: Infinity,
-                url: 'https://textileapp.microtechsolutions.co.in/php/postcontact.php',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                data: {
-                    "LoomTraderDetailId": UserId,
-                    "OwnerNo": ownercontactDetails,
-                    'ManagerNo': managercontactDetails,
-                    'OtherNo': otherscontactDetails
-                }
-            };
 
-            axios.request(config)
-                .then((response) => {
-                    console.log(JSON.stringify(response.data));
-                    showToast2();
-                })
-                .catch((error) => {
-                    console.log(error);
+            try {
+                let config = {
+                    method: 'post',
+                    maxBodyLength: Infinity,
+                    url: 'https://textileapp.microtechsolutions.co.in/php/postcontact.php',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    data: {
+                        "LoomTraderDetailId": result,
+                        "OwnerNo": ownercontactDetails,
+                        'ManagerNo': managercontactDetails,
+                        'OtherNo': otherscontactDetails
+                    }
+                };
 
-                });
-            navigation.navigate("Login")
-            setShow(false)
-            setShow1(false)
-            setShow2(false)
-            setShow3(true)
-            console.log("Contact Number", dataArray, "Designation", selectedOption, "LoomTraderDetailId", UserId)
-        } catch (err) {
-            console.log("Error :", err)
+                axios.request(config)
+                    .then((response) => {
+                        console.log(JSON.stringify(response.data));
+                        console.log(ownercontactDetails, managercontactDetails, otherscontactDetails)
+                        showToast2();
+                        // setEmail("");
+                        // setPassword("")
+                        // setLoomShade("");
+                        // setOwnerName("");
+                        // setAddress("");
+                        // setValue("");
+                        // setValue2("");
+                        // setValue3("");
+                        // setPincode("");
+                        // setPrimaryContactNo("");
+                        // setGstNo("")
+                        // setOwnerContactDetails("");
+                        // setManagerContactDetails("");
+                        // setOthersContactDetails("");
+                    })
+                    .catch((error) => {
+                        console.log(error);
+
+                    });
+                navigation.navigate("Login")
+                setShow(false)
+                setShow4(false)
+                setShow3(true)
+                setShow2(false);
+                console.log("Contact Number", dataArray, "Designation", selectedOption, "LoomTraderDetailId", UserId)
+            } catch (err) {
+                console.log("Error :", err)
+            }
         }
-        }
 
-        
+
     }
 
 
@@ -367,7 +408,7 @@ const Signup = ({ navigation }) => {
 
                     </View>
                     <ScrollView >
-                        <View style={{ flex: 1, alignItems: 'center', marginTop: '10%', }}>
+                        <View style={{ flex: 1, alignItems: 'center', marginTop: '10%' }}>
 
 
                             <Image
@@ -378,197 +419,66 @@ const Signup = ({ navigation }) => {
 
                             />
                             <View style={{ alignItems: 'center', marginTop: '10%', marginBottom: 20 }}>
-                                <Text style={{ fontSize: 28, color: "#003C43", fontWeight: "500" }}> Sign Up </Text>
+                                <Text style={{ fontSize: 28, color: "#003C43", fontWeight: "500" }}> Sign </Text>
                             </View>
 
 
-                            <View style={styles.input}>
+                            <View style={{ borderBottomWidth: 3, marginBottom: "5%", borderColor: "#003C43", width: "90%", justifyContent: "center", alignItems: "center" }}>
+                                <View style={styles.input}>
 
 
-                                <Icon name="email-outline" color="#003C43" size={32} padding={8} marginLeft={8} />
+                                    <Icon name="email-outline" color="#003C43" size={32} padding={8} marginLeft={8} />
 
-                                <TextInput
-                                    style={{ marginLeft: "5%", color: "black", width: "70%" }}
-                                    placeholder='Email'
-                                    placeholderTextColor={"#003C43"}
-                                    onChangeText={(txt) => setEmail(txt)}
-                                    value={Email}
+                                    <TextInput
+                                        style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                        placeholder='Email'
+                                        placeholderTextColor={"#003C43"}
+                                        onChangeText={(txt) => setEmail(txt)}
+                                        value={Email}
 
-                                />
-                            </View>
-
-                            <View style={styles.input}>
-
-
-                                <Icon name="lock-open-outline" color="#003C43" size={32} padding={8} marginLeft={8} />
-
-                                <TextInput
-                                    style={{ marginLeft: "5%", color: "black", width: "70%" }}
-                                    placeholder='Password'
-                                    placeholderTextColor={"#003C43"}
-                                    onChangeText={(txt) => setPassword(txt)}
-                                    value={Password}
-                                />
-
-
-
-                            </View>
-
-                            <View style={styles.input}>
-
-
-                                <Icon name="account" color="#003C43" size={32} padding={8} marginLeft={8} />
-
-
-                                <TextInput
-                                    placeholder='Name of Loom Shade'
-                                    placeholderTextColor={"#003C43"}
-                                    style={{ marginLeft: "5%", color: "black", width: "70%" }}
-                                    onChangeText={(txt) => setLoomShade(txt)}
-                                    value={loomShade}
-                                />
-
-                            </View>
-
-
-
-
-                            <TouchableOpacity style={styles.loginButton} onPress={() => postAPI()}>
-                                <Text style={styles.loginText}>Submit</Text>
-                            </TouchableOpacity>
-
-                            <Modal
-                                animationType="slide"
-                                transparent={true}
-                                visible={modalVisible}
-                                onRequestClose={toggleModal}
-                            >
-                                <View style={styles.modalView}>
-                                    <Text style={styles.modalText}>Email already exists. Please try with another Email.</Text>
-                                    <TouchableOpacity style={styles.modalButton} onPress={toggleModal}>
-                                        <Text style={styles.modalButtonText}>Close</Text>
-                                    </TouchableOpacity>
+                                    />
                                 </View>
-                            </Modal>
 
-                            <View style={{ flex: 1 }}>
-                                {
-                                    show2 ? <ActivityIndicator size={70} color="green" /> : null
-                                }
+                                <View style={styles.input}>
+
+
+                                    <Icon name="lock-open-outline" color="#003C43" size={32} padding={8} marginLeft={8} />
+
+                                    <TextInput
+                                        style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                        placeholder='Password'
+                                        placeholderTextColor={"#003C43"}
+                                        onChangeText={(txt) => setPassword(txt)}
+                                        value={Password}
+                                    />
+
+
+
+                                </View>
+                                <View style={styles.input}>
+
+
+                                    <Icon name="account" color="#003C43" size={32} padding={8} marginLeft={8} />
+
+
+                                    <TextInput
+                                        placeholder='Name of Company / User'
+                                        placeholderTextColor={"#003C43"}
+                                        style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                        onChangeText={(txt) => setLoomShade(txt)}
+                                        value={loomShade}
+                                    />
+
+                                </View>
                             </View>
 
 
-                        </View>
-                    </ScrollView>
-                </View>
-                : null}
-
-
-            {show4 ?
-                <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: "row", alignItems: 'center', height: 50, backgroundColor: '#003C43' }}>
-
-                        <TouchableOpacity
-                            //onPress={() => { setShow(true), setShow1(false), setShow2(false), setShow3(false) }}
-                            onPress={() => { setShow3(true), setShow4(false) }}
-                        >
-                            <Icon name="arrow-left" color="white" size={30} padding={6} />
-
-                        </TouchableOpacity>
-
-                        <View style={{ flex: 0.9, alignItems: 'center' }}>
-                            <Text style={{ fontSize: 26, color: "white", fontWeight: "500" }}> Kapada Banao </Text>
-
-                        </View>
-
-                    </View>
-
-                    <View style={{ flex: 1, alignItems: 'center', marginTop: '10%', }}>
-
-
-                        <Image
-                            source={require('../Images/img2.jpg')}
-                            style={{
-                                width: '65%', height: 200,
-                            }}
-
-                        />
-                        <View style={{ alignItems: 'center', marginTop: '10%', marginBottom: 20 }}>
-                            <Text style={{ fontSize: 28, color: "#003C43", fontWeight: "500" }}> Verify OTP </Text>
-                        </View>
-
-
-                        <View style={styles.input}>
-
-
-                            <Icon name="form-textbox-password" color="#003C43" size={32} padding={8} marginLeft={8} />
-
-                            <TextInput
-                                style={{ marginLeft: "5%", color: "black", width: "70%" }}
-                                placeholder='OTP'
-                                placeholderTextColor={"#003C43"}
-                                onChangeText={(txt) => setOtp(txt)}
-                                value={otp}
-
-                            />
-                        </View>
-
-
-
-
-
-
-                        <TouchableOpacity style={styles.loginButton} onPress={() => verifyotp()}>
-                            <Text style={styles.loginText}> Verify </Text>
-                        </TouchableOpacity>
-                        <View style={{ flex: 1 }}>
-                            {
-                                show2 ? <ActivityIndicator size={70} color="green" /> : null
-                            }
-                        </View>
-
-                    </View>
-                </View>
-                : null}
-
-
-            {/* https://textileapp.microtechsolutions.co.in/php/getdetail.php */}
-
-
-            {
-                show ?
-                    <View style={{ flex: 1 }}>
-                        <View style={{ flexDirection: "row", alignItems: 'center', height: 50, backgroundColor: '#003C43' }}>
-
-                            {/* <TouchableOpacity
-                                //onPress={() => { setShow(true), setShow1(false), setShow2(false), setShow3(false) }}
-                                onPress={() => { setShow4(true), setShow(false) }}
-                            >
-                                <Icon name="arrow-left" color="white" size={30} padding={6} />
-
-                            </TouchableOpacity> */}
-
-                            <View style={{ flex: 1, alignItems: 'center' }}>
-                                <Text style={{ fontSize: 26, color: "white", fontWeight: "500" }}> Kapada Banao </Text>
-
-                            </View>
-
-                        </View>
-                        <ScrollView >
-                            <View style={{
-                                flex: 1,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                            }}>
-
-
-                                <Text style={{ color: "#003C43", fontSize: 22, marginTop: "5%", marginBottom: "5%" }}> Welcome :  {loomShade} </Text>
-
+                            <View style={{ borderBottomWidth: 3, marginBottom: "5%", borderColor: "#003C43", width: "90%", justifyContent: "center", alignItems: "center" }}>
                                 <View style={styles.input}>
 
                                     <TextInput
                                         style={{ marginLeft: "5%", color: "black", width: "70%" }}
-                                        placeholder=' Name of Owner'
+                                        placeholder='Promoter/ Owner Name'
                                         placeholderTextColor={"#003C43"}
                                         onChangeText={(txt) => setOwnerName(txt)}
                                         value={ownerName}
@@ -654,12 +564,6 @@ const Signup = ({ navigation }) => {
                                     }} />
 
 
-                                <View style={{ flex: 1 }}>
-                                    {
-                                        show2 ? <ActivityIndicator size={70} color="green" /> : null
-                                    }
-                                </View>
-
                                 <View style={styles.input}>
                                     <TextInput
                                         placeholder=' Address'
@@ -678,26 +582,11 @@ const Signup = ({ navigation }) => {
                                         value={pincode}
                                     />
                                 </View>
-                                {/* <TextInput
-                                    placeholder=' Total No Of Looms'
-                                    placeholderTextColor={"#003C43"}
-                                    style={[styles.input]}
-                                    onChangeText={(txt) => setTotalNoOfLooms(txt)}
-                                    value={TotalNoOfLooms}
-                                /> */}
-                                <View style={styles.input}>
-                                    <TextInput
-                                        placeholder=' Registration No.'
-                                        placeholderTextColor={"#003C43"}
-                                        style={{ marginLeft: "5%", color: "black", width: "70%" }}
-                                        onChangeText={(txt) => setRegistrationNo(txt)}
-                                        value={registrationNo}
-                                    />
-                                </View>
+
 
                                 <View style={styles.input}>
                                     <TextInput
-                                        placeholder=' Primary/Operational Contact No.'
+                                        placeholder=' WhatsApp No.'
                                         placeholderTextColor={"#003C43"}
                                         style={{ marginLeft: "5%", color: "black", width: "70%" }}
                                         onChangeText={(txt) => setPrimaryContactNo(txt)}
@@ -705,94 +594,61 @@ const Signup = ({ navigation }) => {
                                     />
                                 </View>
 
-                                <TouchableOpacity style={styles.loginButton} onPress={() => postDetails()}>
-                                    <Text style={styles.loginText}>Submit</Text>
-                                </TouchableOpacity>
+                            </View>
+
+                            <View style={{ borderBottomWidth: 3, marginBottom: "5%", borderColor: "#003C43", width: "90%", justifyContent: "center", alignItems: "center" }}>
+                                <View style={[styles.input, { marginTop: 30 }]}>
+
+                                    <Icon name="account-tie" color="#003C43" size={32} padding={8} />
+
+                                    <TextInput
+                                        style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                        placeholder='Owner Contact Details'
+                                        placeholderTextColor={"#003C43"}
+                                        onChangeText={(txt) => setOwnerContactDetails(txt)}
+                                        value={ownercontactDetails}
+
+                                    />
+                                </View>
+
+                                <View style={styles.input}>
+
+
+                                    <Icon name="account-star" color="#003C43" size={32} padding={8} />
+
+                                    <TextInput
+                                        style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                        placeholder='Manager Contact Details'
+                                        placeholderTextColor={"#003C43"}
+                                        onChangeText={(txt) => setManagerContactDetails(txt)}
+                                        value={managercontactDetails}
+
+                                    />
+                                </View>
+
+                                <View style={styles.input}>
+
+
+                                    <Icon name="account-plus" color="#003C43" size={32} padding={8} />
+
+                                    <TextInput
+                                        style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                        placeholder='Others Contact Details'
+                                        placeholderTextColor={"#003C43"}
+                                        onChangeText={(txt) => setOthersContactDetails(txt)}
+                                        value={otherscontactDetails}
+
+                                    />
+                                </View>
 
                             </View>
 
-                        </ScrollView>
-                    </View>
-                    : null
-            }
+                            <TouchableOpacity style={styles.loginButton} onPress={() => {
+                                sendOTP();
 
-
-            {/* https://textileapp.microtechsolutions.co.in/php/getcontact.php */}
-
-
-            {show1 ?
-                <View style={{ flex: 1 }}>
-                    <ScrollView >
-                        <View style={{
-                            marginTop: '7%',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                        }}>
-
-
-                            <Image
-                                source={require('../Images/img2.jpg')}
-                                style={{
-                                    width: '65%', height: 200,
-                                }}
-
-                            />
-
-                            <Text style={{ color: "#003C43", fontSize: 22, marginTop: "5%" }}> Welcome :  {loomShade} </Text>
-
-                            <Text style={{ fontSize: 20, color: "#003C43", marginTop: "10%" }}> Add Contact Details  </Text>
-
-
-
-                            <View style={[styles.input, { marginTop: 30 }]}>
-
-                                <Icon name="account-tie" color="#003C43" size={32} padding={8} />
-
-                                <TextInput
-                                    style={{ marginLeft: "5%", color: "black", width: "70%" }}
-                                    placeholder='Owner Contact Details'
-                                    placeholderTextColor={"#003C43"}
-                                    onChangeText={(txt) => setOwnerContactDetails(txt)}
-                                    value={ownercontactDetails}
-
-                                />
-                            </View>
-
-                            <View style={styles.input}>
-
-
-                                <Icon name="account-star" color="#003C43" size={32} padding={8} />
-
-                                <TextInput
-                                    style={{ marginLeft: "5%", color: "black", width: "70%" }}
-                                    placeholder='Manager Contact Details'
-                                    placeholderTextColor={"#003C43"}
-                                    onChangeText={(txt) => setManagerContactDetails(txt)}
-                                    value={managercontactDetails}
-
-                                />
-                            </View>
-
-                            <View style={styles.input}>
-
-
-                                <Icon name="account-plus" color="#003C43" size={32} padding={8} />
-
-                                <TextInput
-                                    style={{ marginLeft: "5%", color: "black", width: "70%" }}
-                                    placeholder='Others Contact Details'
-                                    placeholderTextColor={"#003C43"}
-                                    onChangeText={(txt) => setOthersContactDetails(txt)}
-                                    value={otherscontactDetails}
-
-                                />
-                            </View>
-
-                            <TouchableOpacity
-                                style={[styles.loginButton, { marginTop: "5%", backgroundColor: '#FF7722' }]}
-                                onPress={() => getContact()}
-                            >
-                                <Text style={styles.loginText}> Submit </Text>
+                                console.log("OTP screen called")
+                            }}>
+                                <Text style={styles.loginText}>Submit</Text>
                             </TouchableOpacity>
 
                             <View style={{ flex: 1 }}>
@@ -808,6 +664,80 @@ const Signup = ({ navigation }) => {
                 : null}
 
 
+            {show4 ?
+                <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: "row", alignItems: 'center', height: 50, backgroundColor: '#003C43' }}>
+
+                        <TouchableOpacity
+                            //onPress={() => { setShow(true), setShow1(false), setShow2(false), setShow3(false) }}
+                            onPress={() => { setShow3(true), setShow4(false) }}
+                        >
+                            <Icon name="arrow-left" color="white" size={30} padding={6} />
+
+                        </TouchableOpacity>
+
+                        <View style={{ flex: 0.9, alignItems: 'center' }}>
+                            <Text style={{ fontSize: 26, color: "white", fontWeight: "500" }}> Kapada Banao </Text>
+
+                        </View>
+
+                    </View>
+
+                    <View style={{ flex: 1, alignItems: 'center', marginTop: '10%', }}>
+
+
+                        <Image
+                            source={require('../Images/img2.jpg')}
+                            style={{
+                                width: '65%', height: 200,
+                            }}
+
+                        />
+                        <View style={{ alignItems: 'center', marginTop: '10%', marginBottom: 20 }}>
+                            <Text style={{ fontSize: 28, color: "#003C43", fontWeight: "500" }}> Verify OTP </Text>
+                        </View>
+
+
+                        <View style={styles.input}>
+
+
+                            <Icon name="form-textbox-password" color="#003C43" size={32} padding={8} marginLeft={8} />
+
+                            <TextInput
+                                style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                placeholder='OTP'
+                                placeholderTextColor={"#003C43"}
+                                onChangeText={(txt) => setOtp(txt)}
+                                value={otp}
+
+                            />
+                        </View>
+
+
+
+
+
+
+                        <TouchableOpacity style={styles.loginButton} onPress={() => verifyotp()}>
+                            <Text style={styles.loginText}> Verify </Text>
+                        </TouchableOpacity>
+                        <View style={{ flex: 1 }}>
+                            {
+                                show2 ? <ActivityIndicator size={70} color="green" /> : null
+                            }
+                        </View>
+
+                    </View>
+                </View>
+                : null}
+
+
+            {/* https://textileapp.microtechsolutions.co.in/php/getdetail.php */}
+
+
+            {/* https://textileapp.microtechsolutions.co.in/php/getcontact.php */}
+
+
         </View>
     );
 };
@@ -819,7 +749,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
     },
     input: {
-        width: "83%",
+        width: width * 0.83,  // 83% of screen width
         flexDirection: "row",
         borderWidth: 2,
         borderColor: "#003C43",
@@ -827,17 +757,16 @@ const styles = StyleSheet.create({
         marginTop: 10,
         marginBottom: 10,
         padding: 2
-
     },
     loginButton: {
-        width: '50%',
+        width: width * 0.5,  // 50% of screen width
         height: 50,
         backgroundColor: '#003C43',
         borderRadius: 30,
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 25,
-        marginTop: '10%',
+        marginTop: height * 0.1,  // 10% of screen height
     },
     loginText: {
         color: '#fff',
@@ -845,13 +774,14 @@ const styles = StyleSheet.create({
         fontSize: 22,
     },
     dropdown: {
-        width: "80%",
-        height: 50,
+        width: width * 0.82,  // 82% of screen width
+        height: 58,
         borderColor: '#003C43',
-        borderBottomWidth: 2,
-        borderRadius: 10,
+        borderWidth: 2,
+        borderRadius: 18,
         paddingHorizontal: 8,
         color: "black",
+        marginTop: 12,
         marginBottom: 12,
         textDecorationColor: "grey",
     },
@@ -880,7 +810,7 @@ const styles = StyleSheet.create({
     },
     inputSearchStyle: {
         height: 40,
-        width: "120%",
+        width: width * 1.2,  // 120% of screen width
         color: "black"
     },
     centeredView: {
@@ -888,9 +818,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: 22,
-      },
-      modalView: {
-        marginTop:"80%",
+    },
+    modalView: {
+        marginTop: height * 0.8,  // 80% of screen height
         margin: 20,
         backgroundColor: 'white',
         borderRadius: 20,
@@ -898,45 +828,44 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: {
-          width: 0,
-          height: 2,
+            width: 0,
+            height: 2,
         },
         shadowOpacity: 0.25,
         shadowRadius: 4,
         elevation: 5,
-      },
-      button: {
+    },
+    button: {
         borderRadius: 20,
         padding: 10,
         elevation: 2,
-      },
-      buttonText: {
+    },
+    buttonText: {
         fontSize: 16,
         color: 'white',
         fontWeight: 'bold',
         textAlign: 'center',
-      },
-      modalButton: {
+    },
+    modalButton: {
         backgroundColor: '#007bff',
         borderRadius: 20,
         padding: 10,
         elevation: 2,
         marginTop: 10,
-        width:"40%"
-      },
-      modalButtonText: {
+        width: width * 0.4,  // 40% of screen width
+    },
+    modalButtonText: {
         fontSize: 16,
         color: 'white',
         fontWeight: 'bold',
         textAlign: 'center',
-      },
-      modalText: {
+    },
+    modalText: {
         fontSize: 18,
         fontWeight: 'bold',
         textAlign: 'center',
         marginBottom: 10,
-      },
-
+    },
 });
 
 export default Signup

@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, Text, View, Modal, Pressable, StatusBar, FlatList, RefreshControl, TouchableOpacity, ImageBackground, TextInput, ScrollView, Image, Button } from 'react-native'
+import { SafeAreaView, StyleSheet, Text, View, Modal, Pressable, StatusBar, FlatList, RefreshControl, TouchableOpacity, ImageBackground, TextInput, ScrollView, Image, Button, Alert } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import DateTimePicker from '@react-native-community/datetimepicker';
 import CheckBox from '@react-native-community/checkbox';
@@ -88,29 +88,37 @@ const LiveOrders = ({ navigation }) => {
 
     const fetchData = async () => {
         try {
-            const response = await fetch('https://textileapp.microtechsolutions.co.in/php/loomliveorder.php?LoomTraderId=' + await AsyncStorage.getItem("Id"));
-            const json = await response.json();
-            setOrders(json);
+          const userId = await AsyncStorage.getItem('Id');
+          const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/loomliveorder.php?LoomTraderId=${userId}`);
+          
+          if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+          const json = await response.json();
+  
+          const sortedOrdersJson = json.sort((a, b) => b.LoomOrderId - a.LoomOrderId);
+          setOrders(sortedOrdersJson);
         } catch (error) {
-            console.error('Error fetching data:', error);
+          console.error('Error fetching data:', error);
         }
-    };
-
+      };
+  
 
     const startOrder = async (order) => {
-        const confirmed = true
-        try {
-            const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/updateloomorder.php?LoomOrderId=${order.LoomOrderId}&Confirmed=${confirmed}`);
+        navigation.navigate("LiveBooking", { OrderNoId: order.LoomOrderId, OrderNo:order.OrderNo });
 
-            if (!response.ok) {
-                throw new Error('Something went wrong');
-            }
+        // const confirmed = true
+        // try {
+        //    const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/updateloomorder.php?LoomOrderId=${order.LoomOrderId}&Confirmed=${confirmed}`);
 
-            console.log('Order updated successfully');
-            navigation.navigate("LoomBooking")
-        } catch (error) {
-            console.error(error);
-        }
+        //     if (!response.ok) {
+        //         throw new Error('Something went wrong');
+        //     }
+
+        //     Alert.alert("Order Confirmed Successfully !!!")
+
+        //     console.log('Order updated successfully');
+        // } catch (error) {
+        //     console.error(error);
+        // }
     };
 
     const cancelOrder = async (order) => {
@@ -122,6 +130,8 @@ const LiveOrders = ({ navigation }) => {
                 throw new Error('Something went wrong');
             }
 
+            Alert.alert("Order Cancelled Successfully !!!")
+
             console.log('Order updated successfully');
         } catch (error) {
             console.error(error);
@@ -132,18 +142,28 @@ const LiveOrders = ({ navigation }) => {
 
 
     return (
-        <SafeAreaView style={{ backgroundColor: "#e5f2fe", flex: 1 }}>
-            <StatusBar backgroundColor={"#003c43"}></StatusBar>
-            <View style={{ backgroundColor: "#003c43", flexDirection: "row" }}>
-                <TouchableOpacity onPress={() => navigation.openDrawer()}>
-                    <ImageBackground
-                        source={require("../Images/drawer.png")}
-                        style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#003c43", marginTop: 15, marginRight: 0, marginLeft: 10 }}
-                        imageStyle={{ borderRadius: 0 }}
+        <SafeAreaView style={{ backgroundColor: "white", flex: 1 }}>
+
+            <View style={{ backgroundColor: "#003C43", flexDirection: "row", alignItems: 'center', height: 50 }}>
+
+                <TouchableOpacity
+                style={{padding:"3%"}}
+                    onPress={() => navigation.openDrawer()}
+                >
+                    <Image
+                        source={require("../Images/drawer1.png")}
+                        style={{ width: 28, height: 30, marginLeft: 10}}
+
                     />
                 </TouchableOpacity>
-                <Text style={{ fontSize: 25, color: "white", margin: "2.5%", marginLeft: "25%" }}>Live Orders</Text>
+
+
+                <View style={{ flex: 0.9, alignItems: 'center' }}>
+                    <Text style={{ fontSize: 26, color: "white", fontWeight: 500 }}> Live Orders </Text>
+                </View>
+
             </View>
+
             <ScrollView contentContainerStyle={styles.scrollView}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -159,20 +179,44 @@ const LiveOrders = ({ navigation }) => {
 
                         {showBlocks ? (
                             <View style={styles.ordersContainer}>
+
                                 {orders.map((order, index) => (
                                     order.Confirmed !== 1 ? (
                                         <View key={index} style={styles.orderWrapper}>
+
                                             <View style={styles.orderContainer}>
-                                                <Text style={styles.orderText}>{`Order No: ${order.OrderNo}\nParty Name: ${order.PartyName}\nQuality: ${order.Quality}`}</Text>
+
+                                                <View style={{ paddingLeft: 10, marginBottom: 10 }}>
+                                                    <Text style={styles.orderText}>{`Order No : ${order.OrderNo}\nParty Name : ${order.PartyName}\nQuality : ${order.Quality}`}</Text>
+                                                </View>
+
+                                                <View style={styles.buttonContainer}>
+                                                    <View style={{ flex: 1, alignItems: 'center' }}>
+                                                        <TouchableOpacity
+                                                            style={[styles.button, { backgroundColor: '#77B0AA' }]}
+                                                            onPress={() => startOrder(order)}
+                                                        >
+                                                            <Text style={styles.buttonText}>Start Order</Text>
+                                                        </TouchableOpacity>
+                                                    </View>
+
+                                                    <View style={{ flex: 1, alignItems: 'center' }}>
+                                                        <TouchableOpacity
+                                                            style={[styles.button, { backgroundColor: '#FF7722' }]}
+                                                            onPress={() => cancelOrder(order)}
+                                                        >
+                                                            <Text style={styles.buttonText}>Cancel Order</Text>
+                                                        </TouchableOpacity>
+                                                    </View>
+
+
+
+                                                </View>
+
                                             </View>
-                                            <View style={styles.buttonContainer}>
-                                                <TouchableOpacity style={styles.button} onPress={() => startOrder(order)}>
-                                                    <Text style={styles.buttonText}>Start Order</Text>
-                                                </TouchableOpacity>
-                                                <TouchableOpacity style={styles.button} onPress={() => cancelOrder(order)}>
-                                                    <Text style={styles.buttonText}>Cancel Order</Text>
-                                                </TouchableOpacity>
-                                            </View>
+
+
+
                                         </View>
                                     ) : null
                                 ))}
@@ -181,19 +225,33 @@ const LiveOrders = ({ navigation }) => {
                     </View>
                 </View >
             </ScrollView >
-            <View style={{ flexDirection: "row", justifyContent: 'space-evenly', borderWidth: 1, borderColor: "#0A5D47" }}>
-                <View style={{ justifyContent: "center", alignItems: "center" }}>
-                    <TouchableOpacity onPress={() => navigation.navigate("Confirm_Orders")}>
-                        <Text style={{ color: "#0A5D47", fontSize: 20, padding: 5 }}>Confirmed Orders</Text>
-                    </TouchableOpacity>
-                </View>
-                <Text style={{ color: "#0A5D47", fontSize: 20 }}>|</Text>
-                <View style={{ justifyContent: "center", alignItems: "center", backgroundColor: "#0A5D47", width: "40%", borderRadius: 50 }}>
-                    <TouchableOpacity>
+
+            <View style={{ flexDirection: "row", borderWidth: 1, height: 50, borderColor: "#0A5D47" }}>
+
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center", }}>
+                    <TouchableOpacity
+                        style={{ width: '100%', height: '100%', backgroundColor: "#135D66", justifyContent: "center", alignItems: "center", }}
+
+                    >
                         <Text style={{ color: "#fff", fontSize: 20 }}>Live Orders</Text>
                     </TouchableOpacity>
                 </View>
+
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                    <TouchableOpacity
+                        style={{ width: '100%', justifyContent: "center", alignItems: "center", }}
+
+                        onPress={() => navigation.navigate("ConfirmOrds")}
+                    >
+                        <Text style={{ color: "#003C43", fontSize: 20, padding: 5 }}>Confirmed Orders</Text>
+                    </TouchableOpacity>
+                </View>
+
+
+
+
             </View>
+
         </SafeAreaView>
     )
 }
@@ -203,7 +261,8 @@ export default LiveOrders
 
 const styles = StyleSheet.create({
     container: {
-        padding: 20,
+        padding: 15,
+
     },
     heading: {
         fontSize: 24,
@@ -232,10 +291,10 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     orderContainer: {
-        padding: 15,
-        borderRadius: 10,
-        marginBottom: 10,
-        backgroundColor: "#0A5D47",
+        padding: 10,
+        borderRadius: 15,
+        borderWidth: 2,
+        borderColor: "#003C43",
     },
     startedOrder: {
         backgroundColor: '#4CAF50', // Green for started orders
@@ -244,15 +303,11 @@ const styles = StyleSheet.create({
         backgroundColor: '#F44336', // Red for cancelled orders
     },
     orderText: {
-        color: '#fff', // Text color for better contrast
+        color: 'black', // Text color for better contrast
         fontSize: 16,
     },
     buttonContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-evenly',
-        backgroundColor: '#0E8C6B',
-        borderRadius: 10,
-        paddingVertical: 10,
         alignItems: 'center',
     },
     startButton: {
@@ -272,6 +327,7 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#fff',
         fontSize: 16,
+
     },
     button1: {
         alignItems: "center",
@@ -308,6 +364,13 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         marginRight: 0,
         width: 1200
+    },
+    button: {
+        width: '90%',
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 20,
     },
     submitButton: {
         backgroundColor: 'green',

@@ -1,25 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, ImageBackground } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, ImageBackground, Alert, Dimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
+const { width, height } = Dimensions.get('window');
 
 const GeneratedEnquires = ({ navigation }) => {
-
     const [enquiries, setEnquiries] = useState([]);
     const [selectedEnquiry, setSelectedEnquiry] = useState(null);
     const [username, setUserName] = useState("");
-    const [AppUserId, setAppUserId] = useState("")
-    const [LoomOrTrader, SetLoomOrTrader] = useState("")
-    const [id, setId] = useState("")
+    const [AppUserId, setAppUserId] = useState("");
+    const [LoomOrTrader, SetLoomOrTrader] = useState("");
+    const [id, setId] = useState("");
 
-    useEffect(async () => {
+    useEffect(() => {
         getData();
-        const traderId = await AsyncStorage.getItem("Id");
-        fetch('https://textileapp.microtechsolutions.co.in/php/getjoin.php?TraderId=' + traderId)
-            .then((response) => response.json())
-            .then((data) => setEnquiries(data))
-            .catch((error) => console.error('Error fetching data:', error));
+        fetchData();
     }, []);
+
+    const fetchData = async () => {
+        try {
+            const response = await axios.get('https://textileapp.microtechsolutions.co.in/php/getjoin.php?TraderId=' + await AsyncStorage.getItem("Id"));
+            const sortedData = response.data.sort((a, b) => b.EnquiryId - a.EnquiryId); // Sort in descending order
+            setEnquiries(sortedData);
+            console.log(sortedData);
+        } catch (error) {
+            console.error('Error fetching data: ', error);
+        }
+    }
 
     const renderEnquiryItem = ({ item }) => (
         <TouchableOpacity style={styles.card} onPress={() => setSelectedEnquiry(item)}>
@@ -30,25 +38,44 @@ const GeneratedEnquires = ({ navigation }) => {
     const getData = async () => {
         const Name = await AsyncStorage.getItem("Name");
         const AppUserId = await AsyncStorage.getItem("AppUserId");
-        const LoomOrTrader = await AsyncStorage.getItem("LoomOrTrader")
-        const Id = await AsyncStorage.getItem("Id")
+        const LoomOrTrader = await AsyncStorage.getItem("LoomOrTrader");
+        const Id = await AsyncStorage.getItem("Id");
 
-        setUserName(Name)
-        setAppUserId(AppUserId)
-        SetLoomOrTrader(LoomOrTrader)
-        setId(Id)
-
+        setUserName(Name);
+        setAppUserId(AppUserId);
+        SetLoomOrTrader(LoomOrTrader);
+        setId(Id);
     }
 
+    const DeleteEnq = async () => {
+        const formdata = new FormData();
+        formdata.append("EnquiryId", selectedEnquiry.EnquiryId);
 
+        const requestOptions = {
+            method: "POST",
+            body: formdata,
+            redirect: "follow"
+        };
+
+        fetch("https://textileapp.microtechsolutions.co.in/php/delenquiry.php", requestOptions)
+            .then((response) => {
+                response.text();
+                fetchData();
+            })
+            .then((result) => console.log(result))
+            .catch((error) => {
+                console.error(error);
+                Alert.alert("Enquiry Cannot Be Deleted");
+            });
+    }
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
             <View style={styles.headerContainer}>
-                <TouchableOpacity style={{ width: "12%" }} onPress={() => navigation.navigate("PlanLooms")}>
+                <TouchableOpacity style={styles.backButtonContainer} onPress={() => navigation.goBack()}>
                     <ImageBackground
                         source={require("../Images/back.png")}
-                        style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#003c43", marginTop: 0, marginRight: 0, marginLeft: 10 }}
+                        style={styles.backButtonImage}
                         imageStyle={{ borderRadius: 0 }}
                     />
                 </TouchableOpacity>
@@ -58,16 +85,12 @@ const GeneratedEnquires = ({ navigation }) => {
                 {selectedEnquiry ? (
                     <ScrollView contentContainerStyle={styles.detailsContainer}>
                         <View style={styles.detailItem}>
-                            <Text style={styles.label}>EnquiryId:</Text>
-                            <Text style={styles.value}>{selectedEnquiry.EnquiryId}</Text>
+                            <Text style={styles.label}>EnquiryNo:</Text>
+                            <Text style={styles.value}>{selectedEnquiry.EnquiryNo}</Text>
                         </View>
                         <View style={styles.detailItem}>
                             <Text style={styles.label}>EnquiryDate:</Text>
                             <Text style={styles.value}>{selectedEnquiry.EnquiryDate.date.substring(0, 10)}</Text>
-                        </View>
-                        <View style={styles.detailItem}>
-                            <Text style={styles.label}>TraderId:</Text>
-                            <Text style={styles.value}>{selectedEnquiry.TraderId}</Text>
                         </View>
                         <View style={styles.detailItem}>
                             <Text style={styles.label}>BookingFrom:</Text>
@@ -115,26 +138,37 @@ const GeneratedEnquires = ({ navigation }) => {
                         </View>
                         <View style={styles.detailItem}>
                             <Text style={styles.label}>NoofFeeder:</Text>
-                            <Text style={styles.value}>{selectedEnquiry.NoofFeeder}</Text>
+                            <Text style={styles.value}>{selectedEnquiry.NoofFeedero}</Text>
                         </View>
-                        <View style={styles.detailItem}>
-                            <Text style={styles.label}>SelvageJacquard:</Text>
-                            <Text style={styles.value}>{selectedEnquiry.SelvageJacquard}</Text>
-                        </View>
-                        <View style={styles.detailItem}>
-                            <Text style={styles.label}>TopBeam:</Text>
-                            <Text style={styles.value}>{selectedEnquiry.TopBeam}</Text>
-                        </View>
-                        <View style={styles.detailItem}>
-                            <Text style={styles.label}>Cramming:</Text>
-                            <Text style={styles.value}>{selectedEnquiry.Cramming}</Text>
-                        </View>
-                        <View style={styles.detailItem}>
-                            <Text style={styles.label}>LenoDesignEquipment:</Text>
-                            <Text style={styles.value}>{selectedEnquiry.LenoDesignEquipment}</Text>
-                        </View>
+                        {selectedEnquiry.SelvageJacquard === 1 && (
+                            <View style={styles.detailItem}>
+                                <Text style={styles.label}>SelvageJacquard:</Text>
+                                <Text style={styles.value}>Required</Text>
+                            </View>
+                        )}
+                        {selectedEnquiry.TopBeam === 1 && (
+                            <View style={styles.detailItem}>
+                                <Text style={styles.label}>TopBeam:</Text>
+                                <Text style={styles.value}>Required</Text>
+                            </View>
+                        )}
+                        {selectedEnquiry.Cramming === 1 && (
+                            <View style={styles.detailItem}>
+                                <Text style={styles.label}>Cramming:</Text>
+                                <Text style={styles.value}>Required</Text>
+                            </View>
+                        )}
+                        {selectedEnquiry.LenoDesignEquipment === 1 && (
+                            <View style={styles.detailItem}>
+                                <Text style={styles.label}>Leno Design Equipment:</Text>
+                                <Text style={styles.value}>Required</Text>
+                            </View>
+                        )}
                         <TouchableOpacity style={styles.backButton} onPress={() => setSelectedEnquiry(null)}>
                             <Text style={styles.backButtonText}>Back</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.deleteButton} onPress={() => DeleteEnq()}>
+                            <Text style={styles.backButtonText}>Delete</Text>
                         </TouchableOpacity>
                     </ScrollView>
                 ) : (
@@ -146,10 +180,10 @@ const GeneratedEnquires = ({ navigation }) => {
                 )}
             </View>
         </SafeAreaView>
-    )
+    );
 }
 
-export default GeneratedEnquires
+export default GeneratedEnquires;
 
 const styles = StyleSheet.create({
     headerContainer: {
@@ -159,22 +193,32 @@ const styles = StyleSheet.create({
         backgroundColor: "#003c43",
         width: "100%",
     },
+    backButtonContainer: {
+        width: "20%",
+        padding: "2%",
+    },
+    backButtonImage: {
+        width: 34,
+        height: 30,
+        alignSelf: 'flex-start',
+        marginLeft: 10,
+    },
     header: {
         fontSize: 24,
         fontWeight: 'bold',
-        marginLeft: -20,
         flex: 1,
         textAlign: 'center',
         paddingVertical: "2%",
-        color: "#fff"
+        color: "#fff",
+        marginRight: "20%", // Adjust to balance the header text
     },
     container: {
         flex: 1,
-        padding: 16,
-        backgroundColor: '#f4f4f5',
+        backgroundColor: 'white',
+        paddingHorizontal: width * 0.05,
     },
     card: {
-        padding: 16,
+        padding: width * 0.04,
         backgroundColor: '#fff',
         borderRadius: 8,
         shadowColor: '#000',
@@ -187,9 +231,10 @@ const styles = StyleSheet.create({
     enquiryNumber: {
         fontSize: 18,
         fontWeight: 'bold',
+        color: "#000"
     },
     detailsContainer: {
-        padding: 16,
+        padding: width * 0.04,
         backgroundColor: '#fff',
         borderRadius: 8,
         shadowColor: '#000',
@@ -198,30 +243,30 @@ const styles = StyleSheet.create({
         shadowRadius: 3.84,
         elevation: 5,
     },
-    detailTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 16,
-        textAlign: 'center',
-    },
     detailItem: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginVertical: 8,
+        marginVertical: height * 0.01,
     },
     label: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#555',
+        color: '#000',
     },
     value: {
         fontSize: 16,
-        color: '#333',
+        color: '#000',
     },
     backButton: {
-        marginTop: 16,
-        padding: 12,
-        backgroundColor: '#007bff',
+        marginTop: height * 0.02,
+        padding: height * 0.015,
+        backgroundColor: '#135D66',
+        borderRadius: 8,
+    },
+    deleteButton: {
+        marginTop: height * 0.02,
+        padding: height * 0.015,
+        backgroundColor: 'red',
         borderRadius: 8,
     },
     backButtonText: {
@@ -229,4 +274,4 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 16,
     },
-})
+});

@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Modal, ImageBackground, ScrollView, FlatList, Pressable, Image } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
+import Icon from 'react-native-vector-icons/Ionicons';
 
 
 const { width, height } = Dimensions.get('window');
@@ -27,6 +27,7 @@ const ConfirmEnquires = ({ navigation }) => {
   const [LoomOrTrader, setLoomOrTrader] = useState("");
   const [mobileno, setMobileNo] = useState("");
   const [gstno, setGSTNO] = useState("")
+  const [showEnquiryForm, setShowEnquiryForm] = useState(false);
 
   const [showmsg, setShowMsg] = useState(true)
   const [isConected, setisConnected] = useState(false)
@@ -80,9 +81,10 @@ const ConfirmEnquires = ({ navigation }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=Enquiry&Colname=TraderId&Colvalue=' + await AsyncStorage.getItem("Id"));
+        const response = await axios.get('https://textileapp.microtechsolutions.co.in/php/getjoin.php?TraderId=' + await AsyncStorage.getItem("Id"));
         const sortedData = response.data.sort((a, b) => b.EnquiryId - a.EnquiryId); // Sort in descending order
         setEnquiries(sortedData);
+        console.log(sortedData)
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data: ', error);
@@ -96,11 +98,23 @@ const ConfirmEnquires = ({ navigation }) => {
 
   const fetchEnquiryDetails = async (EnquiryId) => {
     try {
-      const response = await axios.get('https://textileapp.microtechsolutions.co.in/php/getjoin2.php?EnquiryId='+EnquiryId);
+      const response = await axios.get('https://textileapp.microtechsolutions.co.in/php/getjoin2.php?EnquiryId=' + EnquiryId);
       setEnquiryDetails(response.data);
     } catch (error) {
       console.error('Error fetching enquiry details: ', error);
     }
+  };
+
+  const [enquiryDetailsmodal, setEnquiryDetailsModal] = useState([])
+
+  const fetchEnquiryDetails1 = async (EnquiryId) => {
+    try {
+      const response = await axios.get('https://textileapp.microtechsolutions.co.in/php/getjoin.php?EnquiryId=' + EnquiryId);
+      setEnquiryDetailsModal(response.data);
+    } catch (error) {
+      console.error('Error fetching enquiry details: ', error);
+    }
+    setShowEnquiryForm(true)
   };
 
   const confirmEnquiry = () => {
@@ -115,30 +129,30 @@ const ConfirmEnquires = ({ navigation }) => {
       'EnquiryConfirmId': selectedData?.Id,
       'PartyName': Name,
       'JobRate': selectedData?.JobRateExp,
-      'Quality': selectedData?.Quality,
+      'Quality': selectedData?.FabricQuality,
       'Orderdate': new Date().toISOString().split('T')[0],
       'BookedDateFrom': selectedData?.DatePossibleFrom.date.substring(0, 10),
-      'BookedDateTo': selectedData?.DatePossibleTo.date.substring(0, 10) 
+      'BookedDateTo': selectedData?.DatePossibleTo.date.substring(0, 10)
     });
-    
+
     let config = {
       method: 'post',
       maxBodyLength: Infinity,
       url: 'https://textileapp.microtechsolutions.co.in/php/postloomorder.php',
-      headers: { 
+      headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
-      data : data
+      data: data
     };
-    
+
     axios.request(config)
-    .then((response) => {
-      console.log(JSON.stringify(response.data));
-      SendEmail(response.data)
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+      .then((response) => {
+        console.log(JSON.stringify(response.data));
+        SendEmail(response.data)
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   const UpdateEnquiryConfirm = () => {
@@ -160,7 +174,7 @@ const ConfirmEnquires = ({ navigation }) => {
       .then((result) => console.log(result))
       .catch((error) => console.error(error));
 
-      postLoomOrder();
+    postLoomOrder();
 
   }
 
@@ -169,25 +183,30 @@ const ConfirmEnquires = ({ navigation }) => {
     setShowConfirmModal(false);
     navigation.navigate("PlanLooms");
   }
+  const [quality, setQuality] = useState("")
 
   const selectEnquiry = (enquiry) => {
     setSelectedEnquiry(enquiry);
     fetchEnquiryDetails(enquiry.EnquiryId);
+    setQuality(enquiry.FabricQuality)
     setShowE(false);
     setShowEC(true);
   };
 
   const renderEnquiries = () => (
     enquiries.map((item, index) => (
-      <TouchableOpacity key={index} onPress={() => selectEnquiry(item)}>
+        <TouchableOpacity key={index} onPress={() => selectEnquiry(item)}>
         <View style={styles.itemContainer}>
-          <Text style={styles.itemText}>Enquiry NO: {item.EnquiryNo}</Text>
+          <Text style={styles.itemText}>Enquiry No: {item.EnquiryNo}</Text>
+          <TouchableOpacity style={{ padding: "2%", marginTop: "-2%" }} onPress={() => fetchEnquiryDetails1(item.EnquiryId)}>
+            <Icon name="information-circle" size={22} color="grey" />
+          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     ))
   );
 
-const[Email,setEmail]=useState("")
+  const [Email, setEmail] = useState("")
 
   const handleLoomDetails = (item) => {
     setEmail(item.AppUserId)
@@ -207,22 +226,22 @@ const[Email,setEmail]=useState("")
   }
 
 
-  const SendEmail=(OrderNo)=>{
-    console.log("OrderNo = ",OrderNo)
+  const SendEmail = (OrderNo) => {
+    console.log("OrderNo = ", OrderNo)
     const formdata = new FormData();
-formdata.append("AppUserId", Email );
-formdata.append("Body", 'Your Offer is Accepted by the '+Name+' Traders, navigate to Live Orders in Your app To Start Order And Book Your Loom For This Order; To Start Order Your Order No is '+OrderNo+' Thank You'+ "From : KapadaBanao Team");
+    formdata.append("AppUserId", 'satejshendage@gmail.com');
+    formdata.append("Body", 'Your ' +(selectedData?.LoomPossible)+' Looms are booked from '+(selectedData?.DatePossibleFrom.date.substring(0, 10))+' to '+(selectedData?.DatePossibleTo.date.substring(0, 10))+' is placed with ' + Name + '  Traders,with job rate of '+(selectedData?.JobRateExp)+' Paise Your OrderNo is '+OrderNo+' please Proceed for Contact Formation '+`\n`+'Contact Details of Trader:- '+`\n`+' Name : '+Name+ `\n`+'Contact No. : '+mobileno+ `\n`+'E-mail : '+AppUserId+ `\n`);
 
-const requestOptions = {
-  method: "POST",
-  body: formdata,
-  redirect: "follow"
-};
+    const requestOptions = {
+      method: "POST",
+      body: formdata,
+      redirect: "follow"
+    };
 
-fetch("https://textileapp.microtechsolutions.co.in/php/sendemail.php", requestOptions)
-  .then((response) => response.text())
-  .then((result) => console.log(result))
-  .catch((error) => console.error(error));
+    fetch("https://textileapp.microtechsolutions.co.in/php/sendemail.php", requestOptions)
+      .then((response) => response.text())
+      .then((result) => console.log(result))
+      .catch((error) => console.error(error));
   }
 
 
@@ -233,7 +252,7 @@ fetch("https://textileapp.microtechsolutions.co.in/php/sendemail.php", requestOp
       ) : (
         <>
           {showE ? (
-            <ScrollView style={styles.flatList}>
+            <View>
               <View style={{ flexDirection: "row", backgroundColor: "#003C43", width: "100%", marginBottom: "5%" }}>
                 <TouchableOpacity onPress={() => navigation.navigate('PlanLooms')}>
                   <ImageBackground
@@ -245,8 +264,12 @@ fetch("https://textileapp.microtechsolutions.co.in/php/sendemail.php", requestOp
                 <Text style={styles.detailsTitle}>Enquiry List </Text>
 
               </View>
-              {renderEnquiries()}
-            </ScrollView>
+              <ScrollView>
+
+                {renderEnquiries()}
+                <Text style={{marginTop:"50%"}}></Text>
+              </ScrollView>
+            </View>
           ) : null}
           {showEC ? (
             <View>
@@ -261,7 +284,6 @@ fetch("https://textileapp.microtechsolutions.co.in/php/sendemail.php", requestOp
                           imageStyle={{ borderRadius: 0 }}
                         />
                       </TouchableOpacity>
-                      <Text style={styles.detailsTitle}>Enquiry Details:</Text>
 
                     </View> :
                     <View style={{ flexDirection: "row", backgroundColor: "#003C43", width: "120%", marginLeft: "-8%", marginTop: "-5%" }}>
@@ -272,7 +294,15 @@ fetch("https://textileapp.microtechsolutions.co.in/php/sendemail.php", requestOp
                           imageStyle={{ borderRadius: 0 }}
                         />
                       </TouchableOpacity>
-                      <Text style={styles.detailsTitle}>Enquiry Details</Text>
+
+
+                      {
+                        enquiryDetails.map((item, index) => (
+                          <Text style={styles.detailsTitle}>Response for {item.EnquiryNo}</Text>
+
+                        ))
+                      }
+
 
                     </View>
                 }
@@ -282,8 +312,7 @@ fetch("https://textileapp.microtechsolutions.co.in/php/sendemail.php", requestOp
                   <ScrollView horizontal>
                     <Text style={styles.detailsHeaderText}>Loom</Text>
                     <Text style={styles.detailsHeaderText}>Date Possible</Text>
-                    <Text style={styles.detailsHeaderText}>Job Rate Exp</Text>
-                    <Text style={[styles.detailsHeaderText]}>Enquiry Id</Text>
+                    <Text style={[styles.detailsHeaderText, { marginLeft: 20 }]}>Job Rate Exp</Text>
                     <Text style={[styles.detailsHeaderText, { marginRight: 30 }]}>Action</Text>
 
                   </ScrollView>
@@ -294,12 +323,11 @@ fetch("https://textileapp.microtechsolutions.co.in/php/sendemail.php", requestOp
                       <ScrollView key={index} horizontal={true}>
                         <View style={[styles.detailsItemContainer, index % 2 === 0 ? styles.rowColor1 : styles.rowColor2]}>
                           <Text style={[styles.detailsItemText, styles.column1]}>{item.Name}</Text>
-                          <View style={{ flexDirection: "column" }}>
+                          <View style={{ flexDirection: "column", marginLeft: "-15%" }}>
                             <Text style={[styles.detailsItemText, styles.column2]}>{item.DatePossibleFrom.date.substring(0, 10)}</Text>
                             <Text style={[styles.detailsItemText, styles.column2]}>{item.DatePossibleTo.date.substring(0, 10)}</Text>
                           </View>
                           <Text style={[styles.detailsItemText, styles.column3]}>{item.JobRateExp}</Text>
-                          <Text style={[styles.detailsItemText, styles.column4]}>{item.EnquiryId}</Text>
                           <TouchableOpacity
                             style={[
                               styles.confirmButton,
@@ -317,30 +345,39 @@ fetch("https://textileapp.microtechsolutions.co.in/php/sendemail.php", requestOp
               </ScrollView>
             </View>
           ) : null}
+
           {
-            showmsg ? <View style={{ flex: 2, alignItems: "flex-end", justifyContent: "flex-end" }}>
-              <View style={{
-                bottom: 0,
-                height: 20,
-                width: '100%',
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: isConected ? 'green' : 'red'
-
-              }}>
-                <Text style={{ color: "#fff" }}>
-                  {(() => {
-                    if (isConected === true) {
-                      'Back Online'
-                    } else {
-                      'No Internet'
-                    }
-                  })}
-                </Text>
-
-              </View>
-            </View> : null
+            enquiryDetailsmodal.map((item, index) => (
+              <Modal
+                animationType="slide"
+                transparent={true}
+                visible={showEnquiryForm}
+                onRequestClose={() => setShowEnquiryForm(false)}
+              >
+                <View style={styles.modalBackground}>
+                  <View style={styles.modalContainer}>
+                    <TouchableOpacity style={styles.backButton} onPress={() => { setShowEnquiryForm(false) }}>
+                      <Text style={styles.backButtonText}>Back</Text>
+                    </TouchableOpacity>
+                    <View>
+                    <Text style={{fontWeight:"600",fontSize:20,color:"#000",marginBottom:"10%"}}>Enquiry Details</Text>
+                    </View>
+                    <Text style={styles.modalText}>Enquiry No: {item.EnquiryNo}</Text>
+                    <Text style={styles.modalText}>Enquiry Date: {item.EnquiryDate.date.substring(0, 10)}</Text>
+                    <Text style={styles.modalText}>Fabric Quality: {item.FabricQuality}</Text>
+                    <Text style={styles.modalText}>Fabric Length: {item.FabricLength}</Text>
+                    <Text style={styles.modalText}>Booking From: {item.BookingFrom.date.substring(0, 10)}</Text>
+                    <Text style={styles.modalText}>Booking To: {item.BookingTo.date.substring(0, 10)}</Text>
+                    <Text style={styles.modalText}>Offered Job Rate: {item.OfferedJobRate}</Text>
+                    <Text style={styles.modalText}>Delivery Date: {item.DeliveryDate.date.substring(0, 10)}</Text>
+                  </View>
+                </View>
+              </Modal>
+            ))
           }
+
+
+
           <Modal
             animationType="slide"
             transparent={true}
@@ -360,9 +397,9 @@ fetch("https://textileapp.microtechsolutions.co.in/php/sendemail.php", requestOp
                     />
                   </TouchableOpacity>
                 </View>
-                <Text style={styles.modalText}>Enquiry ID: {selectedData?.EnquiryId}</Text>
+                <Text style={styles.modalText}>Enquiry No: {selectedData?.EnquiryNo}</Text>
                 <Text style={styles.modalText}>Loom Possible To Assign: {selectedData?.LoomPossible}</Text>
-                <Text style={styles.modalText}>Loom Name: {selectedData?.Name}</Text>
+                <Text style={styles.modalText}>Company Name: {selectedData?.Name}</Text>
                 <Text style={styles.modalText}>Jobrate (In Paise): {selectedData?.JobRateExp}</Text>
                 <Text style={styles.modalText}>From Date: {selectedData?.DatePossibleFrom.date.substring(0, 10)}</Text>
                 <Text style={styles.modalText}>To Date: {selectedData?.DatePossibleTo.date.substring(0, 10)}</Text>
@@ -389,8 +426,8 @@ fetch("https://textileapp.microtechsolutions.co.in/php/sendemail.php", requestOp
               <View style={styles.modalView}>
                 <Text style={styles.modalText}>Congratulations !!! {Name}</Text>
                 <Text style={styles.modalText}>
-                  Your order number {selectedData?.EnquiryId} of {selectedData?.LoomPossible} Looms is confirmed with {selectedData?.AppUserId} .
-                  with the job rate of {selectedData?.JobRateExp} paise from {selectedData?.DatePossibleFrom.date.substring(0, 10)} to {selectedData?.DatePossibleTo.date.substring(0, 10)}.
+                  Your order number {selectedData?.EnquiryId} of {selectedData?.LoomPossible} Looms is confirmed with {selectedData?.Name}.{`\n`}
+                  with the job rate of {selectedData?.JobRateExp} paise {`\n`} from {selectedData?.DatePossibleFrom.date.substring(0, 10)} to {selectedData?.DatePossibleTo.date.substring(0, 10)}.{`\n`}
                   Please proceed for contract formation. Contact details of ({selectedData?.AppUserId}, {selectedData?.PrimaryContact}, {selectedData?.AppUserId})
                   Dalal/Agent Name & Contact No.
                 </Text>
@@ -412,9 +449,7 @@ fetch("https://textileapp.microtechsolutions.co.in/php/sendemail.php", requestOp
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ecf0f1',
+    backgroundColor: 'white',
   },
   flatList: {
     width: width * 0.9,
@@ -434,6 +469,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.23,
     shadowRadius: height * 0.005,
     elevation: 4,
+    flexDirection: "row"
   },
   itemText: {
     fontSize: width * 0.04,
@@ -474,10 +510,11 @@ const styles = StyleSheet.create({
     fontSize: width * 0.04,
     textAlign: 'center',
     color: '#333333',
-    paddingHorizontal: width * 0.02,
+    paddingHorizontal: width * 0.01,
   },
   column1: {
     flex: 1,
+    marginLeft: "-20%"
   },
   column2: {
     flex: 1.5,
@@ -485,9 +522,43 @@ const styles = StyleSheet.create({
   },
   column3: {
     flex: 1,
+    marginLeft: "-18%"
   },
   column4: {
     flex: 1,
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContainer: {
+    width: '80%',
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  modalText: {
+    fontSize: 16,
+    marginBottom: 10,
+    fontWeight:"500",
+    marginTop:"7%",
+    color:"#000"
+  },
+  detailContainer: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    marginBottom: 10,
+    width: "100%"
   },
   detailsTitle: {
     fontSize: width * 0.05,
@@ -497,7 +568,8 @@ const styles = StyleSheet.create({
     marginBottom: height * 0.01,
     color: '#fff',
     marginLeft: "20%",
-    height: height * 0.035
+    height: height * 0.035,
+    width:width*1
   },
   rowColor1: {
     backgroundColor: '#f9f9f9',
@@ -549,11 +621,23 @@ const styles = StyleSheet.create({
     color: "#000",
     fontFamily: 'Courier',
   },
+  backButton: {
+    backgroundColor: "#ff0000",
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+    alignSelf: 'flex-end',
+  },
+  backButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
   confirmButton: {
     backgroundColor: '#0909ff',
     padding: 8,
     borderRadius: 4,
-    marginLeft: 16,
+    marginLeft: "-20%",
+    marginRight: "15%"
   },
   confirmedButton: {
     backgroundColor: 'green',
@@ -591,13 +675,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'Courier',
   },
-  modalText: {
-    marginBottom: 10,
-    color: "#000",
-    fontSize: 17,
-    fontFamily: 'Courier',
-    margin: 15
-  },
+
   button: {
     backgroundColor: "#2196F3",
     borderRadius: 5,

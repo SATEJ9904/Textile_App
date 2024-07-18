@@ -1,12 +1,14 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, ScrollView, Alert, ActivityIndicator, ToastAndroid, Modal, Animated } from 'react-native'
-import React, { useEffect, useState, useRef } from 'react'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, ScrollView, Alert, Modal, ActivityIndicator, ToastAndroid,Dimensions  } from 'react-native'
+import React, { useEffect, useRef, useState } from 'react'
 import { getAllCountries, getStatesOfCountry, getCitiesOfState, Country, State, City } from 'country-state-city';
 import { Dropdown } from 'react-native-element-dropdown';
 import { RadioButton } from 'react-native-paper';
 import axios from 'axios';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import LottieView from 'lottie-react-native';
 
+const { width, height } = Dimensions.get('window');
 
 const SignupTrader = ({ navigation }) => {
 
@@ -24,6 +26,8 @@ const SignupTrader = ({ navigation }) => {
     const [managercontactDetails, setManagerContactDetails] = useState('');
     const [otherscontactDetails, setOthersContactDetails] = useState('');
     const [primaryContactNo, setPrimaryContactNo] = useState('');
+    const [TotalNoOfLooms, setTotalNoOfLooms] = useState("");
+    const [LoomOrTrader, setLoomOrTrader] = useState(null);
     const [value, setValue] = useState(null);
     const [value2, setValue2] = useState(null);
     const [value3, setValue3] = useState(null);
@@ -34,10 +38,9 @@ const SignupTrader = ({ navigation }) => {
     const [show, setShow] = useState(false)
     const [show1, setShow1] = useState(false)
     const [show3, setShow3] = useState(true)
-    const [show2, setShow2] = useState(false)
     const [show4, setShow4] = useState(false)
-    const [showModal, setShowModal] = useState(false);
-    const animatedValue = React.useRef(new Animated.Value(0)).current;
+    const [show2, setShow2] = useState(false)
+    const [modalVisible, setModalVisible] = useState(false);
 
     const showToast = () => {
         ToastAndroid.show("Account Created Successfully", ToastAndroid.SHORT);
@@ -49,6 +52,16 @@ const SignupTrader = ({ navigation }) => {
 
     const showToast2 = () => {
         ToastAndroid.show("Data Inserted Successfully", ToastAndroid.SHORT);
+    };
+
+
+    const dataArray = [ownercontactDetails, managercontactDetails, otherscontactDetails];
+
+    const toggleModal = () => {
+        setModalVisible(!modalVisible);
+        setEmail("");
+        setShow4(false)
+        setShow3(true)
     };
 
     const validateFields = () => {
@@ -95,7 +108,10 @@ const SignupTrader = ({ navigation }) => {
         return true;
     };
 
+
     const postAPI = () => {
+
+        console.log("PostApi called")
 
         if (validateFields()) {
             setShow2(true);
@@ -117,63 +133,120 @@ const SignupTrader = ({ navigation }) => {
             axios.request(config)
                 .then((response) => {
                     console.log(JSON.stringify(response.data));
-                    showToast()
+                    showToast();
+                    postDetails()
                     setShow2(false);
-                    setShow(false)
-                    setShow4(true)
-                    setShow3(false)
                 })
                 .catch((error) => {
                     if (error.response && error.response.status === 500) {
-                        console.log("Entered Email Already Exists Please Try Another One eww");
-                        setShowModal(true); // Show modal on error
-                        setShow2(false);
+                        toggleModal()
                     } else {
                         console.log(error);
                     }
+                    setShow2(false);
                 });
+
         }
 
 
     };
 
-    React.useEffect(() => {
-        if (showModal) {
-            Animated.timing(animatedValue, {
-                toValue: 1,
-                duration: 500,
-                useNativeDriver: true,
-            }).start();
-        }
-    }, [showModal, animatedValue]);
+
+    const sendOTP = () => {
+
+        const formdata = new FormData();
+        formdata.append("Email", Email);
+        formdata.append("Name", loomShade);
+
+        const requestOptions = {
+            method: "POST",
+            body: formdata,
+            redirect: "follow"
+        };
+
+        fetch("https://textileapp.microtechsolutions.co.in/php/sendemailotp.php", requestOptions)
+            .then((response) => response.text())
+            .then((result) => {
+                console.log(result)
+                setShow3(false)
+                setShow4(true)
+                setShow2(false);
+            })
+            .catch((error) => {
+                Alert.alert("Some Error Occured while submitting Data Please Try Again")
+                console.error(error)
+            });
+    }
 
 
     const verifyotp = async () => {
 
-        if (validateFields()) {
-            setShow2(true)
-            let config = {
-                method: 'get',
-                maxBodyLength: Infinity,
-                url: 'https://textileapp.microtechsolutions.co.in/php/verifyotp.php?otp=' + otp,
-                headers: {}
+
+
+        setShow2(true)
+        let config = {
+            method: 'get',
+            maxBodyLength: Infinity,
+            url: 'https://textileapp.microtechsolutions.co.in/php/verifyotp.php?otp=' + otp,
+            headers: {}
+        };
+
+        axios.request(config)
+            .then((response) => {
+                console.log(JSON.stringify(response.data));
+                showToast();
+                postAPI();
+                setShow2(false);
+            })
+            .catch((error) => {
+                console.log(error);
+                setShow2(false);
+            });
+
+
+
+
+    }
+
+
+    const postDetails = () => {
+
+        console.log("PostDetails called")
+        setShow2(true)
+        console.log(Email, loomShade, ownerName, gstNo, address, pincode, value, value2, value3, registrationNo, primaryContactNo, "Total no", TotalNoOfLooms)
+        try {
+            const formdata = new FormData();
+            formdata.append("AppUserId", Email);
+            formdata.append("Name", loomShade);
+            formdata.append("OwnerName", ownerName);
+            formdata.append("GSTNumber", gstNo);
+            formdata.append("Address", address);
+            formdata.append("Pincode", pincode);
+            formdata.append("Country", value);
+            formdata.append("State", value2);
+            formdata.append("City", value3);
+            formdata.append("RegistrationNumber", "TR");
+            formdata.append("PrimaryContact", primaryContactNo);
+            formdata.append("TotalLooms", TotalNoOfLooms);
+            formdata.append("LoomOrTrader", "T");
+
+            const requestOptions = {
+                method: "POST",
+                body: formdata,
+                redirect: "follow"
             };
 
-            axios.request(config)
-                .then((response) => {
-                    console.log(JSON.stringify(response.data));
-                    showToast();
-                    setShow2(false)
-                    setShow(true)
-                    setShow4(false)
-                    setShow3(false)
-                })
-                .catch((error) => {
-                    console.log(error);
+            fetch("https://textileapp.microtechsolutions.co.in/php/postdetail.php", requestOptions)
+                .then((response) => response.text())
+                .then((result) => getContact(result))
+                .catch((error) => { console.error(error); });
 
-                });
 
+            console.log("UserId : ", UserId)
+        } catch (err) {
+            console.log("Error : ", err)
         }
+
 
 
     }
@@ -181,56 +254,12 @@ const SignupTrader = ({ navigation }) => {
 
 
 
-    const postDetails = () => {
+    const getContact = (result) => {
 
-        if (validateFields2()) {
-            setShow2(true)
-            console.log(Email, loomShade, ownerName, gstNo, address, pincode, value, value2, value3, registrationNo, primaryContactNo)
-            try {
-                const formdata = new FormData();
-                formdata.append("AppUserId", Email);
-                formdata.append("Name", loomShade);
-                formdata.append("OwnerName", ownerName);
-                formdata.append("GSTNumber", gstNo);
-                formdata.append("Address", address);
-                formdata.append("Pincode", pincode);
-                formdata.append("Country", value);
-                formdata.append("State", value2);
-                formdata.append("City", value3);
-                formdata.append("RegistrationNumber", "TR");
-                formdata.append("PrimaryContact", primaryContactNo);
-                formdata.append("LoomOrTrader", "T");
+        console.log("GetContact called")
 
-                const requestOptions = {
-                    method: "POST",
-                    body: formdata,
-                    redirect: "follow"
-                };
+        if (validateFields()) {
 
-                fetch("https://textileapp.microtechsolutions.co.in/php/postdetail.php", requestOptions)
-                    .then((response) => response.text())
-                    .then((result) => setUserId(result))
-                    .catch((error) => console.error(error));
-                setShow(false)
-                setShow1(true)
-                setShow2(false)
-                setShow4(false)
-                console.log("UserId : ", UserId)
-            } catch (err) {
-                console.log("Error : ", err)
-            }
-        }
-
-
-    };
-
-
-    const dataArray = [ownercontactDetails, managercontactDetails, otherscontactDetails];
-
-    const getContact = () => {
-
-        if (validateFields3()) {
-            setShow2(true)
 
             try {
                 let config = {
@@ -241,17 +270,32 @@ const SignupTrader = ({ navigation }) => {
                         'Content-Type': 'application/x-www-form-urlencoded'
                     },
                     data: {
-
-                        "contactNumber": dataArray,
-                        "Designation": selectedOption,
-                        'LoomTraderDetailId': UserId,
+                        "LoomTraderDetailId": result,
+                        "OwnerNo": ownercontactDetails,
+                        'ManagerNo': managercontactDetails,
+                        'OtherNo': otherscontactDetails
                     }
                 };
 
                 axios.request(config)
                     .then((response) => {
                         console.log(JSON.stringify(response.data));
+                        console.log(ownercontactDetails, managercontactDetails, otherscontactDetails)
                         showToast2();
+                        setEmail("");
+                        setPassword("")
+                        setLoomShade("");
+                        setOwnerName("");
+                        setAddress("");
+                        setValue("");
+                        setValue2("");
+                        setValue3("");
+                        setPincode("");
+                        setPrimaryContactNo("");
+                        setGstNo("")
+                        setOwnerContactDetails("");
+                        setManagerContactDetails("");
+                        setOthersContactDetails("");
                     })
                     .catch((error) => {
                         console.log(error);
@@ -259,10 +303,10 @@ const SignupTrader = ({ navigation }) => {
                     });
                 navigation.navigate("Login")
                 setShow(false)
-                setShow1(true)
-                setShow2(false)
-
-                console.log(dataArray, selectedOption, UserId)
+                setShow4(false)
+                setShow3(true)
+                setShow2(false);
+                console.log("Contact Number", dataArray, "Designation", selectedOption, "LoomTraderDetailId", UserId)
             } catch (err) {
                 console.log("Error :", err)
             }
@@ -330,12 +374,7 @@ const SignupTrader = ({ navigation }) => {
     };
 
 
-    const handleClose = () => {
-        setShowModal(false)
-        setEmail("");
-        setPassword("");
-        setLoomShade("")
-    }
+
 
 
     const countries = Country.getAllCountries().map(Country => ({ label: Country.name, value: Country.isoCode }));
@@ -349,8 +388,6 @@ const SignupTrader = ({ navigation }) => {
 
 
             {/* https://textileapp.microtechsolutions.co.in/php/getappuser.php */}
-
-
 
             {show3 ?
                 <View style={{ flex: 1 }}>
@@ -370,8 +407,8 @@ const SignupTrader = ({ navigation }) => {
                         </View>
 
                     </View>
-                    <ScrollView>
-                        <View style={{ flex: 1, alignItems: 'center', marginTop: '10%', }}>
+                    <ScrollView >
+                        <View style={{ flex: 1, alignItems: 'center', marginTop: '10%' }}>
 
 
                             <Image
@@ -382,206 +419,66 @@ const SignupTrader = ({ navigation }) => {
 
                             />
                             <View style={{ alignItems: 'center', marginTop: '10%', marginBottom: 20 }}>
-                                <Text style={{ fontSize: 28, color: "#003C43", fontWeight: "500" }}> Sign Up </Text>
+                                <Text style={{ fontSize: 28, color: "#003C43", fontWeight: "500" }}> Sign </Text>
                             </View>
 
 
-                            <View style={styles.input}>
+                            <View style={{ borderBottomWidth: 3, marginBottom: "5%", borderColor: "#003C43", width: "90%", justifyContent: "center", alignItems: "center" }}>
+                                <View style={styles.input}>
 
 
-                                <Icon name="email-outline" color="#003C43" size={32} padding={8} marginLeft={8} />
+                                    <Icon name="email-outline" color="#003C43" size={32} padding={8} marginLeft={8} />
 
-                                <TextInput
-                                    style={{ marginLeft: "5%", color: "black", width: "70%" }}
-                                    placeholder='Email'
-                                    placeholderTextColor={"#003C43"}
-                                    onChangeText={(txt) => setEmail(txt)}
-                                    value={Email}
+                                    <TextInput
+                                        style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                        placeholder='Email'
+                                        placeholderTextColor={"#003C43"}
+                                        onChangeText={(txt) => setEmail(txt)}
+                                        value={Email}
 
-                                />
-                            </View>
-
-                            <View style={styles.input}>
-
-
-                                <Icon name="lock-open-outline" color="#003C43" size={32} padding={8} marginLeft={8} />
-
-                                <TextInput
-                                    style={{ marginLeft: "5%", color: "black", width: "70%" }}
-                                    placeholder='Password'
-                                    placeholderTextColor={"#003C43"}
-                                    onChangeText={(txt) => setPassword(txt)}
-                                    value={Password}
-                                />
-
-
-
-                            </View>
-
-                            <View style={styles.input}>
-
-
-                                <Icon name="account" color="#003C43" size={32} padding={8} marginLeft={8} />
-
-
-                                <TextInput
-                                    placeholder='Name of Loom Shade'
-                                    placeholderTextColor={"#003C43"}
-                                    style={{ marginLeft: "5%", color: "black", width: "70%" }}
-                                    onChangeText={(txt) => setLoomShade(txt)}
-                                    value={loomShade}
-                                />
-
-                            </View>
-
-
-
-
-                            <TouchableOpacity style={styles.loginButton} onPress={() => postAPI()}>
-                                <Text style={styles.loginText}>Submit</Text>
-                            </TouchableOpacity>
-
-
-                            <View style={{ flex: 1 }}>
-                                {
-                                    show2 ? <ActivityIndicator size={70} color="green" /> : null
-                                }
-                            </View>
-
-                            <Modal
-                                animationType="slide"
-                                transparent={true}
-                                visible={showModal}
-                                onRequestClose={handleClose}
-                            >
-                                <View style={styles.modalContainer}>
-                                    <Animated.View
-                                        style={[styles.modalView, {
-                                            transform: [{
-                                                translateY: animatedValue.interpolate({
-                                                    inputRange: [0, 1],
-                                                    outputRange: [600, 0],
-                                                }),
-                                            }],
-                                        }]}
-                                    >
-                                        <Text style={styles.modalText}>Entered Email Already Exists. Please Try Another One!</Text>
-                                        <TouchableOpacity style={styles.button} onPress={handleClose}>
-                                            <Text style={styles.buttonText}>Close</Text>
-                                        </TouchableOpacity>
-                                    </Animated.View>
+                                    />
                                 </View>
-                            </Modal>
-                        </View>
-                    </ScrollView>
-                </View>
-                : null}
 
-            {show4 ?
-                <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: "row", alignItems: 'center', height: 50, backgroundColor: '#003C43' }}>
-
-                        <TouchableOpacity
-                            //onPress={() => { setShow(true), setShow1(false), setShow2(false), setShow3(false) }}
-                            onPress={() => { setShow3(true), setShow4(false) }}
-                        >
-                            <Icon name="arrow-left" color="white" size={30} padding={6} />
-
-                        </TouchableOpacity>
-
-                        <View style={{ flex: 0.9, alignItems: 'center' }}>
-                            <Text style={{ fontSize: 26, color: "white", fontWeight: "500" }}> Kapada Banao </Text>
-
-                        </View>
-
-                    </View>
-
-                    <View style={{ flex: 1, alignItems: 'center', marginTop: '10%', }}>
+                                <View style={styles.input}>
 
 
-                        <Image
-                            source={require('../Images/img2.jpg')}
-                            style={{
-                                width: '65%', height: 200,
-                            }}
+                                    <Icon name="lock-open-outline" color="#003C43" size={32} padding={8} marginLeft={8} />
 
-                        />
-                        <View style={{ alignItems: 'center', marginTop: '10%', marginBottom: 20 }}>
-                            <Text style={{ fontSize: 28, color: "#003C43", fontWeight: "500" }}> Verify OTP </Text>
-                        </View>
-
-
-                        <View style={styles.input}>
-
-
-                            <Icon name="form-textbox-password" color="#003C43" size={32} padding={8} marginLeft={8} />
-
-                            <TextInput
-                                style={{ marginLeft: "5%", color: "black", width: "70%" }}
-                                placeholder='OTP'
-                                placeholderTextColor={"#003C43"}
-                                onChangeText={(txt) => setOtp(txt)}
-                                value={otp}
-
-                            />
-                        </View>
+                                    <TextInput
+                                        style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                        placeholder='Password'
+                                        placeholderTextColor={"#003C43"}
+                                        onChangeText={(txt) => setPassword(txt)}
+                                        value={Password}
+                                    />
 
 
 
+                                </View>
+                                <View style={styles.input}>
 
 
-
-                        <TouchableOpacity style={styles.loginButton} onPress={() => verifyotp()}>
-                            <Text style={styles.loginText}> Verify </Text>
-                        </TouchableOpacity>
-                        <View style={{ flex: 1 }}>
-                            {
-                                show2 ? <ActivityIndicator size={70} color="green" /> : null
-                            }
-                        </View>
-
-                    </View>
-                </View>
-                : null}
+                                    <Icon name="account" color="#003C43" size={32} padding={8} marginLeft={8} />
 
 
-            {/* https://textileapp.microtechsolutions.co.in/php/getdetail.php */}
+                                    <TextInput
+                                        placeholder='Name of Company / User'
+                                        placeholderTextColor={"#003C43"}
+                                        style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                        onChangeText={(txt) => setLoomShade(txt)}
+                                        value={loomShade}
+                                    />
 
-
-            {
-                show ?
-                    <View style={{ flex: 1 }}>
-                        <View style={{ flexDirection: "row", alignItems: 'center', height: 50, backgroundColor: '#003C43' }}>
-
-                            {/* <TouchableOpacity
-                                //onPress={() => { setShow(true), setShow1(false), setShow2(false), setShow3(false) }}
-                                onPress={() => { setShow4(true), setShow(false) }}
-                            >
-                                <Icon name="arrow-left" color="white" size={30} padding={6} />
-
-                            </TouchableOpacity> */}
-
-                            <View style={{ flex: 1, alignItems: 'center' }}>
-                                <Text style={{ fontSize: 26, color: "white", fontWeight: "500" }}> Kapada Banao </Text>
-
+                                </View>
                             </View>
 
-                        </View>
-                        <ScrollView >
-                            <View style={{
-                                flex: 1,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                            }}>
 
-
-                                <Text style={{ color: "#003C43", fontSize: 22, marginTop: "5%", marginBottom: "5%" }}> Welcome :  {loomShade} </Text>
-
+                            <View style={{ borderBottomWidth: 3, marginBottom: "5%", borderColor: "#003C43", width: "90%", justifyContent: "center", alignItems: "center" }}>
                                 <View style={styles.input}>
 
                                     <TextInput
                                         style={{ marginLeft: "5%", color: "black", width: "70%" }}
-                                        placeholder=' Name of Owner'
+                                        placeholder='Promoter/ Owner Name'
                                         placeholderTextColor={"#003C43"}
                                         onChangeText={(txt) => setOwnerName(txt)}
                                         value={ownerName}
@@ -667,12 +564,6 @@ const SignupTrader = ({ navigation }) => {
                                     }} />
 
 
-                                <View style={{ flex: 1 }}>
-                                    {
-                                        show2 ? <ActivityIndicator size={70} color="green" /> : null
-                                    }
-                                </View>
-
                                 <View style={styles.input}>
                                     <TextInput
                                         placeholder=' Address'
@@ -691,26 +582,11 @@ const SignupTrader = ({ navigation }) => {
                                         value={pincode}
                                     />
                                 </View>
-                                {/* <TextInput
-                                    placeholder=' Total No Of Looms'
-                                    placeholderTextColor={"#003C43"}
-                                    style={[styles.input]}
-                                    onChangeText={(txt) => setTotalNoOfLooms(txt)}
-                                    value={TotalNoOfLooms}
-                                /> */}
-                                <View style={styles.input}>
-                                    <TextInput
-                                        placeholder=' Registration No.'
-                                        placeholderTextColor={"#003C43"}
-                                        style={{ marginLeft: "5%", color: "black", width: "70%" }}
-                                        onChangeText={(txt) => setRegistrationNo(txt)}
-                                        value={registrationNo}
-                                    />
-                                </View>
+
 
                                 <View style={styles.input}>
                                     <TextInput
-                                        placeholder=' Primary/Operational Contact No.'
+                                        placeholder=' WhatsApp No.'
                                         placeholderTextColor={"#003C43"}
                                         style={{ marginLeft: "5%", color: "black", width: "70%" }}
                                         onChangeText={(txt) => setPrimaryContactNo(txt)}
@@ -718,127 +594,61 @@ const SignupTrader = ({ navigation }) => {
                                     />
                                 </View>
 
-                                <TouchableOpacity style={styles.loginButton} onPress={() => postDetails()}>
-                                    <Text style={styles.loginText}>Submit</Text>
-                                </TouchableOpacity>
-
                             </View>
 
-                        </ScrollView>
-                    </View>
-                    : null
-            }
+                            <View style={{ borderBottomWidth: 3, marginBottom: "5%", borderColor: "#003C43", width: "90%", justifyContent: "center", alignItems: "center" }}>
+                                <View style={[styles.input, { marginTop: 30 }]}>
 
+                                    <Icon name="account-tie" color="#003C43" size={32} padding={8} />
 
-            {/* https://textileapp.microtechsolutions.co.in/php/getcontact.php */}
+                                    <TextInput
+                                        style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                        placeholder='Owner Contact Details'
+                                        placeholderTextColor={"#003C43"}
+                                        onChangeText={(txt) => setOwnerContactDetails(txt)}
+                                        value={ownercontactDetails}
 
-
-            {show1 ?
-                <View style={{ flex: 1 }}>
-
-                    <View style={{ alignItems: 'center', height: 50, backgroundColor: '#003C43' }}>
-                        <Text style={{ fontSize: 26, color: "white", fontWeight: "500" }}> Kapada Banao </Text>
-
-                    </View>
-                    <ScrollView>
-
-                        <View style={{
-                            marginTop: '7%',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                        }}>
-
-
-
-                            <Text style={{ color: "#003C43", fontSize: 22, marginTop: "3%" }}> Welcome :  {loomShade} </Text>
-
-                            <Text style={{ fontSize: 20, color: "#003C43", marginTop: "10%" }}> Add Contact Details  </Text>
-
-
-
-                            <View style={[styles.input, { marginTop: 30 }]}>
-
-                                <Icon name="account-tie" color="#003C43" size={32} padding={8} />
-
-                                <TextInput
-                                    style={{ marginLeft: "5%", color: "black", width: "70%" }}
-                                    placeholder='Owner Contact Details'
-                                    placeholderTextColor={"#003C43"}
-                                    onChangeText={(txt) => setOwnerContactDetails(txt)}
-                                    value={ownercontactDetails}
-
-                                />
-                            </View>
-
-                            <View style={styles.input}>
-
-
-                                <Icon name="account-star" color="#003C43" size={32} padding={8} />
-
-                                <TextInput
-                                    style={{ marginLeft: "5%", color: "black", width: "70%" }}
-                                    placeholder='Manager Contact Details'
-                                    placeholderTextColor={"#003C43"}
-                                    onChangeText={(txt) => setManagerContactDetails(txt)}
-                                    value={managercontactDetails}
-
-                                />
-                            </View>
-
-                            <View style={styles.input}>
-
-
-                                <Icon name="account-plus" color="#003C43" size={32} padding={8} />
-
-                                <TextInput
-                                    style={{ marginLeft: "5%", color: "black", width: "70%" }}
-                                    placeholder='Others Contact Details'
-                                    placeholderTextColor={"#003C43"}
-                                    onChangeText={(txt) => setOthersContactDetails(txt)}
-                                    value={otherscontactDetails}
-
-                                />
-                            </View>
-
-
-                            <View style={{ marginLeft: "-40%", marginTop: "5%" }}>
-
-                                <Text style={{ fontSize: 20, color: "#003C43", marginBottom: 5, fontWeight: '500' }}> Select Role  </Text>
-
-                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <RadioButton
-                                        value="owner"
-                                        status={selectedOption === 'owner' ? 'checked' : 'unchecked'}
-                                        onPress={() => setSelectedOption('owner')}
                                     />
-                                    <Text style={{ fontSize: 18, color: "#003C43" }}> Owner </Text>
                                 </View>
 
-                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <RadioButton
-                                        value="manager"
-                                        status={selectedOption === 'manager' ? 'checked' : 'unchecked'}
-                                        onPress={() => setSelectedOption('manager')}
+                                <View style={styles.input}>
+
+
+                                    <Icon name="account-star" color="#003C43" size={32} padding={8} />
+
+                                    <TextInput
+                                        style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                        placeholder='Manager Contact Details'
+                                        placeholderTextColor={"#003C43"}
+                                        onChangeText={(txt) => setManagerContactDetails(txt)}
+                                        value={managercontactDetails}
+
                                     />
-                                    <Text style={{ fontSize: 18, color: "#003C43" }}> Manager </Text>
                                 </View>
 
-                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <RadioButton
-                                        value="others"
-                                        status={selectedOption === 'others' ? 'checked' : 'unchecked'}
-                                        onPress={() => setSelectedOption('others')}
+                                <View style={styles.input}>
+
+
+                                    <Icon name="account-plus" color="#003C43" size={32} padding={8} />
+
+                                    <TextInput
+                                        style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                        placeholder='Others Contact Details'
+                                        placeholderTextColor={"#003C43"}
+                                        onChangeText={(txt) => setOthersContactDetails(txt)}
+                                        value={otherscontactDetails}
+
                                     />
-                                    <Text style={{ fontSize: 18, color: "#003C43" }}> Others </Text>
                                 </View>
 
                             </View>
 
-                            <TouchableOpacity
-                                style={[styles.loginButton, { marginTop: "12%", backgroundColor: '#FF7722' }]}
-                                onPress={() => getContact()}
-                            >
-                                <Text style={styles.loginText}> Submit </Text>
+                            <TouchableOpacity style={styles.loginButton} onPress={() => {
+                                sendOTP();
+
+                                console.log("OTP screen called")
+                            }}>
+                                <Text style={styles.loginText}>Submit</Text>
                             </TouchableOpacity>
 
                             <View style={{ flex: 1 }}>
@@ -847,37 +657,6 @@ const SignupTrader = ({ navigation }) => {
                                 }
                             </View>
 
-                            {/* <View style={{ marginLeft: "-20%", marginTop: "5%" }}>
-                    <Text style={{ fontSize: 18, color: "#fff" }}>Select Role:</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: "20%" }}>
-                        <RadioButton
-                            value="owner"
-                            status={selectedOption === 'owner' ? 'checked' : 'unchecked'}
-                            onPress={() => setSelectedOption('owner')}
-                        />
-                        <Text style={{ fontSize: 18, color: "#fff" }}>Owner</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: "20%" }}>
-                        <RadioButton
-                            value="manager"
-                            status={selectedOption === 'manager' ? 'checked' : 'unchecked'}
-                            onPress={() => setSelectedOption('manager')}
-                        />
-                        <Text style={{ fontSize: 18, color: "#fff" }}>Manager</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: "20%" }}>
-                        <RadioButton
-                            value="others"
-                            status={selectedOption === 'others' ? 'checked' : 'unchecked'}
-                            onPress={() => setSelectedOption('others')}
-                        />
-                        <Text style={{ fontSize: 18, color: "#fff" }}>Others</Text>
-                    </View>
-
-                </View> */}
-
-
-
 
                         </View>
                     </ScrollView>
@@ -885,7 +664,78 @@ const SignupTrader = ({ navigation }) => {
                 : null}
 
 
+            {show4 ?
+                <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: "row", alignItems: 'center', height: 50, backgroundColor: '#003C43' }}>
 
+                        <TouchableOpacity
+                            //onPress={() => { setShow(true), setShow1(false), setShow2(false), setShow3(false) }}
+                            onPress={() => { setShow3(true), setShow4(false) }}
+                        >
+                            <Icon name="arrow-left" color="white" size={30} padding={6} />
+
+                        </TouchableOpacity>
+
+                        <View style={{ flex: 0.9, alignItems: 'center' }}>
+                            <Text style={{ fontSize: 26, color: "white", fontWeight: "500" }}> Kapada Banao </Text>
+
+                        </View>
+
+                    </View>
+
+                    <View style={{ flex: 1, alignItems: 'center', marginTop: '10%', }}>
+
+
+                        <Image
+                            source={require('../Images/img2.jpg')}
+                            style={{
+                                width: '65%', height: 200,
+                            }}
+
+                        />
+                        <View style={{ alignItems: 'center', marginTop: '10%', marginBottom: 20 }}>
+                            <Text style={{ fontSize: 28, color: "#003C43", fontWeight: "500" }}> Verify OTP </Text>
+                        </View>
+
+
+                        <View style={styles.input}>
+
+
+                            <Icon name="form-textbox-password" color="#003C43" size={32} padding={8} marginLeft={8} />
+
+                            <TextInput
+                                style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                placeholder='OTP'
+                                placeholderTextColor={"#003C43"}
+                                onChangeText={(txt) => setOtp(txt)}
+                                value={otp}
+
+                            />
+                        </View>
+
+
+
+
+
+
+                        <TouchableOpacity style={styles.loginButton} onPress={() => verifyotp()}>
+                            <Text style={styles.loginText}> Verify </Text>
+                        </TouchableOpacity>
+                        <View style={{ flex: 1 }}>
+                            {
+                                show2 ? <ActivityIndicator size={70} color="green" /> : null
+                            }
+                        </View>
+
+                    </View>
+                </View>
+                : null}
+
+
+            {/* https://textileapp.microtechsolutions.co.in/php/getdetail.php */}
+
+
+            {/* https://textileapp.microtechsolutions.co.in/php/getcontact.php */}
 
 
         </View>
@@ -899,7 +749,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
     },
     input: {
-        width: "83%",
+        width: width * 0.83,  // 83% of screen width
         flexDirection: "row",
         borderWidth: 2,
         borderColor: "#003C43",
@@ -907,44 +757,16 @@ const styles = StyleSheet.create({
         marginTop: 10,
         marginBottom: 10,
         padding: 2
-
-    },
-    modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalView: {
-        backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 20,
-        alignItems: 'center',
-        elevation: 5,
-    },
-    modalText: {
-        fontSize: 18,
-        marginBottom: 20,
-        textAlign: 'center',
-    },
-    button: {
-        backgroundColor: '#2196F3',
-        padding: 10,
-        borderRadius: 5,
-    },
-    buttonText: {
-        color: 'white',
-        fontSize: 16,
     },
     loginButton: {
-        width: '50%',
+        width: width * 0.5,  // 50% of screen width
         height: 50,
         backgroundColor: '#003C43',
         borderRadius: 30,
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 25,
-        marginTop: '10%',
+        marginTop: height * 0.1,  // 10% of screen height
     },
     loginText: {
         color: '#fff',
@@ -952,13 +774,14 @@ const styles = StyleSheet.create({
         fontSize: 22,
     },
     dropdown: {
-        width: "80%",
-        height: 50,
+        width: width * 0.82,  // 82% of screen width
+        height: 58,
         borderColor: '#003C43',
-        borderBottomWidth: 2,
-        borderRadius: 10,
+        borderWidth: 2,
+        borderRadius: 18,
         paddingHorizontal: 8,
         color: "black",
+        marginTop: 12,
         marginBottom: 12,
         textDecorationColor: "grey",
     },
@@ -987,14 +810,62 @@ const styles = StyleSheet.create({
     },
     inputSearchStyle: {
         height: 40,
-        width: "120%",
+        width: width * 1.2,  // 120% of screen width
         color: "black"
     },
-
+    centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 22,
+    },
+    modalView: {
+        marginTop: height * 0.8,  // 80% of screen height
+        margin: 20,
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 35,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    button: {
+        borderRadius: 20,
+        padding: 10,
+        elevation: 2,
+    },
+    buttonText: {
+        fontSize: 16,
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    modalButton: {
+        backgroundColor: '#007bff',
+        borderRadius: 20,
+        padding: 10,
+        elevation: 2,
+        marginTop: 10,
+        width: width * 0.4,  // 40% of screen width
+    },
+    modalButtonText: {
+        fontSize: 16,
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    modalText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginBottom: 10,
+    },
 });
 
-
 export default SignupTrader
-
-
-// items={countries.map(country => ({ label: country.name, value: country.isoCode }))}

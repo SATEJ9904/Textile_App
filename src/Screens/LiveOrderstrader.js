@@ -1,11 +1,12 @@
-import { StyleSheet, TextInput, Text, View, SafeAreaView, Modal, RefreshControl, StatusBar, Pressable, TouchableOpacity, ImageBackground, ScrollView, Alert, Image } from 'react-native'
+import { StyleSheet, TextInput, Text, View, SafeAreaView, Modal, RefreshControl, StatusBar, Pressable, Dimensions, TouchableOpacity, ImageBackground, ScrollView, Alert, Image } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ImageView from "react-native-image-viewing";
 import NetInfo from "@react-native-community/netinfo";
 
 
-
+const { width } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 const LiveOrderstrader = ({ navigation }) => {
 
@@ -13,6 +14,7 @@ const LiveOrderstrader = ({ navigation }) => {
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
+    fetchOrders();
     fetchDataWEFT();
     fetchDataDI();
     fetchDataBG();
@@ -55,30 +57,68 @@ const LiveOrderstrader = ({ navigation }) => {
   useEffect(() => {
 
     onRefresh();
-
-    const fetchOrders = async () => {
-      try {
-        const id = await AsyncStorage.getItem("Id");
-        if (!id) {
-          console.error('No ID found in AsyncStorage');
-          return;
-        }
-
-        const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/traderliveorder.php?LoomTraderId=${id}`);
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const json = await response.json();
-        setOrders(json);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-
-
     fetchOrders();
     handleButtonPress();
   }, []);
+
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+
+  const fetchNames = async (loomTraderIds) => {
+    try {
+      const names = await Promise.all(
+        loomTraderIds.map(async (loomTraderId) => {
+          const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/getiddetail.php?Id=${loomTraderId}`);
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          const json = await response.json();
+
+          return { loomTraderId, Name: json[0].Name };
+        })
+      );
+      return names;
+    } catch (error) {
+      console.error('Error fetching names:', error);
+      return [];
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      const id = await AsyncStorage.getItem('Id');
+      if (!id) {
+        console.error('No ID found in AsyncStorage');
+        return;
+      }
+
+      const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/traderliveorder.php?LoomTraderId=${id}`);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const ordersJson = await response.json();
+
+      // Sort orders by OrderId in descending order
+      const sortedOrdersJson = ordersJson.sort((a, b) => b.LoomOrderId - a.LoomOrderId);
+
+      const loomTraderIds = sortedOrdersJson.map(order => order.LoomTraderId);
+      const names = await fetchNames(loomTraderIds);
+
+      const updatedOrders = sortedOrdersJson.map(order => {
+        const nameObj = names.find(name => name.loomTraderId === order.LoomTraderId);
+        return { ...order, Name: nameObj ? nameObj.Name : null };
+      });
+
+      setOrders(updatedOrders);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+
 
 
 
@@ -257,16 +297,16 @@ const LiveOrderstrader = ({ navigation }) => {
   const [dateFPA, setdateFPA] = useState(null)
 
 
-  const [first_piece_approval, setFirst_Piece_Approval] = useState(" ")
+  const [first_piece_approval, setFirst_Piece_Approval] = useState("")
 
 
-  const SubmitFPA = async (comment) => {
+  const SubmitFPA = async () => {
     console.log("Started", await AsyncStorage.getItem("Id"))
 
     const formdata = new FormData();
     formdata.append("LoomTraderId", await AsyncStorage.getItem("Id"));
     formdata.append("OrderNoId", selectedOrderID);
-    formdata.append("Comment", comment);
+    formdata.append("Comment", first_piece_approval);
 
     const requestOptions = {
       method: "POST",
@@ -280,7 +320,7 @@ const LiveOrderstrader = ({ navigation }) => {
       .catch((error) => console.error(error));
     console.log(first_piece_approval)
     setFPAForm(false)
-    setFirst_Piece_Approval(" ")
+    setFirst_Piece_Approval("")
     setModalVisible(true)
   }
 
@@ -356,16 +396,29 @@ const LiveOrderstrader = ({ navigation }) => {
     setSelectedOrderID(order.LoomOrderId)
     fetchDataFPAD(order)
     callfuns();
+    setShopwForms(true)
   };
 
   const yesbutton2 = () => {
-    setModalVisible2(false)
+    setModalVisible(false)
   }
 
   const yesbutton = () => {
     setShowBlocks(true)
     setModalVisible(false)
   }
+
+  const Initialstage = () => {
+    console.log("called close")
+    setBeamInForm(false);
+    setWeftform(false);
+    setFdForm(false);
+    setremaining_Goods_ReturnForm(false);
+    setDrawingInForm(false)
+    setBeamGettingForm(false)
+    setFPAForm(false)
+  }
+
 
   const FalseOthersBeamIn = () => {
     setBeamInForm(true);
@@ -450,8 +503,8 @@ const LiveOrderstrader = ({ navigation }) => {
 
   const handleButtonPress = (action) => {
     if (selectedOrder) {
-      console.log(`Order No: ${selectedOrder.OrderNo}, Party Name: ${selectedOrder.PartyName}, Action: ${action}`);
-      setAction("Order No. : " + selectedOrder.OrderNo + "\nParty Name : " + selectedOrder.PartyName + "\nQuality : " + selectedOrder.Quality)
+      console.log(`Order No: ${selectedOrder.OrderNo}, Party Name: ${selectedOrder.Name}, Action: ${action}`);
+      setAction("Order No. : " + selectedOrder.OrderNo + "\nParty Name : " + selectedOrder.Name + "\nQuality : " + selectedOrder.Quality)
     }
     callfuns();
   };
@@ -465,616 +518,716 @@ const LiveOrderstrader = ({ navigation }) => {
     setremaining_Goods_ReturnForm(false)
 
   }
+  const [showforms, setShopwForms] = useState(false)
+
+  const handlecontent = () => {
+    setShowBlocks(true)
+    setShopwForms(false)
+  }
+
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#e5f2fe" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <StatusBar backgroundColor={"#003C43"}></StatusBar>
       <View style={{ backgroundColor: "#003C43", flexDirection: "row" }}>
-        <TouchableOpacity onPress={() => navigation.openDrawer()}>
-          <ImageBackground
-            source={require("../Images/drawer.png")}
-            style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#003C43", marginTop: 15, marginRight: 0, marginLeft: 10 }}
-            imageStyle={{ borderRadius: 0 }}
-          />
-        </TouchableOpacity>
+        {
+          showBlocks ?
+            <TouchableOpacity onPress={() => navigation.openDrawer()}>
+              <ImageBackground
+                source={require("../Images/drawer.png")}
+                style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#003C43", marginTop: 15, marginRight: 0, marginLeft: 10 }}
+                imageStyle={{ borderRadius: 0 }}
+              />
+            </TouchableOpacity> : <TouchableOpacity onPress={() => handlecontent()}>
+              <ImageBackground
+                source={require("../Images/back.png")}
+                style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#003C43", marginTop: 15, marginRight: 0, marginLeft: 10 }}
+                imageStyle={{ borderRadius: 0 }}
+              />
+            </TouchableOpacity>
+        }
         <Text style={{ fontSize: 25, color: "white", margin: "2.5%", marginLeft: "25%" }}>Live Orders</Text>
       </View>
-      <ScrollView style={{ marginTop: "25%" }} contentContainerStyle={styles.scrollView}
+      <ScrollView style={{ marginTop: "5%" }} contentContainerStyle={styles.scrollView}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
 
-        <Text style={{ color: "#000", fontSize: 22 }}>{Action}</Text>
 
-
-        {showBlocks ? <View style={styles.ordersContainer}>
-          {orders.map((order, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.orderContainer}
-              onPress={() => handleOrderPress(order)}>
-              <Text style={styles.orderText}>{`Order No: ${order.OrderNo}     party Name : ${order.PartyName}   \n\n    Quality :${order.Quality}`}</Text>
-            </TouchableOpacity>
-          ))}
-        </View> : null}
-        {selectedOrder && (
-          <View>
-            <View style={{ alignItems: "center", justifyContent: "center", marginTop: "10%" }}>
-              <View style={{ flexDirection: "row" }}>
-                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Beam in'); FalseOthersBeamIn(); fetchData(); }}>
-                  <Text style={[styles.buttonText, styles.BeamInCss]}>Beam in</Text>
-                  <Text style={{ color: "#fff", textDecorationLine: "underline", marginLeft: "10%" }}>{dateBeamIn}</Text>
-
-                </TouchableOpacity>
-
-              </View>
-
-              {Beaminform ? <View style={{ width: "100%" }}>
-                <ScrollView horizontal={true} vertical={true}>
-                  <View style={styles.table}>
-                    <View style={styles.header1}>
-                      <Text style={styles.headerText1}>Date</Text>
-                      <Text style={[styles.headerText1, { marginLeft: 20 }]}>Sizing Tippan Number</Text>
-                      <Text style={styles.headerText1}>Image </Text>
-
+        {showBlocks ? (
+          <View style={styles.ordersContainer}>
+            {orders.map((order, index) => (
+              order.Confirmed === 1 ? (
+                <View key={index} style={styles.orderWrapper}>
+                  <TouchableOpacity style={styles.orderContainer} onPress={() => handleOrderPress(order)}>
+                    <View style={{ paddingLeft: 10, marginBottom: 10 }}>
+                      <Text style={styles.orderText}>{`Order No : ${order.OrderNo}\nName : ${order.Name}\nQuality : ${order.Quality}`}</Text>
                     </View>
+                  </TouchableOpacity>
+                </View>
+              ) : null
+            ))}
+          </View>
+        ) : null}
 
 
+        {
+          showforms ?
+            <View>
+              {selectedOrder && (
+                <View>
+                  <View style={{ marginLeft: "5%" }}>
+                    <Text style={{ color: "#FF7722", fontSize: 20, fontWeight: "600", marginBottom: "2.5%" }}>Order Details</Text>
+                    <Text style={{ color: "#000", fontSize: 16, fontWeight: "600", marginBottom: "2%", marginTop: "1%" }}>Order No : {selectedOrder.OrderNo}</Text>
+                    <Text style={{ color: "#000", fontSize: 16, fontWeight: "600", marginBottom: "2%", marginTop: "0%" }}>Party Name : {selectedOrder.Name}</Text>
+                    <Text style={{ color: "#000", fontSize: 16, fontWeight: "600", marginBottom: "2%", marginTop: "0%" }}>Quality : {selectedOrder.Quality}</Text>
 
-
-
-                    {/* BEAM IN FORM  */}
-
-
-
-
-
-
-                    <View>
-
-                      {
-                        show ?
-
-                          <View style={{ flex: 1 }}>
-                            <TouchableOpacity onPress={() => setShow(false)}>
-                              <Image
-                                source={require('../Images/cross.png')}
-                                style={{ width: 27, height: 27, alignSelf: 'flex-start', backgroundColor: "#DADBDD", borderRadius: 50, marginLeft: 370, marginTop: 10, zIndex: 0 }}
-                                imageStyle={{ borderRadius: 0 }}
-                              />
-                            </TouchableOpacity>
+                  </View>
+                  <View style={styles.Card}>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: "8%" }}>
+                      <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Beam in'); FalseOthersBeamIn(); fetchData(); }}>
+                        <Text style={[styles.buttonText, styles.BeamInCss]}>Beam in   <Text style={{ color: "#003C43", textDecorationLine: "underline", marginLeft: "-10%" }}>{dateBeamIn}</Text></Text>
+                        {Beaminform ? (
+                          <TouchableOpacity onPress={() => Initialstage()}>
                             <Image
-                              source={{ uri: enlargedImage }}
-                              style={{
-                                marginTop: 20,
-                                width: 400,
-                                height: 300,
-                              }}
+                              source={require("../Images/downarrow.png")}
+                              style={{ width: 25, height: 20, tintColor: "#848482" }}
                             />
-                          </View>
-                          : null
-                      }
-
-
-                      {orderBeam.map((item, index) => (
-                        <View>
-
-                          <View key={index} style={{ flexDirection: "row", justifyContent: 'space-between' }}>
-                            <Text style={{ color: "#000", marginHorizontal: 50, margin: 10, marginLeft: 10 }}>{item.Date.date.substring(0, 10)}</Text>
-                            <Text style={{ color: "#000", marginHorizontal: 50, margin: 10 }}>{item.SizingTippanNo}</Text>
-
-
-                            <TouchableOpacity onPress={() => handleImagePress(item.PhotoPath)}>
-                              <Image
-                                source={{ uri: item.PhotoPath }} // or require('path/to/img.jpeg')
-                                style={{ width: 40, height: 40, marginRight: 60, backgroundColor: '#A8A9AD', marginLeft: 30, margin: 10 }}
-                              />
-                            </TouchableOpacity>
-
-                          </View>
-                          <View>
-
-                          </View>
-                        </View>
-                      ))}
-                    </View>
-
-                  </View>
-                </ScrollView>
-              </View> : null}
-
-              <View style={{ flexDirection: "row" }}>
-                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('WEFT yarn in'); FalseOthersWeft(); fetchDataWEFT(); }}>
-                  <Text style={styles.buttonText}>WEFT YARN IN</Text>
-                  <Text style={{ color: "#fff", textDecorationLine: "underline", marginLeft: "5%" }}>{dateWEFT}</Text>
-
-                </TouchableOpacity>
-              </View>
-
-
-
-              {/* WEFTCYARN IN FORM  */}
-
-
-
-
-
-
-
-
-
-              {weftform ? <View style={{ justifyContent: "space-evenly", width: "100%" }}>
-                <ScrollView horizontal={true}>
-                  <View style={styles.table}>
-                    <View style={styles.header1}>
-                      <Text style={styles.headerText1}>Date</Text>
-                      <Text style={[styles.headerText1, { marginLeft: 20 }]}>Gate Pass Number</Text>
-                      <Text style={styles.headerText1}>Image </Text>
-
-
-                    </View>
-                    <View>
-                      {
-                        show ?
-
-                          <View style={{ flex: 1 }}>
-                            <TouchableOpacity onPress={() => setShow(false)}>
-                              <Image
-                                source={require('../Images/cross.png')}
-                                style={{ width: 27, height: 27, alignSelf: 'flex-start', backgroundColor: "#DADBDD", borderRadius: 50, marginLeft: 370, marginTop: 10, zIndex: 0 }}
-                                imageStyle={{ borderRadius: 0 }}
-                              />
-                            </TouchableOpacity>
-                            <Image
-                              source={{ uri: enlargedImage }}
-                              style={{
-                                marginTop: 20,
-                                width: 400,
-                                height: 300,
-                              }}
-                            />
-                          </View>
-                          : null
-                      }
-                      {orderYarn.map((item, index) => (
-                        <View>
-                          <View key={index} style={{ flexDirection: "row", justifyContent: 'space-between' }}>
-                            <Text style={{ color: "#000", marginHorizontal: 50, margin: 10, marginLeft: 5 }}>{item.Date.date.substring(0, 10)}</Text>
-                            <Text style={{ color: "#000", marginHorizontal: 50, margin: 10, marginLeft: -1 }}>{item.GatePassNo}</Text>
-                            <TouchableOpacity onPress={() => handleImagePress(item.PhotoPath)} >
-                              <Image
-                                source={{ uri: item.PhotoPath }}
-                                style={{ width: 40, height: 40, marginRight: 60, backgroundColor: "grey", margin: 10 }}
-                              />
-
-                            </TouchableOpacity>
-                          </View>
-
-                        </View>
-
-
-                      ))}
-                    </View>
-                  </View>
-                </ScrollView>
-
-              </View> : null}
-
-
-
-
-
-
-
-
-
-
-              <View style={{ flexDirection: "row" }}>
-                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Drawing in'), FalseOthersDI(); fetchDataDI(); }}>
-                  <Text style={styles.buttonText}>Drawing in</Text>
-                  <Text style={{ color: "#fff", textDecorationLine: "underline", marginLeft: "5%" }}>{dateDI}</Text>
-                  {
-                    req === 1 ? <Text style={{ color: '#0909ff' }}>Done</Text > : null
-                  }
-                </TouchableOpacity>
-              </View>
-              {DrawingInForm ? <View style={{ width: "100%" }}>
-                <ScrollView horizontal={true} vertical={true}>
-                  <View style={[{ marginLeft: 100 }, styles.table]}>
-                    <View style={styles.header1}>
-                      <Text style={styles.headerText1}>Drawing In</Text>
-
-                    </View>
-
-
-
-
-
-                    {/*DrawingIn FORM  */}
-
-
-
-
-
-
-
-
-
-
-
-
-                    <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "center" }}>
-
-
-                    </View>
-                  </View>
-                </ScrollView>
-
-              </View> : null}
-
-
-              <View style={{ flexDirection: "row" }}>
-                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Beam Getting'), FalseOthersBG(); fetchDataBG(); }}>
-                  <Text style={styles.buttonText}>Beam Getting</Text>
-                  <Text style={{ color: "#fff", textDecorationLine: "underline", marginLeft: "5%" }}>{dateBG}</Text>
-                  {
-                    reqBG === 1 ? <Text style={{ color: '#0909ff' }}>Done</Text > : null
-                  }
-                </TouchableOpacity>
-              </View>
-
-              {beamGettingForm ? <View style={{ width: "100%" }}>
-                <ScrollView horizontal={true} vertical={true}>
-                  <View style={[{ marginLeft: 100 }, styles.table]}>
-                    <View style={styles.header1}>
-                      <Text style={styles.headerText1}>Beam Getting</Text>
-
-                    </View>
-
-
-
-
-
-
-
-
-
-
-
-                    {/* BEAM Getting FORM  */}
-
-
-
-
-
-
-
-
-
-
-
-                    <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "center" }}>
-
-                    </View>
-                  </View>
-                </ScrollView>
-
-              </View> : null}
-
-
-              <View style={{ flexDirection: "row" }}>
-                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('First Piece Approval'); FalseOthersFPA() }}>
-                  <Text style={styles.buttonText}>First Piece Approval</Text>
-                  <Text style={{ color: "#fff", textDecorationLine: "underline", marginLeft: "5%" }}>{dateFPA}</Text>
-                </TouchableOpacity>
-              </View>
-
-              {fpaform ?
-                <View style={{ borderWidth: 1 }}>
-                  <View style={styles.tableHeader}>
-                    <Text style={styles.headerText}>Messages</Text>
-                    <TouchableOpacity onPress={() => setFPAForm(false)}>
-                      <Image
-                        source={require("../Images/cross.png")}
-                        style={{ width: 30, height: 30 }}
-                      />
-                    </TouchableOpacity>
-                  </View>
-
-
-                  {FPAD.map((item, index) => (
-                    <View key={index} style={{ padding: 10, alignItems: "flex-start", justifyContent: "center", width: 400, borderBottomWidth: 1 }}>
-                      <Text style={{ color: "#000" }}>{item.UpdatedOn.date.substring(0, 10)}</Text>
-                      <Text style={{ color: "#000" }}>{item.Name} : {item.Comment}</Text>
-                    </View>
-                  ))}
-
-
-                  <View style={{ width: "100%", marginTop: 15 }}>
-                    <ScrollView horizontal={true} vertical={true}>
-                      <View style={[{ marginLeft: 10, width: 500 }, styles.table]}>
-
-
-
-
-                        {/*First Piece Approval FORM  */}
-
-
-
-
-
-
-                        <View style={{ flexDirection: "row", width: "100%" }}>
-                          <TextInput
-                            style={{ width: "80%", borderRadius: 15 }}
-                            placeholder='Any Comments....'
-                            placeholderTextColor={"#000"}
-                            value={first_piece_approval}
-                            onChangeText={(txt) => setFirst_Piece_Approval(txt)}
-                            multiline={true} // Allows multiple lines of input
-                            numberOfLines={5} // Sets the initial number of lines
-                          />
-                        </View>
-                      </View>
-                    </ScrollView>
-                    <TouchableOpacity style={styles.submitButton} onPress={() => SubmitFPA()}>
-                      <Text style={styles.submitButtonText}>Submit</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View> : null}
-              <View style={{ flexDirection: "row" }}>
-                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Fabric Dispatch'), FalseOthersFD(); fetchDataFD(); }}>
-                  <Text style={styles.buttonText}>Fabric Dispatch</Text>
-                  <Text style={{ color: "#fff", textDecorationLine: "underline", marginLeft: "5%" }}>{dateFD}</Text>
-
-                </TouchableOpacity>
-              </View>
-
-
-
-
-              {/*                          
-
-
-
-                                      FABRIC DISPATCH FORM 
-
-
-
-
-
-
-*/}
-
-              {fdFrom ? <View style={{ justifyContent: "space-evenly", width: "100%", }}>
-                <ScrollView horizontal={true}>
-                  <View style={styles.table}>
-                    <View style={styles.header1}>
-                      <View>
-                        <Text style={[styles.headerText1, { marginLeft: -1 }]}>Date</Text>
-                        <Text style={[styles.headerText1, { marginLeft: -1, color: "blue" }]}>Dispatch No.</Text>
-                      </View>
-                      <Text style={[styles.headerText1, { marginLeft: -30 }]}>Meter</Text>
-                      <Text style={[styles.headerText1, { marginLeft: -1 }]}>Weight</Text>
-                      <Text style={[styles.headerText1, { marginLeft: -1 }]}>Image</Text>
-
-
-                    </View>
-
-                    <View>
-
-
-                      {
-                        show ?
-
-                          <View style={{ flex: 1 }}>
-                            <TouchableOpacity onPress={() => setShow(false)}>
-                              <Image
-                                source={require('../Images/cross.png')}
-                                style={{ width: 27, height: 27, alignSelf: 'flex-start', backgroundColor: "#DADBDD", borderRadius: 50, marginLeft: 370, marginTop: 10, zIndex: 0 }}
-                                imageStyle={{ borderRadius: 0 }}
-                              />
-                            </TouchableOpacity>
-                            <Image
-                              source={{ uri: enlargedImage }}
-                              style={{
-                                marginTop: 20,
-                                width: 400,
-                                height: 300,
-                              }}
-                            />
-                          </View>
-                          : null
-                      }
-
-
-                      {orderfd.map((item, index) => (
-                        <View key={index} style={styles.header1}>
-                          <View>
-                            <Text style={[styles.headerText1, { marginLeft: -1 }]}>{item.Date.date.substring(0, 10)}</Text>
-                            <Text style={[styles.headerText1, { marginLeft: -1, color: "blue" }]}>{item.DispatchNo}</Text>
-                          </View>
-                          <Text style={[styles.headerText1, { marginLeft: -10 }]}>{item.Meter}</Text>
-                          <Text style={[styles.headerText1]}>{item.Weight}</Text>
-
-
-                          <TouchableOpacity onPress={() => handleImagePress(item.Photopath)} >
-                            <Image
-                              style={{ width: 40, height: 40, marginHorizontal: 10, margin: 10, marginRight: 60 }}
-                              source={{ uri: item.Photopath }}
-                            />
-
                           </TouchableOpacity>
+                        ) : (
+                          <TouchableOpacity onPress={() => { handleButtonPress('Beam in'); FalseOthersBeamIn() }}>
+                            <Image
+                              source={require("../Images/rightarrow.png")}
+                              style={{ width: 25, height: 20, tintColor: "#848482" }}
+                            />
+                          </TouchableOpacity>
+                        )}
 
+                      </TouchableOpacity>
 
-                        </View>
-                      ))}
                     </View>
 
+                    {Beaminform ? <View style={{ width: width * 0.99, }}>
 
-                  </View>
+                      <View style={styles.table}>
+                        <View style={styles.header1}>
 
-                  <Text style={{ marginRight: 250 }}></Text>
-                </ScrollView>
-
-              </View> : null}
-
-              <View style={{ flexDirection: "row" }}>
-                <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Remaining Goods Return'), FalseOthersrgr(); fetchDataRGR(); }}>
-                  <Text style={styles.buttonText}>Remaining Goods Return</Text>
-                  <Text style={{ color: "#fff", textDecorationLine: "underline", marginLeft: "5%" }}>{dateRGR}</Text>
-
-                </TouchableOpacity>
-              </View>
+                          <Text style={{ color: "#000", fontSize: 18, fontWeight: "600" }}>Beam in</Text>
+                        </View>
 
 
 
 
-              {/*                          
+                        {/* BEAM IN FORM  */}
 
 
 
-                                      Remaining Goods Return
-                                    
-                                    
-                                    
-                                    
-                
-                                      
-*/}
 
-              {remaining_goods_returnform ? <View style={{ justifyContent: "space-evenly", width: "110%", }}>
-                <ScrollView horizontal={true}>
-                  <View style={[styles.table, { marginRight: 120, marginLeft: 10 }]}>
-                    <View style={styles.header1}>
-                      <Text style={styles.headerText1}>GP. NO.</Text>
-                      <Text style={styles.headerText1}>Yarn Count</Text>
-                      <Text style={[styles.headerText1, { marginLeft: 0 }]}>Weight</Text>
-                      <Text style={[styles.headerText1, { marginLeft: 0 }]}>Cut Piece</Text>
-                      <Text style={[styles.headerText1, { marginLeft: 0 }]}>Weight</Text>
 
-                      <TouchableOpacity onPress={() => { setremaining_Goods_ReturnForm(false); setRemaining_Goods_Return([{ GP_NO: '', Yarn_count: '', weight: '', Cut_piece: '', Meter: '' }]) }}>
-                        <Image
-                          style={{ width: 30, height: 30 }}
-                          source={require("../Images/cross.png")}
-                        />
+
+                        <View>
+
+                          {
+                            show ?
+
+                              <View style={{ flex: 0.4, width: width * 0.7, height: height * 0.4 }}>
+                                <TouchableOpacity onPress={() => setShow(false)}>
+                                  <Image
+                                    source={require('../Images/cross.png')}
+                                    style={{ width: 27, height: 27, alignSelf: 'flex-start', backgroundColor: "#DADBDD", borderRadius: 50, marginLeft: width * 0.75, marginTop: 0, zIndex: 0 }}
+                                    imageStyle={{ borderRadius: 0 }}
+                                  />
+                                </TouchableOpacity>
+                                <Image
+                                  source={{ uri: enlargedImage }}
+                                  style={{
+                                    marginTop: 20,
+                                    width: width * 0.75,
+                                    height: 300,
+                                  }}
+                                />
+                              </View>
+                              : null
+                          }
+
+
+                          {orderBeam.map((item, index) => (
+                            <View style={{ borderBottomWidth: 2, width: width * 0.85 }}>
+
+                              <View key={index} style={{ flexDirection: "column", justifyContent: 'space-between', marginLeft: "5%" }}>
+                                <View style={{ flexDirection: "row", marginTop: 20 }}>
+                                  <Text style={styles.headerText1}>Date : </Text>
+                                  <Text style={{ color: "#000", marginHorizontal: 50, marginLeft: 0, fontSize: 15, fontWeight: "500" }}>{item.Date.date.substring(0, 10)}</Text>
+                                </View>
+                                <View style={{ flexDirection: "row", marginTop: "5%" }}>
+                                  <Text style={[styles.headerText1]}>Sizing Tippan Number : </Text>
+                                  <Text style={{ color: "#000", marginLeft: 0, fontSize: 15, fontWeight: "500" }}>{item.SizingTippanNo}</Text>
+                                </View>
+                                <View style={{ flexDirection: "row", marginTop: "5%" }}>
+                                  <Text style={styles.headerText1}>Image </Text>
+                                  <TouchableOpacity onPress={() => handleImagePress(item.PhotoPath)}>
+                                    <Image
+                                      source={{ uri: item.PhotoPath }} // or require('path/to/img.jpeg')
+                                      style={{ width: 40, height: 40, marginRight: 60, backgroundColor: '#A8A9AD', marginLeft: 30, marginBottom: "15%" }}
+                                    />
+                                  </TouchableOpacity>
+
+                                </View>
+
+
+
+                              </View>
+
+                            </View>
+                          ))}
+                        </View>
+
+                      </View>
+                    </View> : null}
+
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: "2%" }}>
+                      <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('WEFT yarn in'); FalseOthersWeft(); fetchDataWEFT(); }}>
+                        <Text style={[styles.buttonText, styles.BeamInCss]}>Weft yarn in  <Text style={{ color: "#003C43", textDecorationLine: "underline", marginLeft: "-10%" }}>{dateWEFT}</Text></Text>
+                        {weftform ? (
+                          <TouchableOpacity onPress={() => Initialstage()}>
+                            <Image
+                              source={require("../Images/downarrow.png")}
+                              style={{ width: 25, height: 20, tintColor: "#848482" }}
+                            />
+                          </TouchableOpacity>
+                        ) : (
+                          <TouchableOpacity onPress={() => { handleButtonPress('WEFT yarn in'); FalseOthersWeft(); }}>
+                            <Image
+                              source={require("../Images/rightarrow.png")}
+                              style={{ width: 25, height: 20, tintColor: "#848482" }}
+                            />
+                          </TouchableOpacity>
+                        )}
+
+                      </TouchableOpacity>
+
+                    </View>
+
+                    {weftform ? <View style={{ width: "100%" }}>
+
+                      <View style={styles.table}>
+                        <View style={styles.header1}>
+
+                          <Text style={{ color: "#000", fontSize: 18, fontWeight: "600" }}>Weft yarn in</Text>
+                        </View>
+
+
+
+
+                        {/* BEAM IN FORM  */}
+
+
+
+
+
+
+                        <View>
+
+                          {
+                            show ?
+
+                              <View style={{ flex: 0.4, width: width * 0.7, height: height * 0.4 }}>
+                                <TouchableOpacity onPress={() => setShow(false)}>
+                                  <Image
+                                    source={require('../Images/cross.png')}
+                                    style={{ width: 27, height: 27, alignSelf: 'flex-start', backgroundColor: "#DADBDD", borderRadius: 50, marginLeft: width * 0.8, marginTop: 10, zIndex: 0 }}
+                                    imageStyle={{ borderRadius: 0 }}
+                                  />
+                                </TouchableOpacity>
+                                <Image
+                                  source={{ uri: enlargedImage }}
+                                  style={{
+                                    marginTop: 20,
+                                    width: width * 0.85,
+                                    height: 300,
+                                  }}
+                                />
+                              </View>
+                              : null
+                          }
+
+                          {orderYarn.map((item, index) => (
+                            <View style={{ borderBottomWidth: 2, width: width * 0.85 }}>
+
+                              <View key={index} style={{ flexDirection: "column", justifyContent: 'space-between', marginLeft: "5%" }}>
+                                <View style={{ flexDirection: "row", marginTop: 20 }}>
+                                  <Text style={styles.headerText1}>Date : </Text>
+                                  <Text style={{ color: "#000", marginHorizontal: 50, marginLeft: 0, fontSize: 15, fontWeight: "500" }}>{item.Date.date.substring(0, 10)}</Text>
+                                </View>
+                                <View style={{ flexDirection: "row", marginTop: "8%" }}>
+                                  <Text style={[styles.headerText1]}>Gate Pass Number : </Text>
+                                  <Text style={{ color: "#000", marginLeft: 0, fontSize: 15, fontWeight: "500" }}>{item.GatePassNo}</Text>
+                                </View>
+                                <View style={{ flexDirection: "row", marginTop: "8%" }}>
+                                  <Text style={styles.headerText1}>Image </Text>
+                                  <TouchableOpacity onPress={() => handleImagePress(item.PhotoPath)} >
+                                    <Image
+                                      source={{ uri: item.PhotoPath }}
+                                      style={{ width: 40, height: 40, marginRight: 60, backgroundColor: "grey", margin: 10 }}
+                                    />
+
+                                  </TouchableOpacity>
+
+                                </View>
+
+
+
+                              </View>
+                              <View>
+
+                              </View>
+                            </View>
+                          ))}
+                        </View>
+
+                      </View>
+                    </View> : null}
+
+
+
+
+
+
+
+
+
+
+                    <View style={{ flexDirection: "row" }}>
+                      <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Drawing in'), FalseOthersDI(); fetchDataDI(); }}>
+                        <Text style={styles.buttonText}>Drawing in   <Text style={{ color: "#003C43", textDecorationLine: "underline", marginLeft: "5%" }}>{dateDI}</Text>
+                        </Text>
+                        {
+                          req === 1 ? <Text style={{ color: '#0909ff', fontSize: 16, fontWeight: "500" }}>Done</Text > : null
+                        }
+                      </TouchableOpacity>
+                    </View>
+                    {DrawingInForm ? <View style={{ width: "100%" }}>
+                      <ScrollView horizontal={true} vertical={true}>
+                        <View style={[{ marginLeft: 100 }, styles.table]}>
+                          <View style={styles.header1}>
+                            <Text style={styles.headerText1}>Drawing In</Text>
+
+                          </View>
+
+
+
+
+
+                          {/*DrawingIn FORM  */}
+
+
+
+
+
+
+
+
+
+
+
+
+                          <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "center" }}>
+
+
+                          </View>
+                        </View>
+                      </ScrollView>
+
+                    </View> : null}
+
+
+                    <View style={{ flexDirection: "row" }}>
+                      <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Beam Getting'), FalseOthersBG(); fetchDataBG(); }}>
+                        <Text style={styles.buttonText}>Beam getting    <Text style={{ color: "#003C43", textDecorationLine: "underline", marginLeft: "5%" }}>{dateBG}</Text></Text>
+
+                        {
+                          reqBG === 1 ? <Text style={{ color: '#0909ff', fontSize: 16, fontWeight: "500" }}>Done</Text > : null
+                        }
                       </TouchableOpacity>
                     </View>
 
-                    {RGR.map((row, index) => (
-                      <View key={index} style={styles.rowContainer}>
-                        <SafeAreaView style={styles.row}>
-                          <Text style={styles.headerText1}>{row.GpNo}</Text>
-                          <Text style={[styles.headerText1, { marginLeft: 50 }]}>{row.YarnCount}</Text>
-                          <Text style={[styles.headerText1, { marginLeft: 40 }]}>{row.Weight}</Text>
-                          <Text style={[styles.headerText1, { marginLeft: 10 }]}>{row.CutPiece}</Text>
-                          <Text style={[styles.headerText1, { marginLeft: 10 }]}>{row.Meter}</Text>
-                        </SafeAreaView>
+                    {beamGettingForm ? <View style={{ width: "100%" }}>
+                      <ScrollView horizontal={true} vertical={true}>
+                        <View style={[{ marginLeft: 100 }, styles.table]}>
+                          <View style={styles.header1}>
+                            <Text style={styles.headerText1}>Beam getting</Text>
 
+                          </View>
+
+
+
+
+
+
+
+
+
+
+
+                          {/* BEAM Getting FORM  */}
+
+
+
+
+
+
+
+
+
+
+
+                          <View style={{ flexDirection: "row", width: "100%", alignItems: "center", justifyContent: "center" }}>
+
+                          </View>
+                        </View>
+                      </ScrollView>
+
+                    </View> : null}
+
+
+                    <View style={{ flexDirection: "row" }}>
+                      <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('First Piece Approval'); FalseOthersFPA() }}>
+                        <Text style={styles.buttonText}>First piece approval   <Text style={{ color: "#003C43", textDecorationLine: "underline", marginLeft: "5%" }}>{dateFPA}</Text></Text>
+                        {fpaform ? (
+                          <TouchableOpacity onPress={() => Initialstage()}>
+                            <Image
+                              source={require("../Images/downarrow.png")}
+                              style={{ width: 25, height: 20, tintColor: "#848482" }}
+                            />
+                          </TouchableOpacity>
+                        ) : (
+                          <TouchableOpacity onPress={() => { handleButtonPress('First Piece Approval'); FalseOthersFPA() }}>
+                            <Image
+                              source={require("../Images/rightarrow.png")}
+                              style={{ width: 25, height: 20, tintColor: "#848482" }}
+                            />
+                          </TouchableOpacity>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+
+                    {fpaform ?
+                      <View style={{ borderWidth: 1, width: width * 0.858, marginBottom: 20 }}>
+                        <View style={styles.tableHeader}>
+                          <Text style={styles.headerText}>Messages</Text>
+                        </View>
+
+
+                        {FPAD.map((item, index) => (
+                            <View key={index} style={{ padding: 10, alignItems: "flex-start", justifyContent: "center", width: width * 0.85, borderBottomWidth: 1 }}>
+                              <Text style={{ color: "#000" }}>{item.UpdatedOn.date.substring(0, 10)}</Text>
+                              <Text style={{ color: "#000" }}>{item.Name} : {item.Comment}</Text>
+                            </View>
+                        ))}
+
+
+                        <View style={{ width: "100%", marginTop: 15 }}>
+                          <View style={[styles.table1]}>
+
+
+
+
+                            {/*First Piece Approval FORM  */}
+
+
+
+
+
+
+                            <View style={{ flexDirection: "row", width: width * 0.75, }}>
+                              <TextInput
+                                style={{ width: width * 0.80, borderRadius: 15, color: "#000" }}
+                                placeholder='Any Comments....'
+                                placeholderTextColor={"#000"}
+                                value={first_piece_approval}
+                                onChangeText={(txt) => setFirst_Piece_Approval(txt)}
+                                multiline={true} // Allows multiple lines of input
+                                numberOfLines={5} // Sets the initial number of lines
+                              />
+                            </View>
+                          </View>
+                          <TouchableOpacity style={styles.submitButton} onPress={() => SubmitFPA()}>
+                            <Text style={styles.submitButtonText}>Submit</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View> : null}
+
+
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: "2%" }}>
+                      <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('FabricDispatch'), FalseOthersFD(); fetchDataFD(); }}>
+                        <Text style={[styles.buttonText, styles.BeamInCss]}>Fabric dispatch  <Text style={{ color: "#003C43", textDecorationLine: "underline", marginLeft: "-10%" }}>{dateFD}</Text></Text>
+                        {fdFrom ? (
+                          <TouchableOpacity onPress={() => Initialstage()}>
+                            <Image
+                              source={require("../Images/downarrow.png")}
+                              style={{ width: 25, height: 20, tintColor: "#848482" }}
+                            />
+                          </TouchableOpacity>
+                        ) : (
+                          <TouchableOpacity onPress={() => { handleButtonPress('FabricDispatch'), FalseOthersFD(); }}>
+                            <Image
+                              source={require("../Images/rightarrow.png")}
+                              style={{ width: 25, height: 20, tintColor: "#848482" }}
+                            />
+                          </TouchableOpacity>
+                        )}
+
+                      </TouchableOpacity>
+
+                    </View>
+
+                    {fdFrom ? <View style={{ width: "100%" }}>
+
+                      <View style={styles.table}>
+                        <View style={styles.header1}>
+
+                          <Text style={{ color: "#000", fontSize: 18, fontWeight: "600" }}>Fabric dispatch</Text>
+                        </View>
+
+
+
+
+                        {/* BEAM IN FORM  */}
+
+
+
+
+
+
+                        <View>
+
+                          {
+                            show ?
+
+                              <View style={{ flex: 0.4, width: width * 0.7, height: height * 0.4 }}>
+                                <TouchableOpacity onPress={() => setShow(false)}>
+                                  <Image
+                                    source={require('../Images/cross.png')}
+                                    style={{ width: 27, height: 27, alignSelf: 'flex-start', backgroundColor: "#DADBDD", borderRadius: 50, marginLeft: width * 0.8, marginTop: 10, zIndex: 0 }}
+                                    imageStyle={{ borderRadius: 0 }}
+                                  />
+                                </TouchableOpacity>
+                                <Image
+                                  source={{ uri: enlargedImage }}
+                                  style={{
+                                    marginTop: 20,
+                                    width: width * 0.85,
+                                    height: 300,
+                                  }}
+                                />
+                              </View>
+                              : null
+                          }
+
+                          {orderfd.map((item, index) => (
+                            <View style={{ borderBottomWidth: 2, width: width * 0.85 }}>
+
+                              <View key={index} style={{ flexDirection: "column", justifyContent: 'space-between', marginLeft: "5%" }}>
+                                <View style={{ flexDirection: "row", marginTop: 20 }}>
+                                  <Text style={styles.headerText1}>Date : </Text>
+                                  <Text style={{ color: "#000", marginHorizontal: 50, marginLeft: 0, fontSize: 15, fontWeight: "500" }}>{item.Date.date.substring(0, 10)}</Text>
+                                </View>
+                                <View style={{ flexDirection: "row", marginTop: "8%" }}>
+                                  <Text style={[styles.headerText1]}>Dispatch No. : </Text>
+                                  <Text style={{ color: "#000", marginLeft: 0, fontSize: 15, fontWeight: "500" }}>{item.DispatchNo}</Text>
+                                </View>
+                                <View style={{ flexDirection: "row", marginTop: "8%" }}>
+                                  <Text style={[styles.headerText1]}>Meter : </Text>
+                                  <Text style={{ color: "#000", marginLeft: 0, fontSize: 15, fontWeight: "500" }}>{item.Meter}</Text>
+                                </View>
+                                <View style={{ flexDirection: "row", marginTop: "8%" }}>
+                                  <Text style={[styles.headerText1]}>Weight : </Text>
+                                  <Text style={{ color: "#000", marginLeft: 0, fontSize: 15, fontWeight: "500" }}>{item.Weight}</Text>
+                                </View>
+                                <View style={{ flexDirection: "row", marginTop: "8%" }}>
+                                  <Text style={styles.headerText1}>Image </Text>
+                                  <TouchableOpacity onPress={() => handleImagePress(item.Photopath)} >
+                                    <Image
+                                      style={{ width: 40, height: 40, marginHorizontal: 10, margin: 10, marginRight: 60 }}
+                                      source={{ uri: item.Photopath }}
+                                    />
+
+                                  </TouchableOpacity>
+
+
+                                </View>
+
+
+
+                              </View>
+                              <View>
+
+                              </View>
+                            </View>
+                          ))}
+                        </View>
 
                       </View>
+                    </View> : null}
 
-                    ))}
+
+
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: "2%" }}>
+                      <TouchableOpacity style={styles.button1} onPress={() => { handleButtonPress('Remaining Goods Return'), FalseOthersrgr(); fetchDataRGR(); }}>
+                        <Text style={[styles.buttonText, styles.BeamInCss]}>Remaining good return <Text style={{ color: "#003C43", textDecorationLine: "underline", marginLeft: "-10%" }}>{dateRGR}</Text></Text>
+                        {remaining_goods_returnform ? (
+                          <TouchableOpacity onPress={() => Initialstage()}>
+                            <Image
+                              source={require("../Images/downarrow.png")}
+                              style={{ width: 25, height: 20, tintColor: "#848482" }}
+                            />
+                          </TouchableOpacity>
+                        ) : (
+                          <TouchableOpacity onPress={() => { handleButtonPress('Remaining Goods Return'), FalseOthersrgr(); }}>
+                            <Image
+                              source={require("../Images/rightarrow.png")}
+                              style={{ width: 25, height: 20, tintColor: "#848482" }}
+                            />
+                          </TouchableOpacity>
+                        )}
+
+                      </TouchableOpacity>
+
+                    </View>
+
+                    {remaining_goods_returnform ? <View style={{ width: "100%" }}>
+
+                      <View style={styles.table}>
+                        <View style={styles.header1}>
+
+                          <Text style={{ color: "#000", fontSize: 18, fontWeight: "600" }}>Remaining good return</Text>
+                        </View>
+
+
+
+
+                        {/* BEAM IN FORM  */}
+
+
+
+
+
+
+                        <View>
+
+                          {
+                            show ?
+
+                              <View style={{ flex: 0.4, width: width * 0.7, height: height * 0.4 }}>
+                                <TouchableOpacity onPress={() => setShow(false)}>
+                                  <Image
+                                    source={require('../Images/cross.png')}
+                                    style={{ width: 27, height: 27, alignSelf: 'flex-start', backgroundColor: "#DADBDD", borderRadius: 50, marginLeft: width * 0.8, marginTop: 10, zIndex: 0 }}
+                                    imageStyle={{ borderRadius: 0 }}
+                                  />
+                                </TouchableOpacity>
+                                <Image
+                                  source={{ uri: enlargedImage }}
+                                  style={{
+                                    marginTop: 20,
+                                    width: width * 0.85,
+                                    height: 300,
+                                  }}
+                                />
+                              </View>
+                              : null
+                          }
+
+                          {RGR.map((item, index) => (
+                            <View style={{ borderBottomWidth: 2, width: width * 0.85 }}>
+
+                              <View key={index} style={{ flexDirection: "column", justifyContent: 'space-between', marginLeft: "5%" }}>
+                                <View style={{ flexDirection: "row", marginTop: 20 }}>
+                                  <Text style={styles.headerText1}>GP. NO. : </Text>
+                                  <Text style={{ color: "#000", marginHorizontal: 50, marginLeft: 0, fontSize: 15, fontWeight: "500" }}>{item.GpNo}</Text>
+                                </View>
+                                <View style={{ flexDirection: "row", marginTop: "8%" }}>
+                                  <Text style={[styles.headerText1]}>Yarn Count : </Text>
+                                  <Text style={{ color: "#000", marginLeft: 0, fontSize: 15, fontWeight: "500" }}>{item.YarnCount}</Text>
+                                </View>
+                                <View style={{ flexDirection: "row", marginTop: "8%" }}>
+                                  <Text style={[styles.headerText1]}>Weight : </Text>
+                                  <Text style={{ color: "#000", marginLeft: 0, fontSize: 15, fontWeight: "500" }}>{item.Weight}</Text>
+                                </View>
+                                <View style={{ flexDirection: "row", marginTop: "8%" }}>
+                                  <Text style={[styles.headerText1]}>Cut Piece : </Text>
+                                  <Text style={{ color: "#000", marginLeft: 0, fontSize: 15, fontWeight: "500" }}>{item.CutPiece}</Text>
+                                </View>
+                                <View style={{ flexDirection: "row", marginTop: "8%" }}>
+                                  <Text style={styles.headerText1}>Meter </Text>
+                                  <Text style={{ color: "#000", marginLeft: 0, fontSize: 15, fontWeight: "500" }}>{item.Meter}</Text>
+                                </View>
+                                <View style={{ flexDirection: "row", marginTop: "8%" }}>
+                                  <Text style={styles.headerText1}>Image </Text>
+                                  <TouchableOpacity onPress={() => handleImagePress(item.Photopath)} >
+                                    <Image
+                                      source={{ uri: item.Photopath }} // or require('path/to/img.jpeg')
+                                      style={{ width: 40, height: 40, marginRight: 60, backgroundColor: '#A8A9AD', marginLeft: 30, marginBottom: "15%" }}
+                                    />
+                                  </TouchableOpacity>
+
+                                </View>
+
+
+
+                              </View>
+                              <View>
+
+                              </View>
+                            </View>
+                          ))}
+                        </View>
+
+                      </View>
+                    </View> : null}
+
+
+
+
+
 
 
                   </View>
+                  <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => {
+                      Alert.alert('Modal has been closed.');
+                      setModalVisible(!modalVisible);
+                    }}>
+                    <View style={styles.centeredView}>
+                      <View style={styles.modalView}>
+                        <Text style={styles.modalText}>Data Submitted Successfully</Text>
+                        <View style={{ flexDirection: "column", alignItems: "center" }}>
+                          <Image
+                            style={{ width: 50, height: 50 }}
+                            source={require("../Images/success.png")}
+                          />
+                          <Pressable
+                            style={[styles.button1, styles.buttonClose1]}
+                            onPress={() => yesbutton2(!modalVisible)}>
+                            <Text style={styles.textStyle1}>close</Text>
+                          </Pressable>
 
-                  {/* <Text style={{ marginRight: 250 }}></Text> */}
-                </ScrollView>
-
-              </View> : null}
-
-              <TouchableOpacity style={[styles.button1, { backgroundColor: "red", alignItems: "center", marginTop: 20 }]} onPress={() => ToggleScreens()}>
-                <Text style={[styles.buttonText, { color: "#fff" }]}>Back</Text>
-              </TouchableOpacity>
-
-
-
-              {
-                showmsg ? <View style={{ flex: 1, alignItems: "flex-end", justifyContent: "flex-end" }}>
-                  <View style={{
-                    bottom: 0,
-                    height: 20,
-                    width: '100%',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    backgroundColor: isConected ? 'green' : 'red'
-
-                  }}>
-                    <Text style={{ color: "#fff" }}>
-                      {(() => {
-                        if (isConected === true) {
-                          'Back Online'
-                        } else {
-                          'No Internet'
-                        }
-                      })}
-                    </Text>
-
-                  </View>
-                </View> : null
-              }
-
-
-            </View>
-            <Modal
-              animationType="slide"
-              transparent={true}
-              visible={modalVisible2}
-              onRequestClose={() => {
-                Alert.alert('Modal has been closed.');
-                setModalVisible2(!modalVisible);
-              }}>
-              <View style={styles.centeredView}>
-                <View style={styles.modalView}>
-                  <Text style={styles.modalText}>Data Submitted Successfully</Text>
-                  <View style={{ flexDirection: "column", alignItems: "center" }}>
-                    <Image
-                      style={{ width: 50, height: 50 }}
-                      source={require("../Images/success.png")}
-                    />
-                    <Pressable
-                      style={[styles.button1, styles.buttonClose1]}
-                      onPress={() => yesbutton2(!modalVisible)}>
-                      <Text style={styles.textStyle1}>close</Text>
-                    </Pressable>
-
-                  </View>
+                        </View>
+                      </View>
+                    </View>
+                  </Modal>
                 </View>
-              </View>
-            </Modal>
-          </View>
 
-        )}
+              )}
+
+            </View> : null
+        }
 
         <Text style={{ marginTop: "18%" }}></Text>
       </ScrollView>
-      <View>
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => {
-            Alert.alert('Modal has been closed.');
-            setModalVisible(!modalVisible);
-          }}>
-          <View style={styles.centeredView}>
-            <View style={styles.modalView}>
-              <Text style={styles.modalText}>Congralutations !!! {" "} {Name}</Text>
-              <Text style={styles.modalText}>Your order number XX01 of 5 Looms is placed with LOHAR TEXTILES With the job rate of 9 paise from Date___ to ___ please proceed for contract formation contact details of LOHAR TEXTILES :- (NAME,CONTACT NO., MAIL ID,ADDRESS) Dalal/Agent Name & Contact No. </Text>
-              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
-              </View>
-            </View>
-            <View style={{ flexDirection: "column", alignItems: "center" }}>
-              <Pressable
-                style={[styles.button1, styles.buttonClose1]}
-                onPress={() => yesbutton(!modalVisible)}>
-                <Text style={styles.textStyle1}>OKAY</Text>
-              </Pressable>
-            </View>
-          </View>
-        </Modal>
-      </View >
     </SafeAreaView >
   )
 }
@@ -1092,37 +1245,72 @@ const styles = StyleSheet.create({
     padding: "5%"
   },
   ordersContainer: {
-    flexDirection: 'column',
-    alignItems: "center"
+    padding: 10,
+  },
+  orderWrapper: {
+    marginBottom: 20,
+  },
+  orderContainer: {
+    padding: 10,
+    borderRadius: 15,
+    borderWidth: 2,
+    borderColor: "#003C43",
+  },
+  orderText: {
+    color: 'black', // Text color for better contrast
+    fontSize: 16,
+    fontWeight: "600"
+  },
+  Card: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: "6%",
+    borderWidth: 1,
+    borderRadius: 30,
+    borderColor: "grey",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    margin: "3%"
+  },
+  table: {
+    borderWidth: 1,
+    borderColor: '#000',
+    marginBottom: 20,
+    marginRight: 80,
+    justifyContent: 'center',
+    alignItems: "center",
+    width: width * 0.90,
+    marginLeft: 10
+  },
+  table1: {
+    borderWidth: 1,
+    borderColor: '#000',
+    marginBottom: 20,
+    marginRight: 80,
+    justifyContent: 'center',
+    alignItems: "center",
+    width: width * 0.80,
+    marginLeft: 10
   },
   header1: {
+    width: width * 0.90,
     flexDirection: 'row',
     padding: 10,
-    backgroundColor: '#e5f2fe',
+    backgroundColor: '#FF7722',
     borderWidth: 1,
-    justifyContent: "space-between",
+    justifyContent: "center"
   },
   headerText1: {
     fontWeight: 'bold',
-    marginLeft: 10,
+    marginLeft: 0,
     color: "#000",
-    marginHorizontal: 50
-  },
-  orderContainer: {
-    width: '88%',
-    backgroundColor: '#0E8C6B',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-    padding: 10,
-    borderRadius: 25
-  },
-  orderText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 5,
-    color: "#fff"
+    paddingRight: "5%",
+    fontSize: 16
   },
   orderText1: {
     fontSize: 16,
@@ -1136,22 +1324,28 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   button1: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: '#0E8C6B',
-    paddingVertical: 10,
+    alignItems: 'flex-start',
+    justifyContent: "space-between",
+    backgroundColor: '#F5F5F5',
+    paddingVertical: 15,
     paddingHorizontal: 20,
-    borderRadius: 5,
-    marginBottom: 10,
-    width: "70%",
-    justifyContent: "space-between"
-
-
+    borderRadius: 15,
+    marginBottom: 15,
+    width: "90%",
+    flexDirection: "row",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 2,
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: '#000',
     fontSize: 16,
+    fontWeight: "600"
   },
   addButton: {
     backgroundColor: '#6495ED',
@@ -1171,13 +1365,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderBottomColor: '#000',
   },
-  table: {
-    borderWidth: 1,
-    borderColor: '#000',
-    marginBottom: 20,
-    marginRight: 80,
-    justifyContent: 'space-evenly',
-  },
+
   submitButton: {
     backgroundColor: 'green',
     padding: 15,
@@ -1254,6 +1442,7 @@ const styles = StyleSheet.create({
     backgroundColor: "green",
     margin: "5%",
     width: 200,
+    justifyContent: "center"
   },
   textStyle1: {
     color: 'white',
@@ -1268,7 +1457,7 @@ const styles = StyleSheet.create({
     fontSize: 17
   },
   tableHeader: {
-    width: 400,
+    width: width * 0.85,
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 10,

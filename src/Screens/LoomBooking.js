@@ -10,19 +10,20 @@ import {
   Modal,
   Animated,
   RefreshControl,
-  ImageBackground
+  ImageBackground,
+  Alert
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const LoomBooking = ({ navigation }) => {
+const LoomBooking = ({ navigation, route }) => {
   const [loading, setLoading] = useState(true);
   const [loomNumbers, setLoomNumbers] = useState([]);
   const [selectedLoom, setSelectedLoom] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [enquiryDetails, setEnquiryDetails] = useState(null);
   const [showEnquiryForm, setShowEnquiryForm] = useState(false);
-  const [OrderNo, setOrderNo] = useState('');
+  const [OrderNo1, setOrderNo] = useState('');
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
   const scaleAnim = useState(new Animated.Value(0))[0];
@@ -30,19 +31,27 @@ const LoomBooking = ({ navigation }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [modalVisible2, setModalVisible2] = useState(false);
+  const [bookedLoomNo, setBookedLoomNo] = useState(null);
 
+
+  const OrderNo = route.params?.OrderNo || OrderNo1;
   const fetchData = async () => {
     try {
       const id = await AsyncStorage.getItem("Id");
-      const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/bookingjoin.php?LoomTraderId=${id}`);
+      const today = new Date().toISOString().substring(0, 10);
+
+      const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/todayloom.php?LoomTraderId=${id}&Todaydate=${today}`);
       const data = await response.json();
       setLoomNumbers(data);
+      console.log(data)
       setLoading(false);
     } catch (error) {
       console.error('Error fetching data:', error);
       setLoading(false);
     }
   };
+
+
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -51,9 +60,39 @@ const LoomBooking = ({ navigation }) => {
       setRefreshing(false);
     }, 2000);
     console.log("refreshed")
+    setBookedLoomNo(null)
   }, []);
 
   useEffect(() => {
+    const filterLoomNumbers = (data) => {
+      return data.map(loom => {
+        if (loom.bookedToDate && loom.LoomOrderId && loom.KnottingOrderId) {
+          return {
+            ...loom,
+            Available: 1 // Mark as available if no LoomOrderId or KnottingOrderId
+          };
+        }
+        return loom;
+      });
+    };
+
+    const fetchData = async () => {
+      try {
+        const id = await AsyncStorage.getItem("Id");
+        const today = new Date().toISOString().substring(0, 10);
+
+        const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/todayloom.php?LoomTraderId=${id}&Todaydate=${today}`);
+        const data = await response.json();
+        const filteredData = filterLoomNumbers(data);
+        setLoomNumbers(filteredData);
+        console.log(filteredData)
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setLoading(false);
+      }
+    };
+
     fetchData();
   }, []);
 
@@ -61,6 +100,8 @@ const LoomBooking = ({ navigation }) => {
     setSelectedLoom(loom);
     setModalVisible(true);
   };
+
+
 
   const handleEnquirySubmit = async () => {
     try {
@@ -86,20 +127,57 @@ const LoomBooking = ({ navigation }) => {
   };
 
   const postLoomOrder = async () => {
-    console.log("Data = ", selectedLoom?.BookingId, enquiryDetails.LoomOrderId);
+    console.log("Data = ", selectedLoom?.BookingId, enquiryDetails.LoomOrderId, enquiryDetails.BookedDateFrom?.date?.substring(0, 10), enquiryDetails.BookedDateTo?.date?.substring(0, 10), selectedLoom?.Id, selectedLoom?.LoomNo);
 
-    // const requestOptions = {
-    //   method: "GET",
-    //   redirect: "follow"
-    // };
+    const bookedToDate = enquiryDetails.BookedDateTo?.date?.substring(0, 10);
 
-    // fetch('https://textileapp.microtechsolutions.co.in/php/updateloomavailability.php?BookingId=' + selectedLoom?.BookingId + '&OrderNoId=' + enquiryDetails.LoomOrderId, requestOptions)
-    //   .then((response) => response.text())
-    //   .then((result) => console.log(result))
-    //   .catch((error) => console.error(error));
+    if (bookedToDate) {
+      const date = new Date(bookedToDate);
+      date.setMonth(date.getMonth() + 4);
+      const loomAvailableTo = date.toISOString().substring(0, 10); // format the date as YYYY-MM-DD
+
+      const formdata = new FormData();
+      formdata.append("BookingId", selectedLoom?.BookingId);
+      formdata.append("OrderNoId", enquiryDetails.LoomOrderId);
+      formdata.append("BookedFromDate", enquiryDetails.BookedDateFrom?.date?.substring(0, 10));
+      formdata.append("BookedToDate", bookedToDate);
+      formdata.append("LoomAvailableTo", loomAvailableTo);
+
+      const requestOptions = {
+        method: "POST",
+        body: formdata,
+        redirect: "follow"
+      };
+
+      fetch("https://textileapp.microtechsolutions.co.in/php/updateloomavailability.php", requestOptions)
+        .then((response) => response.text())
+        .then((result) => console.log(result))
+        .catch((error) => console.error(error));
+    } else {
+      console.error('BookedToDate is not defined');
+    }
   };
 
   const handleBookLoom = () => {
+    console.log("Dates = ", selectedLoom?.BookedDateTo?.date?.substring(0, 10) + "  " + enquiryDetails?.BookedDateFrom?.date?.substring(0, 10))
+
+    if (selectedLoom?.BookedDateTo?.date?.substring(0, 10) && enquiryDetails?.BookedDateFrom?.date?.substring(0, 10)) {
+      const loomBookedDateTo = new Date(selectedLoom?.BookedDateTo?.date?.substring(0, 10));
+      const enquiryBookedDateTo = new Date(enquiryDetails?.BookedDateFrom?.date?.substring(0, 10));
+
+      if (enquiryBookedDateTo > loomBookedDateTo) {
+        Alert.alert("Can book loom for this order");
+
+        // performLoomBooking();
+      } else {
+        Alert.alert("Cannot book loom for this order");
+      }
+    } else {
+      performLoomBooking();
+    }
+  };
+
+  const performLoomBooking = () => {
     setIsBookingModalVisible(true);
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -135,16 +213,11 @@ const LoomBooking = ({ navigation }) => {
       });
     }, 3000);
     postLoomOrder();
+    setBookedLoomNo(selectedLoom?.LoomNo);
   };
 
   const handleBlockPress1 = (loom) => {
-    setSelectedLoom(loom);
-    setShowEnquiryForm(true);
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true
-    }).start();
+    navigation.navigate("BookLoomForm", { LoomDetailId: loom.Id })
   };
 
   const handleCloseModal = () => {
@@ -176,33 +249,51 @@ const LoomBooking = ({ navigation }) => {
         key={index}
         style={[
           styles.block,
-          loom.Available !== 1 && styles.unAvailableBlock // Conditionally apply gray background
+          loom.Available !== 1 && styles.unAvailableBlock,
+          loom.LoomNo === bookedLoomNo && styles.bookedBlock
         ]}
       >
         <View style={styles.blockTop}>
           <Text
             style={[
               styles.blockText,
-              loom.Available !== 1 && styles.unAvailableBlockText // Conditionally apply white text color
+              loom.Available !== 1 && styles.unAvailableBlockText
             ]}
           >
-            {'Loom No ' + loom.LoomNo}
+            {loom.LoomNo}
           </Text>
           <TouchableOpacity onPress={() => handleBlockPress(loom)}>
-            <Icon name="information-circle" size={20} color="white" />
+            <Icon name="information-circle" size={22} color="white" />
           </TouchableOpacity>
         </View>
         <View style={styles.blockBottom}>
-          {loom.Available !== 1 ? (
+          {loom.BookedToDate!=null ? (
             <View>
-              <Text style={styles.detailText1}>OR: {loom.OrderNo}</Text>
-              <Text style={styles.detailText1}>Party: {loom.PartyName}</Text>
-              <Text style={styles.detailText1}>To: {loom.BookedDateTo ? loom.BookedDateTo.date.substring(0, 10) : 'N/A'}</Text>
+              {(loom.LoomOrderId==null && loom.KnottingOrderId==null) ? (
+                <View>
+                  <Text style={styles.detailText1}>Booked</Text>
+                  <Text style={styles.detailText1}>From: {loom.PartyName}</Text>
+                  <Text style={styles.detailText1}>To: {loom.BookedToDate ? loom.BookedToDate.date.substring(0, 10) : 'N/A'}</Text>
+                </View>
+              ) : (
+                // <Text style={styles.detailText1}>Available</Text>
+                <View>
+                  <Text style={styles.detailText1}>OR: {loom.OrderNo}</Text>
+                  <Text style={styles.detailText1}>Party: {loom.PartyName}</Text>
+                  <Text style={styles.detailText1}>To: {loom.BookedToDate ? loom.BookedToDate.date.substring(0, 10) : 'N/A'}</Text>
+                </View>
+              )}
+              <TouchableOpacity style={styles.bookButton} onPress={() => handleBlockPress1(loom)}>
+                <Text style={styles.bookButtonText}>Book Loom</Text>
+              </TouchableOpacity>
             </View>
           ) : (
-            <TouchableOpacity style={styles.bookButton} onPress={() => handleBlockPress1(loom)}>
-              <Text style={styles.bookButtonText}>Book Loom</Text>
-            </TouchableOpacity>
+            <View>
+              <Text style={{ color: "#fff", fontSize: 15 }}>Available</Text>
+              <TouchableOpacity style={styles.bookButton} onPress={() => handleBlockPress1(loom)}>
+                <Text style={styles.bookButtonText}>Book Loom</Text>
+              </TouchableOpacity>
+            </View>
           )}
         </View>
       </View>
@@ -212,10 +303,10 @@ const LoomBooking = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => navigation.openDrawer()}>
+        <TouchableOpacity style={{ padding: "1%" }} onPress={() => navigation.openDrawer()}>
           <ImageBackground
             source={require("../Images/drawer.png")}
-            style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#003c43", marginTop: 8, marginRight: 0, marginLeft: 10 }}
+            style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#003c43", marginTop: 0, marginRight: 0, marginLeft: 10 }}
             imageStyle={{ borderRadius: 0 }}
           />
         </TouchableOpacity>
@@ -289,13 +380,13 @@ const LoomBooking = ({ navigation }) => {
             </TouchableOpacity>
           </View>
           <Text style={styles.detailHeader}>Order Details</Text>
-          <Text style={styles.detailText}>OrderNo: {enquiryDetails.OrderNo}</Text>
-          <Text style={styles.detailText}>PartyName: {enquiryDetails.PartyName}</Text>
-          <Text style={styles.detailText}>JobRate: {enquiryDetails.JobRate}</Text>
-          <Text style={styles.detailText}>Orderdate: {enquiryDetails.Orderdate?.date?.substring(0, 10) ?? 'N/A'}</Text>
-          <Text style={styles.detailText}>BookedDateFrom: {enquiryDetails.BookedDateFrom?.date?.substring(0, 10) ?? 'N/A'}</Text>
-          <Text style={styles.detailText}>BookedDateTo: {enquiryDetails.BookedDateTo?.date?.substring(0, 10) ?? 'N/A'}</Text>
-          <TouchableOpacity style={styles.bookButton} onPress={() => handleBookLoom()}>
+          <Text style={[styles.detailText, { marginLeft: "5%" }]}>OrderNo: {enquiryDetails.OrderNo}</Text>
+          <Text style={[styles.detailText, { marginLeft: "5%" }]}>PartyName: {enquiryDetails.PartyName}</Text>
+          <Text style={[styles.detailText, { marginLeft: "5%" }]}>JobRate: {enquiryDetails.JobRate}</Text>
+          <Text style={[styles.detailText, { marginLeft: "5%" }]}>Orderdate: {enquiryDetails.Orderdate?.date?.substring(0, 10) ?? 'N/A'}</Text>
+          <Text style={[styles.detailText, { marginLeft: "5%" }]}>BookedDateFrom: {enquiryDetails.BookedDateFrom?.date?.substring(0, 10) ?? 'N/A'}</Text>
+          <Text style={[styles.detailText, { marginLeft: "5%" }]}>BookedDateTo: {enquiryDetails.BookedDateTo?.date?.substring(0, 10) ?? 'N/A'}</Text>
+          <TouchableOpacity style={styles.bookButton} onPress={() => { handleBookLoom(); setBookedLoomNo(selectedLoom?.LoomNo) }}>
             <Text style={styles.bookButtonText}>Book Loom</Text>
           </TouchableOpacity>
         </View>
@@ -308,33 +399,45 @@ const LoomBooking = ({ navigation }) => {
       >
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
-            <TouchableOpacity style={styles.backButton} onPress={() => setModalVisible(false)}>
-              <Text style={styles.backButtonText}>Back</Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: "row", justifyContent: "flex-end", alignItems: "flex-end", width: "100%" }}>
+              <TouchableOpacity style={styles.backButton1} onPress={() => {
+                setModalVisible(false);
+                navigation.navigate("EditLooms", { selectedLoom });
+              }}>
+                <Text style={styles.backButtonText}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.backButton} onPress={() => setModalVisible(false)}>
+                <Text style={styles.backButtonText}>Back</Text>
+              </TouchableOpacity>
+            </View>
             <Text style={styles.modalText}>Loom Details</Text>
             <View style={styles.detailContainer}>
-              <Text style={styles.detailTitle}>Loom No:</Text>
-              <Text style={styles.detailText}>{selectedLoom?.LoomNo}</Text>
+              <Text style={styles.detailTitle}>Loom No :</Text>
+              <Text style={[styles.detailText, { marginLeft: "5%" }]}>{selectedLoom?.LoomNo}</Text>
             </View>
             <View style={styles.detailContainer}>
-              <Text style={styles.detailTitle}>MachineType:</Text>
-              <Text style={styles.detailText}>{selectedLoom?.MachineType}</Text>
+              <Text style={styles.detailTitle}>Machine Type:</Text>
+              <Text style={[styles.detailText, { marginLeft: "5%" }]}>{selectedLoom?.MachineType}</Text>
+            </View>
+            <View style={styles.detailContainer}>
+              <Text style={styles.detailTitle}>Shedding Type:</Text>
+              <Text style={[styles.detailText, { marginLeft: "5%" }]}>{selectedLoom?.SheddingType}</Text>
             </View>
             <View style={styles.detailContainer}>
               <Text style={styles.detailTitle}>Width:</Text>
-              <Text style={styles.detailText}>{selectedLoom?.Width}</Text>
+              <Text style={[styles.detailText, { marginLeft: "5%" }]}>{selectedLoom?.Width}</Text>
             </View>
             <View style={styles.detailContainer}>
               <Text style={styles.detailTitle}>RPM:</Text>
-              <Text style={styles.detailText}>{selectedLoom?.RPM}</Text>
+              <Text style={[styles.detailText, { marginLeft: "5%" }]}>{selectedLoom?.RPM}</Text>
             </View>
             <View style={styles.detailContainer}>
               <Text style={styles.detailTitle}>No of Frames:</Text>
-              <Text style={styles.detailText}>{selectedLoom?.NoofFrames}</Text>
+              <Text style={[styles.detailText, { marginLeft: "5%" }]}>{selectedLoom?.NoofFrames}</Text>
             </View>
             <View style={styles.detailContainer}>
               <Text style={styles.detailTitle}>No of Feeders:</Text>
-              <Text style={styles.detailText}>{selectedLoom?.NoofFeeders}</Text>
+              <Text style={[styles.detailText, { marginLeft: "5%" }]}>{selectedLoom?.NoofFeeders}</Text>
             </View>
             {selectedLoom?.SelvageJacquard === 1 && (
               <View style={styles.detailContainer}>
@@ -419,21 +522,23 @@ const LoomBooking = ({ navigation }) => {
   );
 };
 
+export default LoomBooking;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff', // Set background color to black
+    backgroundColor: '#fff',
   },
   blocksContainer: {
-    flexDirection: 'row', // Arrange blocks in a row
-    flexWrap: 'wrap', // Wrap the blocks to the next line
-    justifyContent: 'space-evenly', // Distribute blocks evenly along the main axis
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-evenly',
   },
   block: {
     backgroundColor: '#007e83',
     padding: 20,
     margin: 10,
-    width: '40%', // Set the width to 45% of the parent container
+    width: '40%',
     borderRadius: 8,
   },
   modalcontent: {
@@ -441,34 +546,37 @@ const styles = StyleSheet.create({
     alignItems: "center"
   },
   unAvailableBlock: {
-    backgroundColor: 'gray', // Gray background for unavailable blocks
+    backgroundColor: '#007e83',
   },
   blockText: {
-    fontSize: 16,
-    color: 'white', // White text color for block text
+    fontSize: 18,
+    color: 'white',
     fontWeight: 'bold',
-    marginRight: 10, // Margin to separate text and icon
+    marginRight: 10,
   },
   unAvailableBlockText: {
-    color: 'white', // White text color for unavailable blocks
+    color: 'white',
+    fontWeight: 'bold',
   },
   blockTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10, // Margin between top and bottom sections
+    marginBottom: 10,
   },
   blockBottom: {
     marginTop: 10,
   },
   detailText: {
-    color: '#000', // White text color for details
+    color: '#000',
+    fontWeight: "600",
   },
   detailText1: {
-    color: '#fff', // White text color for details
+    color: '#fff',
+    marginTop: "-3%"
   },
   bookButton: {
-    backgroundColor: '#003c43',
+    backgroundColor: '#FF7722',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 5,
@@ -486,13 +594,18 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: '#003c43',
   },
+  detailTitle: {
+    color: "#000",
+    fontWeight: "600",
+    fontSize: 18,
+  },
   header: {
     fontSize: 22,
     fontWeight: 'bold',
     color: 'white',
     flex: 1,
     textAlign: 'center',
-    marginRight: 50, // Adjust margin to balance the header text
+    marginRight: 50,
   },
   modalBackground: {
     flex: 1,
@@ -520,8 +633,9 @@ const styles = StyleSheet.create({
   },
   detailContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     marginBottom: 10,
+    width: "100%"
   },
   input: {
     borderWidth: 1,
@@ -529,7 +643,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 10,
     marginBottom: 10,
-    width: "100%"
+    width: "100%",
+    color: "#000"
   },
   submitButton: {
     backgroundColor: '#007e83',
@@ -578,8 +693,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#ff0000",
     padding: 10,
     borderRadius: 5,
-    marginBottom: 10,
-    alignSelf: 'flex-start',
+    marginBottom: "10%",
+    alignSelf: 'flex-end',
+    paddingHorizontal: "8%"
+  },
+  backButton1: {
+    backgroundColor: "#0909ff",
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: "10%",
+    alignSelf: 'flex-end',
+    paddingHorizontal: "8%",
+    marginRight: "4%"
+
   },
   backButtonText: {
     color: "#fff",
@@ -635,6 +761,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 16,
   },
+  bookedBlock: {
+    backgroundColor: '#ff9800',
+  },
 });
 
-export default LoomBooking;
+

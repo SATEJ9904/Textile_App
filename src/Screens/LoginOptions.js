@@ -1,93 +1,69 @@
 import React, { useState } from 'react';
-import { View, Text, ActivityIndicator, TextInput, Alert, StyleSheet, Image, TouchableOpacity, StatusBar, SafeAreaView } from 'react-native';
+import { View, Text, ActivityIndicator, Image, TouchableOpacity, SafeAreaView, StyleSheet, Dimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
+const { width, height } = Dimensions.get('window');
 
 const LoginOptions = ({ navigation }) => {
-    const [Email, setEmail] = useState('');
-    const [Password, setPassword] = useState('');
-    const [show, setShow] = useState(false)
-    const dataArray = [Email, Password];
+    const [show, setShow] = useState(false);
 
     return (
         <SafeAreaView style={styles.container}>
-
-            <LinearGradient style={{
-                flex: 1,
-            }}
-                colors={["#003C43", "#135D66", "#77B0AA","#FF7722"]}>
-
-           
-
-            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-
-                <TouchableOpacity
-                    style={styles.btn1}
-
-                >
-                    <Image
-                        source={require("../Images/company.png")}
-                        style={{
-                            borderRadius: 40, height: 120,
-                            width: "180%", marginLeft: 40, marginTop: 10
-                        }}
-                    />
-
-
-                </TouchableOpacity>
-
-
-
-            </View>
-
-            {
-                show ? <ActivityIndicator size={70} color="green" /> : null
-            }
-
-            <View style={{ flex: 0.9, alignItems: "center", marginTop: 20 }}>
-                <View style={{ flex: 0.5, justifyContent: "center" }}>
-                    <Text style={{ fontSize: 26, fontWeight: "600", color: "#003C43" }}> Select Your Role </Text>
+            <LinearGradient style={styles.gradient} colors={["#003C43", "#135D66", "#77B0AA", "#FF7722"]}>
+                <View style={styles.logoContainer}>
+                    <TouchableOpacity style={styles.btn1}>
+                        <Image
+                            source={require("../Images/company.png")}
+                            style={styles.logo}
+                        />
+                    </TouchableOpacity>
                 </View>
-
-                <View style={{ flexDirection: 'row' }}>
-
-                    <View style={{ flex: 1, justifyContent: "center" }}>
-                        <TouchableOpacity
-                            style={styles.btn}
-                            onPress={() => navigation.navigate("Signup")}
-                        >
-
-                            <Image
-                                style={{ height: 100, width: "90%", resizeMode: 'contain', margin: 15 }}
-                                source={require("../Images/loom.png")}
-
-                            />
-                            <Text style={styles.txt}>Loom Unit</Text>
-
-                        </TouchableOpacity>
+                {show && <ActivityIndicator size="large" color="green" style={styles.activityIndicator} />}
+                <View style={styles.roleContainer}>
+                    <View style={styles.roleTextContainer}>
+                        <Text style={styles.roleText}>Select Your Role</Text>
                     </View>
+                    <View style={styles.roles}>
+                        <View style={styles.role}>
+                            <TouchableOpacity
+                                style={styles.btn}
+                                onPress={() => navigation.navigate("Signup")}
+                            >
+                                <Image
+                                    style={styles.roleImage}
+                                    source={require("../Images/loom.png")}
+                                />
+                                <Text style={styles.txt}>Loom Unit</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <View style={styles.role}>
+                            <TouchableOpacity
+                                style={styles.btn}
+                                onPress={() => navigation.navigate("SignupTrader")}
+                            >
+                                <Image
+                                    style={styles.roleImage}
+                                    source={require("../Images/trader_.png")}
+                                />
+                                <Text style={styles.txt}>Trader Unit</Text>
+                            </TouchableOpacity>
+                        </View>
 
-                    <View style={{ flex: 1, justifyContent: "center" }}>
-                        <TouchableOpacity
-                            style={styles.btn}
-                            onPress={() => navigation.navigate("SignupTrader")}
-                        >
-
-                            <Image
-                                style={{ height: 100, width: "90%", resizeMode: 'contain', margin: 15 }}
-                                source={require("../Images/trader_.png")}
-
-                            />
-                            <Text style={styles.txt}> Trader </Text>
-                        </TouchableOpacity>
+                        <View style={styles.role}>
+                            <TouchableOpacity
+                                style={styles.btn}
+                                onPress={() => navigation.navigate("SignUpYarn")}
+                            >
+                                <Image
+                                    style={[styles.roleImage,{width:"80%"}]}
+                                    source={require("../Images/thread.png")}
+                                />
+                                <Text style={[styles.txt,{marginTop:"5%"}]}>Yarn Unit</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
-
                 </View>
-            </View>
-
-
-           
-              </LinearGradient>
+            </LinearGradient>
         </SafeAreaView>
     );
 };
@@ -95,39 +71,84 @@ const LoginOptions = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-       // backgroundColor: 'white',
+    },
+    gradient: {
+        paddingHorizontal: 20,
+        height: "100%",
+        width: "100%",
+
+    },
+    logoContainer: {
+        flex: 0.5,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    btn1: {
+        height: width * 1,
+        width: width * 1,
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: (width * 0.6) / 2,
+    },
+    logo: {
+        height: '100%',
+        width: '100%',
+        resizeMode: 'contain',
+    },
+    roleContainer: {
+        flex: 1,
+        alignItems: "center",
+    },
+    roleTextContainer: {
+        marginBottom: 20,
+    },
+    roleText: {
+        fontSize: 26,
+        fontWeight: "600",
+        color: "#fff",
+        textAlign: 'center',
+    },
+    roles: {
+        flex: 1,
+        justifyContent: "space-around",
+        width: '100%',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+    role: {
+        justifyContent: "center",
+        alignItems: 'center',
+        marginBottom: 20,
     },
     btn: {
-        borderWidth: 3.7,
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.1)',
         borderColor: '#003C43',
         margin: 10,
         borderRadius: 20,
+        overflow: 'hidden',
+        width: width * 0.4,
+        height: width * 0.4 + 50,
+        borderWidth: 2,
     },
-    btn1: {
-        height: "80%",
-        width: '80%',
-        //backgroundColor: 'rgba(0, 60, 67, 0.8)',
-        justifyContent: "center",
-        alignItems: "center",
-        padding: 10,
-        borderRadius: 200,
-        marginTop: 25
+    roleImage: {
+        height: '70%',
+        width: '100%',
+        resizeMode: 'contain',
+        marginTop: 10,
     },
     txt: {
-        fontSize: 24,
+        fontSize: 18,
         fontWeight: "400",
         color: "#fff",
         backgroundColor: '#003C43',
         padding: 5,
-        paddingLeft: 10,
-        paddingRight: 10,
-        borderTopLeftRadius: 10,
-        borderTopRightRadius: 10,
-
-    }
-
+        width: '100%',
+        textAlign: 'center',
+    },
+    activityIndicator: {
+        marginVertical: 20,
+    },
 });
 
 export default LoginOptions;
