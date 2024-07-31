@@ -76,6 +76,8 @@ import BroadCastTrader from './src/Screens/BroadCastTrader';
 import LiveBooking from './src/Screens/LiveBooking';
 import BookLoomForm from './src/Screens/BookLoomForm';
 import SignUpYarn from './src/Screens/SignUpYarn';
+import ProfileTrader from './src/Screens/ProfileTrader';
+import ProfileYarn from './src/Screens/ProfileYarn';
 
 
 
@@ -218,7 +220,7 @@ const LoomDrawerNavigator = () => (
 
       }} />
 
-    <TraderDrawer.Screen
+    <LoomDrawer.Screen
 
       name="KnottingOffersL"
       component={KnottingOffersL}
@@ -227,7 +229,7 @@ const LoomDrawerNavigator = () => (
         drawerActiveTintColor: '#000',
         drawerInactiveTintColor: '#000',
         drawerIcon: ({ focused }) => (
-          <Icons name={focused ? 'discount' : 'discount'} size={25} color={'grey'} />
+          <Icons name={focused ? 'local-offer' : 'local-offer'} size={25} color={'grey'} />
         ),
         title: 'Knotting Offers',
         drawerLabelStyle: {
@@ -539,8 +541,8 @@ const TraderDrawerNavigator = () => (
 
     <TraderDrawer.Screen
 
-      name="Profile"
-      component={Profile}
+      name="ProfileTrader"
+      component={ProfileTrader}
       options={{
         drawerActiveBackgroundColor: '#fff',
         drawerActiveTintColor: '#000',
@@ -904,8 +906,8 @@ const YarnDrawerNavigator = () => (
 
     <YarnDrawer.Screen
 
-      name="Profile"
-      component={Profile}
+      name="ProfileYarn"
+      component={ProfileYarn}
       options={{
         drawerActiveBackgroundColor: '#fff',
         drawerActiveTintColor: '#000',

@@ -87,7 +87,7 @@ const KnottingResponses = ({ navigation }) => {
         try {
             const userId = await AsyncStorage.getItem('Id');
             const response = await fetch(
-                'https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=KnottingOffer&Colname=LoomId&Colvalue='+ await AsyncStorage.getItem('Id')
+                'https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=KnottingOffer&Colname=LoomId&Colvalue=' + await AsyncStorage.getItem('Id')
             );
 
             if (!response.ok) {
@@ -139,6 +139,8 @@ const KnottingResponses = ({ navigation }) => {
     const startOrder = async (order) => {
         setShowLottie(true);
         setLottieMessage('Processing Your Order To Start...');
+
+
         const confirmed = true;
         try {
             const response = await fetch(
@@ -147,20 +149,21 @@ const KnottingResponses = ({ navigation }) => {
 
             if (!response.ok) {
                 throw new Error('Something went wrong');
+            } else {
+                Alert.alert('Order Confirmed Successfully !!!');
+
+                console.log('Order updated successfully');
+                setShowLottie(false); // Hide the Lottie animation
+                navigation.navigate('LoomBooking', { OrderNo: order.KnottingId });
             }
 
-            Alert.alert('Order Confirmed Successfully !!!');
 
-            console.log('Order updated successfully');
-            setShowLottie(false); // Hide the Lottie animation
-            navigation.navigate('KLBookings', { OrderNo: order.OfferNo });
         } catch (error) {
             console.error(error);
             setShowLottie(false); // Hide the Lottie animation in case of an error
         }
 
         setShowLottie(false); // Hide the Lottie animation
-        navigation.navigate('KLBookings', { OrderNo: order.OrderNo });
 
     };
 

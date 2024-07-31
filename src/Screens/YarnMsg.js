@@ -1,22 +1,21 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useState, useEffect, useRef } from 'react';
-import { View, TextInput, FlatList, Text, StyleSheet, Image, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, TextInput, FlatList, Text, StyleSheet, Image, TouchableOpacity, KeyboardAvoidingView, Platform, RefreshControl, Modal, Alert } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import ActionSheet from 'react-native-actionsheet';
-import { Animated } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import ImageEditor from '@react-native-community/image-editor'; // For image editing
+import GestureRecognizer from 'react-native-swipe-gestures'; // For swipe gestures
 
 const YarnMsg = ({ route }) => {
-  const { yarnId, userType } = route.params; // userType can be 'Loom', 'Trader', or 'Yarn'
+  const { yarnId, userType } = route.params;
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [image, setImage] = useState(null);
   const [yarnDetails, setYarnDetails] = useState({ name: '', primaryContact: '' });
   const [currentUserId, setCurrentUserId] = useState(null);
-  const actionSheetRef = useRef();
-  
-  // Example animated value with useNativeDriver
-  const animatedValue = useRef(new Animated.Value(0)).current;
+  const [refreshing, setRefreshing] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [replyTo, setReply] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -37,121 +36,206 @@ const YarnMsg = ({ route }) => {
 
     fetch('https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=YarnRate&Colname=LoomId&Colvalue=' + await AsyncStorage.getItem("Id"))
       .then(response => response.json())
-      .then(data =>  {
-        console.log(yarnId,userId)
+      .then(data => {
+        console.log(yarnId, userId)
         const filteredMessages = data.filter(msg => msg.YarnId == yarnId && msg.LoomId == userId && !msg.TraderId);
         setMessages(filteredMessages);
         console.log(filteredMessages)
-    })
+      })
       .catch(error => console.error('Error fetching messages:', error));
+    setRefreshing(false);
+
   };
 
   const sendMessage = async () => {
-    if (!image && !newMessage.trim()) {
-      Alert.alert("Please enter a message or select an image");
-    } else {
-      try {
-        const formdata = new FormData();
-        formdata.append("YarnId", yarnId);
-        formdata.append("LoomId", await AsyncStorage.getItem("Id"));
-        formdata.append("TraderId", null);
-        formdata.append("Message", newMessage);
-        formdata.append("Sender", "L");
+    if (!newMessage && !image) {
+      Alert.alert('Error', 'Cannot send empty message.');
+      return;
+    }
 
-        if (image) {
-          formdata.append("DesignPaper", {
-            uri: image.path,
-            type:  "image/jpeg",
-            name: "DesignPaper.jpg",
-          });
-        }
+    try {
+      const formdata = new FormData();
+      formdata.append("YarnId", yarnId);
+      formdata.append("LoomId", await AsyncStorage.getItem("Id"));
+      formdata.append("TraderId", null);
+      formdata.append("Message", newMessage);
+      formdata.append("Sender", "L");
+      formdata.append("Reply", replyTo?.Message);
 
-        const requestOptions = {
-          method: "POST",
-          body: formdata,
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-          redirect: "follow",
-        };
-
-        const response = await fetch("https://textileapp.microtechsolutions.co.in/php/postyarnrate.php", requestOptions);
-        const result = await response.text();
-        console.log(result);
-        fetchData();
-        setNewMessage('');
-        setImage(null);
-      } catch (error) {
-        console.error('Error sending message:', error);
+      if (image) {
+        formdata.append("DesignPaper", {
+          uri: image.path,
+          type: "image/jpg",
+          name: "DesignPaper.jpg",
+        });
       }
+
+      const requestOptions = {
+        method: "POST",
+        body: formdata,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        redirect: "follow",
+      };
+
+      const response = await fetch("https://textileapp.microtechsolutions.co.in/php/postyarnrate.php", requestOptions);
+      const result = await response.text();
+      console.log(result);
+      fetchData();
+      setNewMessage('');
+      setImage(null);
+      setReply(null);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to send message. Please try again.');
     }
   };
 
-  const pickImage = () => {
-    actionSheetRef.current.show();
+  const selectImageOption = () => {
+    Alert.alert(
+      "Choose an option",
+      "",
+      [
+        {
+          text: "Capture Image",
+          onPress: () => captureImage(),
+        },
+        {
+          text: "Select from Gallery",
+          onPress: () => selectFromGallery(),
+        },
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
-  const handleActionSheetPress = (index) => {
-    if (index === 0) {
-      ImagePicker.openPicker({
-        width: 300,
-        height: 400,
-        cropping: true,
-      }).then(image => {
-        setImage(image);
-      });
-    } else if (index === 1) {
-      ImagePicker.openCamera({
-        width: 300,
-        height: 400,
-        cropping: true,
-      }).then(image => {
-        setImage(image);
-      });
+
+  const captureImage = () => {
+    ImagePicker.openCamera({
+      width: 300,
+      height: 400,
+      cropping: true,
+    }).then(image => {
+      setImage({ path: image.path });
+    }).catch(error => {
+      console.error(error);
+      setImage(null);
+    });
+  };
+
+  const selectFromGallery = () => {
+    ImagePicker.openPicker({
+      width: 300,
+      height: 400,
+      cropping: true,
+    }).then(image => {
+      setImage({ path: image.path });
+    }).catch(error => {
+      console.error(error);
+      setImage(null);
+    });
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchData();
+    setRefreshing(false);
+
+  };
+
+  const viewImage = (imageUri) => {
+    setSelectedImage(imageUri);
+  };
+
+  const replyToMessage = (message) => {
+    setReply(message);
+  };
+
+  const handleSwipe = (direction, message) => {
+    if (direction === 'SWIPE_LEFT' || direction === 'SWIPE_RIGHT') {
+      replyToMessage(message);
     }
+  };
+
+  const renderRepliedMessage = (replyMessage) => {
+    if (!replyMessage || replyMessage === null || replyMessage === "null") return null;
+
+    return (
+      <View style={styles.repliedMessageContainer}>
+        <Text style={styles.repliedMessageLabel}>Replying to:</Text>
+        <Text style={styles.repliedMessageText}>{replyMessage}</Text>
+      </View>
+    );
   };
 
   return (
     <View
       style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.header}>
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>{yarnDetails.name}</Text>
           <Text style={styles.headerSubtitle}>{yarnDetails.primaryContact}</Text>
         </View>
+        <TouchableOpacity onPress={onRefresh} style={styles.refreshButton}>
+          <Icon name="refresh" size={24} color="#fff" />
+        </TouchableOpacity>
       </View>
       <FlatList
         data={messages}
         renderItem={({ item }) => {
           const isCurrentUser = item.Sender === "L";
           return (
-            <View style={[
-              styles.messageContainer,
-              isCurrentUser ? styles.sentMessageContainer : styles.receivedMessageContainer
-            ]}>
-              <View style={[
-                styles.messageBubble,
-                isCurrentUser ? styles.sentMessageBubble : styles.receivedMessageBubble
-              ]}>
+            <GestureRecognizer
+              onSwipe={(direction) => handleSwipe(direction, item)}
+              style={[
+                styles.messageContainer,
+                isCurrentUser ? styles.sentMessageContainer : styles.receivedMessageContainer
+              ]}
+            >
+
+              <TouchableOpacity
+                onLongPress={() => replyToMessage(item)}
+                onPress={() => item.DesignPaper && viewImage(item.DesignPaper)}
+                style={[
+                  styles.messageBubble,
+                  isCurrentUser ? styles.sentMessageBubble : styles.receivedMessageBubble
+                ]}
+              >
+                <Text style={styles.senderName}>{isCurrentUser ? 'You' : yarnDetails.name}</Text>
+                {renderRepliedMessage(item.Reply)}
                 <Text style={[
                   styles.messageText,
                   isCurrentUser ? styles.sentMessageText : styles.receivedMessageText
                 ]}>{item.Message}</Text>
                 {item.DesignPaper && <Image source={{ uri: item.DesignPaper }} style={styles.messageImage} />}
-              </View>
-            </View>
+              </TouchableOpacity>
+            </GestureRecognizer>
           );
         }}
-        keyExtractor={(item) => item.Id}
+        keyExtractor={(item) => item.Id.toString()}
         contentContainerStyle={styles.messagesList}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       />
+       {replyTo && replyTo.Message && (
+        <View style={styles.replyContainer}>
+          <Text style={styles.replyLabel}>Replying to:</Text>
+          <Text style={styles.replyMessage}>{replyTo.Message}</Text>
+          <TouchableOpacity onPress={() => setReply(null)}>
+            <Icon name="close" size={20} color="#000" />
+          </TouchableOpacity>
+        </View>
+      )}
       <View style={styles.inputContainer}>
         {image && (
-          <Image
-            source={{ uri: image.path }}
-            style={styles.previewImage}
-          />
+          <Image source={{ uri: image.path }} style={styles.selectedImage} />
         )}
         <TextInput
           style={styles.input}
@@ -161,20 +245,24 @@ const YarnMsg = ({ route }) => {
           placeholderTextColor="#888"
           multiline
         />
-        <TouchableOpacity onPress={pickImage} style={styles.iconButton}>
+        <TouchableOpacity onPress={selectImageOption} style={styles.iconButton}>
           <Icon name="photo-library" size={24} color="#003C43" />
         </TouchableOpacity>
         <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
           <Icon name="send" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
-      <ActionSheet
-        ref={actionSheetRef}
-        title={'Select an option'}
-        options={['Pick from Gallery', 'Capture Image', 'Cancel']}
-        cancelButtonIndex={2}
-        onPress={handleActionSheetPress}
-      />
+
+      {selectedImage && (
+        <Modal visible={true} transparent={true} onRequestClose={() => setSelectedImage(null)}>
+          <View style={styles.modalContainer}>
+            <Image source={{ uri: selectedImage }} style={styles.fullImage} />
+            <TouchableOpacity onPress={() => setSelectedImage(null)} style={styles.closeButton}>
+              <Icon name="close" size={30} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </Modal>
+      )}
     </View>
   );
 };
@@ -188,9 +276,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
-    backgroundColor: '#003C43',
+    backgroundColor: '#006064',
   },
   headerTextContainer: {
+    flex: 1,
     marginLeft: 10,
   },
   headerTitle: {
@@ -199,21 +288,29 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   headerSubtitle: {
-    color: '#fff',
+    color: '#B2DFDB',
     fontSize: 14,
+  },
+  refreshButton: {
+    padding: 10,
   },
   messagesList: {
     padding: 10,
   },
   messageContainer: {
     marginBottom: 10,
-    flexDirection: 'row',
+    flexDirection: 'column', // Changed to column to show name above message
   },
   sentMessageContainer: {
-    justifyContent: 'flex-end',
+    alignItems: 'flex-end',
   },
   receivedMessageContainer: {
-    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+  },
+  senderName: {
+    color: 'orange',
+    fontWeight: 'bold',
+    marginBottom: 5,
   },
   messageBubble: {
     maxWidth: '70%',
@@ -221,7 +318,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   sentMessageBubble: {
-    backgroundColor: '#003C43',
+    backgroundColor: '#006064',
   },
   receivedMessageBubble: {
     backgroundColor: '#fff',
@@ -243,6 +340,21 @@ const styles = StyleSheet.create({
     marginTop: 5,
     borderRadius: 10,
   },
+  repliedMessageContainer: {
+    backgroundColor: '#5A969D',
+    borderRadius: 10,
+    padding: 5,
+    marginBottom: 5,
+    maxWidth: '70%',
+  },
+  repliedMessageLabel: {
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  repliedMessageText: {
+    fontSize: 14,
+    color: '#ffffff',
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -250,6 +362,12 @@ const styles = StyleSheet.create({
     borderTopColor: '#ddd',
     backgroundColor: '#fff',
     padding: 5,
+  },
+  selectedImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 10,
+    marginRight: 10,
   },
   input: {
     flex: 1,
@@ -261,22 +379,50 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: '#f7f7f7',
     marginRight: 5,
-    color:"#000"
-
+    color: "#000",
   },
   iconButton: {
     padding: 10,
   },
   sendButton: {
-    backgroundColor: '#003C43',
+    backgroundColor: '#006064',
     padding: 10,
     borderRadius: 20,
   },
-  previewImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
-    marginRight: 10,
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullImage: {
+    width: '90%',
+    height: '70%',
+    resizeMode: 'contain',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+  },
+  replyContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 5,
+    borderTopWidth: 1,
+    borderTopColor: '#ddd',
+  },
+  replyLabel: {
+    fontWeight: 'bold',
+    marginRight: 5,
+    color: "#333",
+    marginVertical: "4%"
+  },
+  replyMessage: {
+    flex: 1,
+    color: "#333",
+
   },
 });
 

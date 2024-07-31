@@ -236,6 +236,7 @@ const ConfirmOrders = ({ navigation }) => {
         fetchDataFPAD(order)
         setShopwForms(true)
         handleButtonPress()
+        LoomBookedCount(order.LoomOrderId)
     };
 
     const [Action, setAction] = useState("")
@@ -817,6 +818,22 @@ const ConfirmOrders = ({ navigation }) => {
             })
             .catch((error) => console.error(error));
     }
+
+const [LoomCount,setLoomCount]=useState(null)
+
+    const LoomBookedCount = async (OrderId) => {
+        axios.get('https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=LoomBooking&Colname=OrderNoId&Colvalue=414')
+      .then(response => {
+       // console.log(response.data);
+        setLoomCount(response.data.length);
+        console.log(response.data.length)
+      })
+      .catch(error => {
+        console.error(error);
+      });
+    };
+
+
     return (
         <SafeAreaView style={{ backgroundColor: "white", flex: 1 }}>
             <StatusBar backgroundColor={"#003c43"}></StatusBar>
@@ -906,7 +923,7 @@ const ConfirmOrders = ({ navigation }) => {
                                                 <Text style={{ color: "#000", fontSize: 16, fontWeight: "600", marginBottom: "2%", marginTop: "1%" }}>Order No : {selectedOrder.OrderNo}</Text>
                                                 <Text style={{ color: "#000", fontSize: 16, fontWeight: "600", marginBottom: "2%", marginTop: "0%" }}>Party Name : {selectedOrder.PartyName}</Text>
                                                 <Text style={{ color: "#000", fontSize: 16, fontWeight: "600", marginBottom: "2%", marginTop: "0%" }}>Quality : {selectedOrder.Quality}</Text>
-
+                                                <Text style={{ color: "#000", fontSize: 16, fontWeight: "600", marginBottom: "2%", marginTop: "0%" }}>Loom Booked : {LoomCount}</Text>   
                                             </View>
                                             <View style={styles.Card}>
                                                 <TouchableOpacity style={[styles.button1, { marginTop: "8%" }]} onPress={() => { handleButtonPress('Beam in'); FalseOthersBeamIn() }}>
@@ -957,7 +974,7 @@ const ConfirmOrders = ({ navigation }) => {
                                                                 <View key={index} style={styles.rowContainer}>
 
                                                                     <View style={styles.row}>
-                                                                        <View style={{ flexDirection: "row", marginTop: "3%" }}>
+                                                                        <View style={{ flexDirection: "row", marginTop: "5%" }}>
                                                                             <Text style={styles.headerText1}>Date</Text>
 
                                                                             <Text style={styles.dateText}>{row.date.toLocaleDateString()}</Text>
@@ -978,7 +995,7 @@ const ConfirmOrders = ({ navigation }) => {
                                                                                 onChange={handleDateChangeBI}
                                                                             />
                                                                         )}
-                                                                        <View style={{ flexDirection: "row", marginTop: "3%" }}>
+                                                                        <View style={{ flexDirection: "row", marginTop: "10%" }}>
                                                                             <Text style={[styles.headerText1, { marginTop: "3%" }]}>Sizing Tippan No.</Text>
                                                                             <TextInput
                                                                                 style={[styles.input, { width: width * 0.4 }]}
@@ -989,7 +1006,7 @@ const ConfirmOrders = ({ navigation }) => {
                                                                                 placeholder="sizing Tippan No."
                                                                             />
                                                                         </View>
-                                                                        <View style={{ flexDirection: "row", marginTop: "3%" }}>
+                                                                        <View style={{ flexDirection: "row", marginTop: "10%" }}>
                                                                             <Text style={[styles.headerText1]}>Image</Text>
 
                                                                             <TouchableOpacity onPress={() => { handleImagePickerBI(index); setShow1(1) }}>
@@ -1089,7 +1106,7 @@ const ConfirmOrders = ({ navigation }) => {
                                                                     <View key={index} style={styles.rowContainer}>
 
                                                                         <View style={styles.row}>
-                                                                            <View style={{ flexDirection: "row", marginTop: "3%" }}>
+                                                                            <View style={{ flexDirection: "row", marginTop: "10%" }}>
                                                                                 <Text style={styles.headerText1}>Date</Text>
 
                                                                                 <Text style={styles.dateText}>{row.date.toDateString()}</Text>
@@ -1111,7 +1128,7 @@ const ConfirmOrders = ({ navigation }) => {
                                                                                     onChange={handleDateChangeWEFT}
                                                                                 />
                                                                             )}
-                                                                            <View style={{ flexDirection: "row", marginTop: "2%" }}>
+                                                                            <View style={{ flexDirection: "row", marginTop: "10%" }}>
                                                                                 <Text style={[styles.headerText1, { marginTop: "3%" }]}>Gate Pass No.</Text>
                                                                                 <TextInput
                                                                                     style={[styles.input, { width: 200 }]}
@@ -1121,7 +1138,7 @@ const ConfirmOrders = ({ navigation }) => {
                                                                                     placeholder="gate Pass No."
                                                                                 />
                                                                             </View>
-                                                                            <View style={{ flexDirection: "row", marginTop: "2%" }}>
+                                                                            <View style={{ flexDirection: "row", marginTop: "10%" }}>
                                                                                 <Text style={[styles.headerText1]}>Image</Text>
 
                                                                                 <TouchableOpacity onPress={() => { handleImagePickerWEFT(index); setShow1(1) }}>
@@ -1412,7 +1429,7 @@ const ConfirmOrders = ({ navigation }) => {
                                                             <View key={index} style={styles.rowContainer}>
                                                                 <View style={styles.row}>
 
-                                                                    <View style={{ flexDirection: "row", marginTop: "3%" }}>
+                                                                    <View style={{ flexDirection: "row", marginTop: "10%" }}>
                                                                         <Text style={[styles.headerText1]}>Date</Text>
                                                                         <Text style={styles.dateText}>{row.date.toDateString()}</Text>
 
@@ -1433,7 +1450,7 @@ const ConfirmOrders = ({ navigation }) => {
                                                                             onChange={handleDateChangeFD}
                                                                         />
                                                                     )}
-                                                                    <View style={{ flexDirection: "row" }}>
+                                                                    <View style={{ flexDirection: "row", marginTop: "7%" }}>
                                                                         <Text style={[styles.headerText1, { marginRight: 10 }]}>Meter</Text>
 
                                                                         <TextInput
@@ -1445,7 +1462,7 @@ const ConfirmOrders = ({ navigation }) => {
                                                                             placeholder="Meter"
                                                                         />
                                                                     </View>
-                                                                    <View style={{ flexDirection: "row" }}>
+                                                                    <View style={{ flexDirection: "row", marginTop: "7%" }}>
                                                                         <Text style={[styles.headerText1, { marginLeft: 0 }]}>Weight</Text>
 
                                                                         <TextInput
@@ -1458,7 +1475,7 @@ const ConfirmOrders = ({ navigation }) => {
                                                                         />
 
                                                                     </View>
-                                                                    <View style={{ flexDirection: "row" }}>
+                                                                    <View style={{ flexDirection: "row", marginTop: "7%" }}>
                                                                         <Text style={[styles.headerText1]}>Image</Text>
 
                                                                         <TouchableOpacity onPress={() => { handleImagePickerFD(index); setShow1(1) }}>
@@ -1564,11 +1581,11 @@ const ConfirmOrders = ({ navigation }) => {
                                                         {remaining_goods_return.map((row, index) => (
                                                             <View key={index} style={styles.rowContainer}>
                                                                 <SafeAreaView style={[styles.row, { width: 600 }]}>
-                                                                    <View style={{ flexDirection: "row", marginTop: "3%" }}>
+                                                                    <View style={{ flexDirection: "row", marginTop: "5%" }}>
                                                                         <Text style={[styles.headerText1, { marginTop: "0%" }]}>GP. NO.</Text>
 
                                                                         <TextInput
-                                                                            style={[styles.input, { width: "18%", marginLeft: "5%", marginTop: "-2%" }]}
+                                                                            style={[styles.input, { width: "30%", marginLeft: "5%", marginTop: "-2%" }]}
                                                                             value={row.GpNo}
                                                                             onChangeText={(text) => handleInputChangeRGR(text, index, 'GpNo')}
                                                                             keyboardType="numeric"
@@ -1576,12 +1593,12 @@ const ConfirmOrders = ({ navigation }) => {
                                                                             placeholderTextColor={"#000"}
                                                                         />
                                                                     </View>
-                                                                    <View style={{ flexDirection: "row" }}>
+                                                                    <View style={{ flexDirection: "row", marginTop: "3%" }}>
                                                                         <Text style={[styles.headerText1, { marginTop: "2%" }]}>Yarn Count</Text>
 
 
                                                                         <TextInput
-                                                                            style={[styles.input, { width: "18%" }]}
+                                                                            style={[styles.input, { width: "30%" }]}
                                                                             value={row.YarnCount}
                                                                             onChangeText={(text) => handleInputChangeRGR(text, index, 'YarnCount')}
                                                                             keyboardType="numeric"
@@ -1590,11 +1607,11 @@ const ConfirmOrders = ({ navigation }) => {
 
                                                                         />
                                                                     </View>
-                                                                    <View style={{ flexDirection: "row" }}>
+                                                                    <View style={{ flexDirection: "row", marginTop: "3%" }}>
                                                                         <Text style={[styles.headerText1, { marginRight: 25, marginTop: "2%" }]}>Weight</Text>
 
                                                                         <TextInput
-                                                                            style={[styles.input, { width: "18%" }]}
+                                                                            style={[styles.input, { width: "30%" }]}
                                                                             value={row.Weight}
                                                                             onChangeText={(text) => handleInputChangeRGR(text, index, 'Weight')}
                                                                             keyboardType="numeric"
@@ -1603,11 +1620,11 @@ const ConfirmOrders = ({ navigation }) => {
 
                                                                         />
                                                                     </View>
-                                                                    <View style={{ flexDirection: "row" }}>
+                                                                    <View style={{ flexDirection: "row", marginTop: "3%" }}>
                                                                         <Text style={[styles.headerText1, { marginRight: 10, marginTop: "2%" }]}>Cut Piece</Text>
 
                                                                         <TextInput
-                                                                            style={[styles.input, { width: "18%" }]}
+                                                                            style={[styles.input, { width: "30%" }]}
                                                                             value={row.CutPiece}
                                                                             onChangeText={(text) => handleInputChangeRGR(text, index, 'CutPiece')}
                                                                             keyboardType="numeric"
@@ -1616,11 +1633,11 @@ const ConfirmOrders = ({ navigation }) => {
 
                                                                         />
                                                                     </View>
-                                                                    <View style={{ flexDirection: "row" }}>
+                                                                    <View style={{ flexDirection: "row", marginTop: "3%" }}>
                                                                         <Text style={[styles.headerText1, { marginRight: 30, marginTop: "2%" }]}>Meter</Text>
 
                                                                         <TextInput
-                                                                            style={[styles.input, { width: "18%" }]}
+                                                                            style={[styles.input, { width: "30%" }]}
                                                                             value={row.Meter}
                                                                             onChangeText={(text) => handleInputChangeRGR(text, index, 'Meter')}
                                                                             keyboardType="numeric"
@@ -1629,7 +1646,7 @@ const ConfirmOrders = ({ navigation }) => {
 
                                                                         />
                                                                     </View>
-                                                                    <View style={{ flexDirection: "row" }}>
+                                                                    <View style={{ flexDirection: "row", marginTop: "3%" }}>
                                                                         <Text style={[styles.headerText1]}>Image</Text>
 
                                                                         <TouchableOpacity onPress={() => { handleImagePickerRGR(index); setShow1(1) }}>
@@ -1826,7 +1843,7 @@ const styles = StyleSheet.create({
         },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
-        backgroundColor:"#fff"
+        backgroundColor: "#fff"
     },
     heading: {
         fontSize: 24,
@@ -1977,7 +1994,9 @@ const styles = StyleSheet.create({
         marginRight: 0,
         flexDirection: "row",
         width: "100%",
-        textDecorationLine: "underline"
+        textDecorationLine: "underline",
+        marginBottom: "5%",
+        marginTop: "5%"
     },
     label: {
         fontSize: 18,

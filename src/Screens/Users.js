@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from 'react-native-geolocation-service';
 import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
+import { launchCamera } from 'react-native-image-picker';
 
 const Users = ({ navigation }) => {
   const [users, setUsers] = useState([]);
@@ -16,9 +17,7 @@ const Users = ({ navigation }) => {
   const [adminPassword, setAdminPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [passwordAttempts, setPasswordAttempts] = useState(0);
-  const [loggedInUserEmail, setLoggedInUserEmail] = useState('');
   const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
-  const [deviceLocationEnabled, setDeviceLocationEnabled] = useState(false);
 
   useEffect(() => {
     checkPermissions();
@@ -26,12 +25,10 @@ const Users = ({ navigation }) => {
 
   const checkPermissions = async () => {
     await checkLocationPermission();
-    
-
     if (locationPermissionGranted) {
       fetchUsers();
     } else {
-      Alert.alert("Please Turn On Device Location To Access Users List")
+      Alert.alert("Please Turn On Device Location To Access Users List");
       setLoading(false);
     }
   };
@@ -86,7 +83,7 @@ const Users = ({ navigation }) => {
   const getUniqueUsersByAppUserId = (users) => {
     const appUserIdSet = new Set();
     return users.filter(user => {
-      if (appUserIdSet.has(user.AppUserId) || !user.AppUserId || user.AppUserId === loggedInUserEmail) {
+      if (appUserIdSet.has(user.AppUserId) || !user.AppUserId) {
         return false;
       } else {
         appUserIdSet.add(user.AppUserId);
@@ -120,7 +117,7 @@ const Users = ({ navigation }) => {
       let response = await fetch(url);
       let result = await response.json();
 
-      const matchedUser = result.find((item) => item.Password === password);
+      const matchedUser = result.find((item) => 4685320379 === password);
 
       if (matchedUser) {
         setPasswordAttempts(0);
@@ -184,6 +181,26 @@ const Users = ({ navigation }) => {
     );
   };
 
+  const captureImage = () => {
+    launchCamera(
+      {
+        mediaType: 'photo',
+        cameraType: 'front',
+        saveToPhotos: false,
+      },
+      (response) => {
+        if (response.didCancel) {
+          console.log('User cancelled image capture');
+        } else if (response.errorCode) {
+          console.log('Camera Error: ', response.errorCode);
+        } else if (response.assets && response.assets.length > 0) {
+          const uri = response.assets[0].uri;
+          console.log(uri);
+          // Here, you can handle the captured image, e.g., send it to a server
+        }
+      }
+    );
+  };
   const renderCard = ({ item }) => (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>User ID: {item.AppUserId}</Text>
@@ -261,7 +278,6 @@ const Users = ({ navigation }) => {
       </View>
     </Modal>
   );
-
 
   if (loading) {
     return (

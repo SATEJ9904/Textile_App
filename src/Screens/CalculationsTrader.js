@@ -75,22 +75,23 @@ const CalculationScreen = () => {
     };
 
     const calculateJobWorkBilling = () => {
-        const { orderQuantity, jobWorkRate } = inputs;
-        const jobWorkBilling = orderQuantity * jobWorkRate;
+        const { jobWorkRate } = inputs;
+        const jobWorkBilling =ppi * (jobWorkRate / 100)
         setResults({ ...results, jobWorkBilling: jobWorkBilling.toFixed(2) });
     };
 
     const calculateExpectedProduction = () => {
         const { loomSpeed, efficiency, time, ppi7 } = inputs;
-        const expectedProduction = (loomSpeed * (efficiency / 100) * time * ppi7);
+        const expectedProduction = (loomSpeed * time * 60 * (efficiency / 100)) / (ppi7 * 39.37);
         setResults({ ...results, expectedProduction: expectedProduction.toFixed(2) });
     };
 
     const calculateExpectedTime = () => {
         const { orderQuantity, loomSpeed, efficiency, ppi8 } = inputs;
-        const expectedTime = orderQuantity / (loomSpeed * (efficiency / 100) * ppi8);
+        const expectedTime = (orderQuantity * ppi8 * 39.37) / (loomSpeed * 60 * (efficiency / 100));
         setResults({ ...results, expectedTime: expectedTime.toFixed(2) });
     };
+    
 
     return (
         <ScrollView style={styles.container}>
@@ -225,7 +226,7 @@ const CalculationScreen = () => {
                     <Text style={styles.buttonText}>Calculate Expected Production</Text>
                 </TouchableOpacity>
                 {results.expectedProduction !== '' && (
-                    <Text style={styles.result}>Expected Production: {results.expectedProduction} units</Text>
+                    <Text style={styles.result}>Expected Production: {results.expectedProduction} meters</Text>
                 )}
             </View>
 
@@ -304,7 +305,7 @@ const styles = StyleSheet.create({
         color:"#000"
     },
     button: {
-        backgroundColor: '#007bff',
+        backgroundColor: '#003C43',
         paddingVertical: 10,
         borderRadius: 8,
         alignItems: 'center',

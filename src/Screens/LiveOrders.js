@@ -88,37 +88,39 @@ const LiveOrders = ({ navigation }) => {
 
     const fetchData = async () => {
         try {
-          const userId = await AsyncStorage.getItem('Id');
-          const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/loomliveorder.php?LoomTraderId=${userId}`);
-          
-          if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
-          const json = await response.json();
-  
-          const sortedOrdersJson = json.sort((a, b) => b.LoomOrderId - a.LoomOrderId);
-          setOrders(sortedOrdersJson);
+            const userId = await AsyncStorage.getItem('Id');
+            const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/loomliveorder.php?LoomTraderId=${userId}`);
+
+            if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+            const json = await response.json();
+
+            const sortedOrdersJson = json.sort((a, b) => b.LoomOrderId - a.LoomOrderId);
+            setOrders(sortedOrdersJson);
         } catch (error) {
-          console.error('Error fetching data:', error);
+            console.error('Error fetching data:', error);
         }
-      };
-  
+    };
+
 
     const startOrder = async (order) => {
-        navigation.navigate("LiveBooking", { OrderNoId: order.LoomOrderId, OrderNo:order.OrderNo });
+        navigation.navigate("LiveBooking", { OrderNoId: order.LoomOrderId, OrderNo: order.OrderNo });
 
-        // const confirmed = true
-        // try {
-        //    const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/updateloomorder.php?LoomOrderId=${order.LoomOrderId}&Confirmed=${confirmed}`);
+        const confirmed = true
+        try {
+            const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/updateloomorder.php?LoomOrderId=${order.LoomOrderId}&Confirmed=${confirmed}`);
 
-        //     if (!response.ok) {
-        //         throw new Error('Something went wrong');
-        //     }
+            if (!response.ok) {
+                throw new Error('Something went wrong');
+            } else {
+                Alert.alert("Order Confirmed Successfully !!!")
 
-        //     Alert.alert("Order Confirmed Successfully !!!")
+                console.log('Order updated successfully');
+            }
 
-        //     console.log('Order updated successfully');
-        // } catch (error) {
-        //     console.error(error);
-        // }
+
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     const cancelOrder = async (order) => {
@@ -128,11 +130,13 @@ const LiveOrders = ({ navigation }) => {
 
             if (!response.ok) {
                 throw new Error('Something went wrong');
+            } else {
+                Alert.alert("Order Cancelled Successfully !!!")
+
+                console.log('Order updated successfully');
             }
 
-            Alert.alert("Order Cancelled Successfully !!!")
 
-            console.log('Order updated successfully');
         } catch (error) {
             console.error(error);
         }
@@ -147,12 +151,12 @@ const LiveOrders = ({ navigation }) => {
             <View style={{ backgroundColor: "#003C43", flexDirection: "row", alignItems: 'center', height: 50 }}>
 
                 <TouchableOpacity
-                style={{padding:"3%"}}
+                    style={{ padding: "3%" }}
                     onPress={() => navigation.openDrawer()}
                 >
                     <Image
-                        source={require("../Images/drawer1.png")}
-                        style={{ width: 28, height: 30, marginLeft: 10}}
+                        source={require("../Images/drawer.png")}
+                        style={{ width: 28, height: 30, marginLeft: 10 }}
 
                     />
                 </TouchableOpacity>

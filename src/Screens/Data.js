@@ -31,6 +31,9 @@ const Data = ({ navigation }) => {
         )
 
     }
+    useEffect(()=>[
+        getData()
+    ],[])
     const getData = async () => {
         const Email = await AsyncStorage.getItem("AppUserId")
         const CompanyName = await AsyncStorage.getItem("Name")
@@ -46,6 +49,7 @@ const Data = ({ navigation }) => {
         const Role = await AsyncStorage.getItem("LoomOrTrader")
         const Creation = await AsyncStorage.getItem("CreatedOn")
         const Id = await AsyncStorage.getItem("Id")
+        const Profilepic = await AsyncStorage.getItem("Profilepic")
 
         setAppUserId(Email)
         setName(Name)
@@ -55,7 +59,7 @@ const Data = ({ navigation }) => {
         setGSTNO(GSTNumber)
         setRegistrationNo(RegistrationNumber)
 
-        console.log(Email, Name, LoomOrTrader, Id, PrimaryContact, GSTNumber, RegistrationNumber)
+        console.log("Data = ",Email, Name, LoomOrTrader, Id, PrimaryContact, GSTNumber, RegistrationNumber,Profilepic)
     }
 
     const fetchData = async () => {
@@ -104,8 +108,13 @@ const Data = ({ navigation }) => {
                         "OwnerName", item.OwnerName,
                     ),
                     await AsyncStorage.setItem(
-                        "Id", item.Id,
+                        "Profilepic", item.Profilepic,
+                        console.log("ProfilePic = ",item.Profilepic)
                     ),
+                    await AsyncStorage.setItem(
+                        "Id", item.Id.toString(),
+                    ),
+                   
                    
                     getData()
                 ))

@@ -1,28 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, Image, ScrollView, Alert, Dimensions, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, TouchableOpacity, ActivityIndicator, ScrollView, Dimensions, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import LottieView from 'lottie-react-native';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const BookLoomForm = ({ route, navigation }) => {
-  const { LoomDetailId } = route.params; // Assuming LoomDetailId is passed as a param
+  const { LoomDetailId, OrderNo } = route.params;
 
   const [loomNo, setLoomNo] = useState('');
   const [loomAvailableFrom, setLoomAvailableFrom] = useState('N/A');
   const [loomAvailableTo, setLoomAvailableTo] = useState('N/A');
-  const [bookedFromDate, setBookedFromDate] = useState('N/A');
-  const [bookedToDate, setBookedToDate] = useState('N/A');
+  const [bookedFromDate, setBookedFromDate] = useState(null);
+  const [bookedToDate, setBookedToDate] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showFromDatePicker, setShowFromDatePicker] = useState(false);
   const [showToDatePicker, setShowToDatePicker] = useState(false);
+  const [showBookedFromDatePicker, setShowBookedFromDatePicker] = useState(false);
+  const [showBookedToDatePicker, setShowBookedToDatePicker] = useState(false);
   const [orderNo, setOrderNo] = useState('N/A');
   const [newBookedFromDate, setNewBookedFromDate] = useState(null);
   const [newBookedToDate, setNewBookedToDate] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); // State to handle loading state
+  const [isLoading, setIsLoading] = useState(true);
   const [bookingId, setBookingId] = useState('');
+  const [formType, setFormType] = useState(null);
+  const [knottingOrderId, setKnottingOrderId] = useState('');
 
   useEffect(() => {
+    console.log("ID = ", LoomDetailId);
     const fetchLoomDetails = async () => {
       try {
         const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=LoomBooking&Colname=LoomDetailId&Colvalue=${LoomDetailId}`);
@@ -33,17 +37,25 @@ const BookLoomForm = ({ route, navigation }) => {
             setLoomNo(item.LoomNo || 'N/A');
             setLoomAvailableFrom(item.LoomAvailableFrom?.date ? item.LoomAvailableFrom.date.substring(0, 10) : 'N/A');
             setLoomAvailableTo(item.LoomAvailableTo?.date ? item.LoomAvailableTo.date.substring(0, 10) : 'N/A');
-            setBookedFromDate(item.BookedFromDate?.date ? item.BookedFromDate.date.substring(0, 10) : 'N/A');
-            setBookedToDate(item.BookedToDate?.date ? item.BookedToDate.date.substring(0, 10) : 'N/A');
             setOrderNo(item.OrderNoId || 'N/A');
             setBookingId(item.BookingId || 'N/A');
+
           });
         }
+        const bookedFromDates = result
+          .filter(item => item.BookedFromDate !== null)
+          .map(item => item.BookedFromDate.date);
+
+        setBookedFromDate(bookedFromDates)
+        console.log("Dates = ", bookedFromDates)
+
       } catch (error) {
         console.error(error);
       } finally {
-        setIsLoading(false); // Update loading state once fetch is complete
+        setIsLoading(false);
       }
+
+
     };
 
     fetchLoomDetails();
@@ -56,6 +68,7 @@ const BookLoomForm = ({ route, navigation }) => {
   };
 
   const checkBookingDates = async () => {
+
     const formData = new FormData();
     formData.append('Fromdate', newBookedFromDate.toISOString().split('T')[0]);
     formData.append('Todate', newBookedToDate.toISOString().split('T')[0]);
@@ -86,39 +99,189 @@ const BookLoomForm = ({ route, navigation }) => {
   };
 
   const handleSubmit = async () => {
-    const isAvailable = await checkBookingDates();
+    if (bookedFromDate !== null) {
 
-    if (!isAvailable) {
-      return;
+      const isAvailable = await checkBookingDates();
+
+      if (!isAvailable) {
+        return;
+      }
+
+      setIsSubmitting(true);
+
+      if (!bookedFromDate || !bookedToDate || (!OrderNo && !knottingOrderId)) {
+        Alert.alert("Error", "Please ensure all dates and Order ID are filled.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const loomAvailableToDate = addMonths(bookedToDate, 4).toISOString().split('T')[0];
+
+      // Prepare form data for submission
+      const formData = new FormData();
+      formData.append('LoomDetailId', LoomDetailId);
+      formData.append('BookedFromDate', bookedFromDate.toISOString().split('T')[0]);
+      formData.append('BookedToDate', bookedToDate.toISOString().split('T')[0]);
+      formData.append('LoomAvailableTo', loomAvailableToDate);
+      formData.append('BookingId', bookingId ? bookingId : null);
+      formData.append('KnottingOrderId', OrderNo ? OrderNo : null);
+
+
+      const requestOptions = {
+        method: 'POST',
+        body: formData,
+        redirect: 'follow',
+      };
+
+      console.log("Form Data:", {
+        LoomDetailId,
+        loomNo,
+        Available: false,
+        BookedFromDate: bookedFromDate.toISOString().split('T')[0],
+        BookedToDate: bookedToDate.toISOString().split('T')[0],
+        LoomAvailableTo: loomAvailableToDate,
+      });
+
+      try {
+        // Send form data to the server
+        const response = await fetch('https://textileapp.microtechsolutions.co.in/php/postloombooking.php', requestOptions);
+        const result = await response.text();
+        console.log(result);
+        setIsSubmitting(false);
+        if (result === "Success") {
+          Alert.alert('Success', 'Knotting order booking submitted successfully');
+          navigation.goBack({ BookedLoomNo: loomNo });
+        } else {
+          Alert.alert('Error', 'Failed to submit knotting order booking. Please check the input data and try again.');
+        }
+      } catch (error) {
+        console.error(error);
+        setIsSubmitting(false);
+        Alert.alert('Error', 'Failed to submit knotting order booking');
+      }
+    } else {
+
+      const isAvailable = await checkBookingDates();
+
+      if (!isAvailable) {
+        return;
+      }
+
+      setIsSubmitting(true);
+      const formData = new FormData();
+      formData.append('BookingId', bookingId);
+      formData.append('BookedFromDate', newBookedFromDate.toISOString().split('T')[0]);
+      formData.append('BookedToDate', newBookedToDate.toISOString().split('T')[0]);
+      formData.append('LoomAvailableTo', addMonths(newBookedToDate, 4).toISOString().split('T')[0]);
+
+
+      const requestOptions = {
+        method: 'POST',
+        body: formData,
+        redirect: 'follow',
+      };
+
+      try {
+        const response = await fetch('https://textileapp.microtechsolutions.co.in/php/updateloomavailabilitynew.php', requestOptions);
+        const result = await response.text();
+        console.log(result);
+        setIsSubmitting(false);
+        Alert.alert('Success', 'Loom booking submitted successfully');
+        navigation.goBack({ BookedLoomNo: loomNo });
+      } catch (error) {
+        console.error(error);
+        setIsSubmitting(false);
+        Alert.alert('Error', 'Failed to submit loom booking');
+      }
+
+      console.log(bookingId, newBookedFromDate.toISOString().split('T')[0], newBookedToDate.toISOString().split('T')[0], addMonths(newBookedToDate, 4).toISOString().split('T')[0]);
     }
+  }
 
-    setIsSubmitting(true);
-    const formData = new FormData();
-    formData.append('BookingId', bookingId);
-    formData.append('BookedFromDate', newBookedFromDate.toISOString().split('T')[0]);
-    formData.append('BookedToDate', newBookedToDate.toISOString().split('T')[0]);
-    formData.append('LoomAvailableTo', addMonths(newBookedToDate, 4).toISOString().split('T')[0]);
+  const handleKnottingSubmit = async () => {
+    // Check if 'bookedFromDate' exists
+    if (bookedFromDate.length !== 0) {
+      console.log("Called when Booked From date exists");
 
-    const requestOptions = {
-      method: 'POST',
-      body: formData,
-      redirect: 'follow',
-    };
+      // Check if booking dates are available
+      const isAvailable = await checkBookingDates();
+      if (!isAvailable) return;
 
-    try {
-      const response = await fetch('https://textileapp.microtechsolutions.co.in/php/updateloomavailabilitynew.php', requestOptions);
-      const result = await response.text();
-      console.log(result);
-      setIsSubmitting(false);
-      Alert.alert('Success', 'Loom booking submitted successfully');
-      navigation.goBack({BookedLoomNo :loomNo })
-    } catch (error) {
-      console.error(error);
-      setIsSubmitting(false);
-      Alert.alert('Error', 'Failed to submit loom booking');
+      setIsSubmitting(true);
+      if (!bookedFromDate || !bookedToDate || (!OrderNo && !knottingOrderId)) {
+        Alert.alert("Error", "Please ensure all dates and Order ID are filled.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const loomAvailableToDate = addMonths(bookedToDate, 4).toISOString().split('T')[0];
+      const formData = new FormData();
+      formData.append('LoomDetailId', LoomDetailId);
+      formData.append('BookedFromDate', bookedFromDate.toISOString().split('T')[0]);
+      formData.append('BookedToDate', bookedToDate.toISOString().split('T')[0]);
+      formData.append('LoomAvailableTo', loomAvailableToDate);
+      formData.append('BookingId', bookingId ? bookingId : null);
+      formData.append('KnottingOrderId', OrderNo ? OrderNo : null);
+
+      const requestOptions = {
+        method: 'POST',
+        body: formData,
+        redirect: 'follow',
+      };
+
+      try {
+        // Send form data to the server
+        const response = await fetch('https://textileapp.microtechsolutions.co.in/php/postloombooking.php', requestOptions);
+        const result = await response.text();
+        console.log(result);
+        setIsSubmitting(false);
+        if (result === "Success") {
+          Alert.alert('Success', 'Knotting order booking submitted successfully');
+          navigation.goBack({ BookedLoomNo: loomNo });
+        } else {
+          Alert.alert('Error', 'Failed to submit knotting order booking. Please check the input data and try again.');
+        }
+      } catch (error) {
+        console.error(error);
+        setIsSubmitting(false);
+        Alert.alert('Error', 'Failed to submit knotting order booking');
+      }
+    } else {
+      console.log("Called when Booked From date does not exist");
+
+      // Check if booking dates are available
+      const isAvailable = await checkBookingDates();
+      if (!isAvailable) return;
+
+      setIsSubmitting(true);
+      const formData = new FormData();
+      formData.append('BookingId', bookingId);
+      formData.append('BookedFromDate', newBookedFromDate.toISOString().split('T')[0]);
+      formData.append('BookedToDate', newBookedToDate.toISOString().split('T')[0]);
+      formData.append('LoomAvailableTo', addMonths(newBookedToDate, 4).toISOString().split('T')[0]);
+      formData.append("KnottingOrderId", OrderNo);
+
+      const requestOptions = {
+        method: 'POST',
+        body: formData,
+        redirect: 'follow',
+      };
+
+      try {
+        const response = await fetch('https://textileapp.microtechsolutions.co.in/php/updateloomavailabilitynew.php', requestOptions);
+        const result = await response.text();
+        console.log(result);
+        setIsSubmitting(false);
+        Alert.alert('Success', 'Loom booking submitted successfully');
+        navigation.goBack({ BookedLoomNo: loomNo });
+      } catch (error) {
+        console.error(error);
+        setIsSubmitting(false);
+        Alert.alert('Error', 'Failed to submit loom booking');
+      }
+
+      console.log(bookingId, newBookedFromDate.toISOString().split('T')[0], newBookedToDate.toISOString().split('T')[0], addMonths(newBookedToDate, 4).toISOString().split('T')[0]);
     }
-
-    console.log(bookingId, newBookedFromDate.toISOString().split('T')[0], newBookedToDate.toISOString().split('T')[0], addMonths(newBookedToDate, 4).toISOString().split('T')[0]);
   };
 
   const onFromDateChange = (event, selectedDate) => {
@@ -133,7 +296,18 @@ const BookLoomForm = ({ route, navigation }) => {
     setNewBookedToDate(currentDate);
   };
 
-  // Render loading indicator if data is still loading
+  const onBookedFromDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || bookedFromDate;
+    setShowBookedFromDatePicker(false);
+    setBookedFromDate(currentDate);
+  };
+
+  const onBookedToDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || bookedToDate;
+    setShowBookedToDatePicker(false);
+    setBookedToDate(currentDate);
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -142,202 +316,254 @@ const BookLoomForm = ({ route, navigation }) => {
     );
   }
 
-  // Render form if data is fetched successfully
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Image source={require('../Images/back.png')} style={styles.drawerIcon} />
-        </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Loom Booking</Text>
-        </View>
-      </View>
-
-      <View style={styles.loomDetail}>
-        <View style={styles.detailContainer}>
-          <Text style={styles.detailHeader}>Loom Details :-</Text>
-          <Text style={styles.loomDetailText}>Loom No: {loomNo}</Text>
-          <Text style={styles.loomDetailText}>Available From: {loomAvailableFrom}</Text>
-          <Text style={styles.loomDetailText}>Available To: {loomAvailableTo}</Text>
-          <Text style={styles.loomDetailText}>Current Working Order No.: {orderNo}</Text>
-          <Text style={styles.loomDetailText}>Booked From: {bookedFromDate}</Text>
-          <Text style={styles.loomDetailText}>Booked To: {bookedToDate}</Text>
-        </View>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.formContainer}>
-        <Text style={styles.headerLabel}>Loom Booking Form</Text>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Booking Date From</Text>
-          <TouchableOpacity style={styles.datePicker} onPress={() => setShowFromDatePicker(true)}>
-            <Text style={styles.dateText}>{newBookedFromDate ? newBookedFromDate.toISOString().split('T')[0] : 'YYYY-MM-DD'}</Text>
-            <Image source={require('../Images/calendar.png')} style={styles.calendarIcon} />
+  const renderForm = () => {
+    if (!formType) {
+      return (
+        <View style={styles.optionContainer}>
+          <TouchableOpacity style={styles.optionButton} onPress={() => setFormType('knotting')}>
+            <Text style={styles.optionButtonText}>Book for Knotting Orders</Text>
           </TouchableOpacity>
-          {showFromDatePicker && (
-            <DateTimePicker
-              value={newBookedFromDate || 'YYYY-MM-DD'}
-              mode="date"
-              display="default"
-              onChange={onFromDateChange}
-            />
-          )}
-        </View>
-
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Booking Date To</Text>
-          <TouchableOpacity style={styles.datePicker} onPress={() => setShowToDatePicker(true)}>
-            <Text style={styles.dateText}>{newBookedToDate ? newBookedToDate.toISOString().split('T')[0] : 'YYYY-MM-DD'}</Text>
-            <Image source={require('../Images/calendar.png')} style={styles.calendarIcon} />
+          <TouchableOpacity style={styles.optionButton} onPress={() => setFormType('other')}>
+            <Text style={styles.optionButtonText}>Book For Other Orders</Text>
           </TouchableOpacity>
-          {showToDatePicker && (
-            <DateTimePicker
-              value={newBookedToDate || 'YYYY-MM-DD'}
-              mode="date"
-              display="default"
-              onChange={onToDateChange}
-            />
-          )}
         </View>
+      );
+    }
 
-        <View style={styles.submitContainer}>
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? (
-              <View style={styles.lottieContainer}>
-                <LottieView
-                  source={require('../Animation/car_animation.json')}
-                  autoPlay
-                  loop
-                  style={styles.lottieAnimation}
-                />
-                <Text style={styles.redirectText}>Processing Request....</Text>
+    if (formType === 'knotting') {
+      return (
+        <SafeAreaView style={styles.container}>
+          <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <View style={styles.formContainer}>
+              <View style={{ justifyContent: "center", alignItems: "center" }}>
+                <Text style={styles.headerLabel}>Knotting Order Form</Text>
+
               </View>
-            ) : (
-              <Text style={styles.submitButtonText}>Submit</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-};
+              <View style={styles.formGroup}>
+                <Text style={[styles.label, { fontSize: 20, fontWeight: "600" }]}>Knotting Order Id = {OrderNo}</Text>
+              </View>
 
-export default BookLoomForm;
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Loom No</Text>
+                <Text style={styles.label}>{loomNo}</Text>
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Loom Available From</Text>
+                <Text style={[styles.label, { marginBottom: "10%" }]}>{loomAvailableFrom}</Text>
+              </View>
+
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Booked From Date</Text>
+                <TouchableOpacity onPress={() => setShowFromDatePicker(true)} style={styles.datePickerButton}>
+                  <Text style={styles.datePickerButtonText}>{newBookedFromDate ? newBookedFromDate.toISOString().split('T')[0] : 'Select From Date'}</Text>
+                </TouchableOpacity>
+                {showFromDatePicker && (
+                  <DateTimePicker
+                    testID="dateTimePicker"
+                    value={newBookedFromDate || new Date()}
+                    mode="date"
+                    display="default"
+                    onChange={onFromDateChange}
+                  />
+                )}
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Booked To Date</Text>
+                <TouchableOpacity onPress={() => setShowToDatePicker(true)} style={styles.datePickerButton}>
+                  <Text style={styles.datePickerButtonText}>{newBookedToDate ? newBookedToDate.toISOString().split('T')[0] : 'Select To Date'}</Text>
+                </TouchableOpacity>
+                {showToDatePicker && (
+                  <DateTimePicker
+                    testID="dateTimePicker"
+                    value={newBookedToDate || new Date()}
+                    mode="date"
+                    display="default"
+                    onChange={onToDateChange}
+                  />
+                )}
+              </View>
+
+
+
+              <TouchableOpacity
+                style={[styles.submitButton, isSubmitting && styles.disabledButton]}
+                onPress={handleKnottingSubmit}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={styles.submitButtonText}>Submit</Text>}
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      );
+    }
+
+    return (
+      <SafeAreaView style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <View style={styles.formContainer}>
+
+            <View style={{ justifyContent: "center", alignItems: "center" }}>
+              <Text style={styles.headerLabel}>Other Orders Form</Text>
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Loom Detail Id</Text>
+              <Text style={styles.label}>{LoomDetailId}</Text>
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Loom No</Text>
+              <Text style={styles.label}>{loomNo}</Text>
+            </View>
+
+            {
+              orderNo ?
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>Previous Order No</Text>
+                  <Text style={styles.label}>{orderNo}</Text>
+                </View>
+                :
+                null
+            }
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Booked From Date</Text>
+              <TouchableOpacity onPress={() => setShowFromDatePicker(true)} style={styles.datePickerButton}>
+                <Text style={styles.datePickerButtonText}>{newBookedFromDate ? newBookedFromDate.toISOString().split('T')[0] : 'Select From Date'}</Text>
+              </TouchableOpacity>
+              {showFromDatePicker && (
+                <DateTimePicker
+                  testID="dateTimePicker"
+                  value={newBookedFromDate || new Date()}
+                  mode="date"
+                  display="default"
+                  onChange={onFromDateChange}
+                />
+              )}
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Booked To Date</Text>
+              <TouchableOpacity onPress={() => setShowToDatePicker(true)} style={styles.datePickerButton}>
+                <Text style={styles.datePickerButtonText}>{newBookedToDate ? newBookedToDate.toISOString().split('T')[0] : 'Select To Date'}</Text>
+              </TouchableOpacity>
+              {showToDatePicker && (
+                <DateTimePicker
+                  testID="dateTimePicker"
+                  value={newBookedToDate || new Date()}
+                  mode="date"
+                  display="default"
+                  onChange={onToDateChange}
+                />
+              )}
+            </View>
+
+            <TouchableOpacity
+              style={[styles.submitButton, isSubmitting && styles.disabledButton]}
+              onPress={handleSubmit}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={styles.submitButtonText}>Submit</Text>}
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  };
+
+  return renderForm();
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  header: {
+  optionContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  optionButton: {
+    width: width * 0.8,
+    height: 60,
     backgroundColor: '#003C43',
-    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    height: 50,
+    borderRadius: 10,
+    marginVertical: 10,
   },
-  drawerIcon: {
-    width: 28,
-    height: 22,
-    marginLeft: 10,
-  },
-  headerTitleContainer: {
-    flex: 0.9,
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 26,
-    color: 'white',
-    fontWeight: '500',
-  },
-  loomDetail: {
-    marginTop: '6%',
-    margin: '2%',
-    borderRadius: 30,
-  },
-  detailContainer: {
-    padding: '5%',
-  },
-  detailHeader: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#003C43',
-    marginBottom: '5%',
-  },
-  loomDetailText: {
-    color: '#333',
-    fontSize: 16,
-    marginBottom: '4%',
+  optionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   formContainer: {
+    width: width * 0.9,
     padding: 20,
-  },
-  headerLabel: {
-    fontSize: 22,
-    color: '#003C43',
-    marginBottom: 20,
-    fontWeight: '600',
-    marginTop: '5%',
-  },
-  formGroup: {
-    marginBottom: 20,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 20,
+    elevation: 10,
   },
   label: {
-    fontSize: 16,
+    fontSize: 17,
+    marginBottom: 15,
     color: '#333',
-    marginBottom: 5,
+    fontWeight: "500"
   },
-  datePicker: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
+  datePickerButton: {
+    width: '100%',
+    padding: 15,
+    backgroundColor: '#e0e0e0',
     borderRadius: 5,
-    paddingHorizontal: 10,
-    backgroundColor: '#f9f9f9',
-  },
-  dateText: {
-    color: '#000',
-  },
-  calendarIcon: {
-    width: 20,
-    height: 20,
-  },
-  submitContainer: {
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 20,
+  },
+  datePickerButtonText: {
+    color: '#333',
+    fontSize: 16,
   },
   submitButton: {
-    backgroundColor: '#003C43',
+    width: '100%',
     padding: 15,
+    backgroundColor: '#003C43',
     borderRadius: 5,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: '5%',
-    width: width * 0.6,
+    marginTop: "10%",
+    marginBottom: "5%"
   },
   submitButtonText: {
-    color: 'white',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
   },
-  redirectText: {
-    fontSize: 20,
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  lottieContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  lottieAnimation: {
-    width: 100,
-    height: 100,
-  },
+  headerLabel: {
+    fontSize: 25,
+    color: "#003C43",
+    fontWeight: "600",
+    marginBottom: "10%",
+
+  }
 });
+
+export default BookLoomForm;

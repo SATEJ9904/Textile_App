@@ -48,9 +48,9 @@ const ProfileTrader = ({ navigation }) => {
 
   const fetchLoomsData = async () => {
     try {
-      const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=LoomsDetails&Colname=LoomTraderId&Colvalue='+await AsyncStorage.getItem("Id"));
+      const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=Enquiry&Colname=TraderId&Colvalue='+await AsyncStorage.getItem("Id"));
       const data = await response.json();
-      const uniqueLooms = new Set(data.map(item => item.Id)).size;
+      const uniqueLooms = new Set(data.map(item => item.EnquiryId)).size;
       setTotalLooms(uniqueLooms);
     } catch (error) {
       console.error(error);
@@ -67,6 +67,7 @@ const ProfileTrader = ({ navigation }) => {
       console.error(error);
     }
   };
+
   const navigateToCompanyInfo = () => {
     navigation.navigate('SelfInfo');
   };
@@ -332,6 +333,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingVertical: 20,
     marginTop:"15%"
+
   },
   summaryBlock: {
     backgroundColor: '#003C43',

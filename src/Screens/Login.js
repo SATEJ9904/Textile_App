@@ -98,6 +98,30 @@ const Login = ({ navigation, route }) => {
             });
     }
 
+
+    const ResetPassword = async () => {
+        if (!Email) {
+            Alert.alert("Please Insert only Email to Continue")
+        } else {
+            const formdata = new FormData();
+            formdata.append("AppUserId", Email);
+
+            const requestOptions = {
+                method: "POST",
+                body: formdata,
+                redirect: "follow"
+            };
+
+            fetch("https://textileapp.microtechsolutions.co.in/php/forgotpassword.php", requestOptions)
+                .then((response) => response.text())
+                .then((result) => { console.log(result); Alert.alert("OTP sent to Email please Check"); setVisible(true) })
+                .catch((error) => console.error(error));
+        }
+    }
+
+
+
+
     const verifyotp = async () => {
         let config = {
             method: 'get',
@@ -181,6 +205,16 @@ const Login = ({ navigation, route }) => {
                                 <View>
                                     <View style={{ alignItems: 'center' }}>
                                         <Text style={styles.title}> Verify OTP </Text>
+                                        <View style={styles.inputContainer}>
+                                            <Icon name="email-outline" color="#003C43" size={32} padding={8} marginLeft={8} />
+                                            <TextInput
+                                                style={styles.inputField}
+                                                placeholder='Email'
+                                                placeholderTextColor={"#003C43"}
+                                                onChangeText={(txt) => setEmail(txt)}
+                                                value={Email}
+                                            />
+                                        </View>
                                         <View style={styles.input}>
                                             <Icon name="form-textbox-password" color="#003C43" size={32} padding={8} marginLeft={8} />
                                             <TextInput
@@ -191,11 +225,25 @@ const Login = ({ navigation, route }) => {
                                                 value={otp}
                                             />
                                         </View>
-                                        <TouchableOpacity
-                                            style={styles.verifyButton}
-                                            onPress={() => verifyotp()}>
-                                            <Text style={styles.buttonText}> Verify </Text>
-                                        </TouchableOpacity>
+                                        {visible ?
+                                            <TouchableOpacity
+                                                style={styles.verifyButton}
+                                                onPress={() => verifyotp()}>
+                                                <Text style={styles.buttonText}> Verify </Text>
+                                            </TouchableOpacity>
+
+                                            :
+
+                                            <TouchableOpacity
+                                                style={styles.verifyButton}
+                                                onPress={() => ResetPassword()}>
+                                                <Text style={styles.buttonText}> submit </Text>
+                                            </TouchableOpacity>
+
+
+
+                                        }
+
                                     </View>
                                 </View>
                             )

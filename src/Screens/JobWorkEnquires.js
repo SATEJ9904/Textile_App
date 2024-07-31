@@ -6,7 +6,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const { width,height } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const JobWorkEnquires = ({ navigation }) => {
   const [enquiries, setEnquiries] = useState([]);
@@ -271,7 +271,7 @@ const JobWorkEnquires = ({ navigation }) => {
         .catch((error) => {
           console.log(error);
         });
-        Alert.alert("Data Submitted Successfully")
+      Alert.alert("Data Submitted Successfully")
       setShowED(false);
       setShowE(true)
     }
@@ -446,42 +446,57 @@ const JobWorkEnquires = ({ navigation }) => {
                 width: 200,
                 height: 200,
               }}
-            /> : <Text>Design not provided</Text>
+            /> : <Text style={{ color: "orange", fontSize: 17, marginTop: "3%", fontWeight: "500" }}>! Design not provided</Text>
           }
         </View>
 
-        <View style={{ flex: 1, justifyContent: "center",width:width*0.99 ,marginLeft:width*-0.05}}>
+        <View style={{ flex: 1, justifyContent: "center", width: width * 0.99, marginLeft: width * -0.05 }}>
           <View style={[styles.detailGroup, { flexDirection: "column", borderWidth: 1.5, borderColor: "#000", marginRight: "6%" }]}>
             <Text style={{ color: "#003C43", fontSize: 20, fontWeight: "600", margin: "5%" }}>Other Loom Attachments</Text>
 
-            {selectedEnquiry.SelvageJacquard === 1 ? (
-              <View style={[styles.detailItem, { flexDirection: "row", marginLeft: "5%", marginBottom: "5%",width:width*0.7}]}>
-                <Text style={styles.detailLabel}>Selvadge Jacquard</Text>
-                <Text style={[styles.detailValue, { color: '#007bff', marginLeft: width*0.10 }]}>Required</Text>
-              </View>
-            ) : null}
-            {selectedEnquiry.TopBeam === 1 ? (
-              <View style={[styles.detailItem, { flexDirection: "row", marginLeft: "5%", marginBottom: "5%",width:width*0.7 }]}>
-                <Text style={styles.detailLabel}>Top Beam</Text>
-                <Text style={[styles.detailValue, { color: '#007bff', marginLeft: width*0.10 }]}>Required</Text>
-              </View>
-            ) : null}
-            {selectedEnquiry.Cramming === 1 ? (
-              <View style={[styles.detailItem, { flexDirection: "row", marginLeft: "5%", marginBottom: "5%" ,width:width*0.7}]}>
-                <Text style={styles.detailLabel}>Cramming</Text>
-                <Text style={[styles.detailValue, { color: '#007bff', marginLeft:  width*0.10}]}>Required</Text>
-              </View>
-            ) : null}
-            {selectedEnquiry.LenoDesignEquipment === 1 ? (
-              <View style={[styles.detailItem, { flexDirection: "row", marginLeft: "5%", marginBottom: "5%",width:width*0.7 }]}>
-                <Text style={styles.detailLabel}>Leno Design Equipment</Text>
-                <Text style={[styles.detailValue, { color: '#007bff', marginLeft:  width*0.10 }]}>Required</Text>
-              </View>
-            ) : null}
+            {
+              selectedEnquiry.SelvageJacquard === 0 && selectedEnquiry.TopBeam === 0 && selectedEnquiry.Cramming === 0 && selectedEnquiry.LenoDesignEquipment === 0 ?
+             <Text style={{ color: "orange", fontSize: 17, marginTop: "3%", fontWeight: "500",margin:"5%" }}>! Other Loom Attachments not provided</Text> :null
+
+            }
+
+            {
+              selectedEnquiry.SelvageJacquard === 1 ? (
+                <View style={[styles.detailItem, { flexDirection: "row", marginLeft: "5%", marginBottom: "5%", width: width * 0.7 }]}>
+                  <Text style={styles.detailLabel}>Selvadge Jacquard</Text>
+                  <Text style={[styles.detailValue, { color: '#007bff', marginLeft: width * 0.10 }]}>Required</Text>
+                </View>
+              ) : null
+            }
+            {
+              selectedEnquiry.TopBeam === 1 ? (
+                <View style={[styles.detailItem, { flexDirection: "row", marginLeft: "5%", marginBottom: "5%", width: width * 0.7 }]}>
+                  <Text style={styles.detailLabel}>Top Beam</Text>
+                  <Text style={[styles.detailValue, { color: '#007bff', marginLeft: width * 0.10 }]}>Required</Text>
+                </View>
+              ) : null
+            }
+            {
+              selectedEnquiry.Cramming === 1 ? (
+                <View style={[styles.detailItem, { flexDirection: "row", marginLeft: "5%", marginBottom: "5%", width: width * 0.7 }]}>
+                  <Text style={styles.detailLabel}>Cramming</Text>
+                  <Text style={[styles.detailValue, { color: '#007bff', marginLeft: width * 0.10 }]}>Required</Text>
+                </View>
+              ) : null
+            }
+            {
+              selectedEnquiry.LenoDesignEquipment === 1 ? (
+                <View style={[styles.detailItem, { flexDirection: "row", marginLeft: "5%", marginBottom: "5%", width: width * 0.7 }]}>
+                  <Text style={styles.detailLabel}>Leno Design Equipment</Text>
+                  <Text style={[styles.detailValue, { color: '#007bff', marginLeft: width * 0.10 }]}>Required</Text>
+                </View>
+              ) : null
+            }
+
           </View>
         </View>
-        <View style={[styles.detailItem, { borderWidth: 1, marginTop: "6%", margin: "3%",width:width*0.90 }]}>
-          <Text style={{ color: "#003C43", fontSize: 18, fontWeight: "600", margin: "5%",width:width*0.60  }}>Check Loom Availability</Text>
+        <View style={[styles.detailItem, { borderWidth: 1, marginTop: "6%", margin: "3%", width: width * 0.90,  }]}>
+          <Text style={{ color: "#003C43", fontSize: 18, fontWeight: "600", margin: "5%", width: width * 0.60 }}>Check Loom Availability</Text>
 
           <View style={{ marginHorizontal: "5%", marginVertical: "5%" }}>
             <View style={{ flexDirection: "row" }}>
@@ -489,7 +504,7 @@ const JobWorkEnquires = ({ navigation }) => {
                 <Text style={{ fontSize: 16, fontWeight: "600", color: "grey" }}>From Date</Text>
                 <View style={{ flexDirection: "row" }}>
                   <TextInput
-                    style={[styles.textInput, { borderWidth: 1, width: width*0.60, borderColor: "#000",height:height*0.06  }]}
+                    style={[styles.textInput, { borderWidth: 1, width: width * 0.60, borderColor: "#000", height: height * 0.06 }]}
                     value={fromDate}
                     onChangeText={setFromDate}
                     keyboardType="numeric"
@@ -521,7 +536,7 @@ const JobWorkEnquires = ({ navigation }) => {
 
               <View style={{ flexDirection: "row" }}>
                 <TextInput
-                  style={[styles.textInput, { borderWidth: 1,  width: width*0.60, borderColor: "#000" ,height:height*0.06 }]}
+                  style={[styles.textInput, { borderWidth: 1, width: width * 0.60, borderColor: "#000", height: height * 0.06 }]}
                   value={toDate}
                   onChangeText={setToDate}
                   keyboardType="numeric"
@@ -566,10 +581,10 @@ const JobWorkEnquires = ({ navigation }) => {
             </View>
           </View>
         </View>
-        <View style={[styles.detailItem, { marginTop: "7%", width: width*0.5, marginLeft: 15 }]}>
+        <View style={[styles.detailItem, { marginTop: "7%", width: width * 0.5, marginLeft: 15 }]}>
           <Text style={styles.detailLabel}>Loom Possible To Assign</Text>
           <TextInput
-            style={[styles.textInput, { borderWidth: 1, borderColor: "#000", marginTop: "5%",width:width*0.7,height:height*0.05,}]}
+            style={[styles.textInput, { borderWidth: 1, borderColor: "#000", marginTop: "5%", width: width * 0.7, height: height * 0.05, }]}
             value={loomPossible}
             onChangeText={setLoomPossible}
             keyboardType="numeric"
@@ -587,7 +602,7 @@ const JobWorkEnquires = ({ navigation }) => {
           <Text style={styles.detailLabel}>Send Counter Offer</Text>
           <View style={{ flexDirection: "row" }}>
             <TextInput
-              style={[styles.textInput, { borderWidth: 1, borderColor: "#000", width:width*0.6,height:height*0.05, marginTop: "5%" }]}
+              style={[styles.textInput, { borderWidth: 1, borderColor: "#000", width: width * 0.6, height: height * 0.05, marginTop: "5%" }]}
               value={counterOffer}
               onChangeText={setCounterOffer}
               keyboardType="numeric"
@@ -602,20 +617,20 @@ const JobWorkEnquires = ({ navigation }) => {
         <View style={styles.buttonContainer}>
 
           <TouchableOpacity
-            style={[styles.checkAvailabilityButton, { backgroundColor: "#135D66", borderWidth: 0,height:height*0.06,width:width*0.45 }]}
+            style={[styles.checkAvailabilityButton, { backgroundColor: "#135D66", borderWidth: 0, height: height * 0.06, width: width * 0.45 }]}
             onPress={() => { EnquiryConfirm() }}
           >
             <Text style={styles.checkAvailabilityText1}> Submit </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.checkAvailabilityButton, { backgroundColor: "#FF7722", borderColor: '#FF7722',height:height*0.06,width:width*0.45  }]}
+            style={[styles.checkAvailabilityButton, { backgroundColor: "#FF7722", borderColor: '#FF7722', height: height * 0.06, width: width * 0.45 }]}
             onPress={() => NotInterested()}
           >
             <Text style={styles.checkAvailabilityText1}> Not Interested </Text>
           </TouchableOpacity>
         </View>
-      
+
       </ScrollView>
     );
   };
@@ -681,7 +696,7 @@ const JobWorkEnquires = ({ navigation }) => {
               <Text style={styles.backButtonText}>Back</Text>
             </TouchableOpacity>
             {selectedLoom && (
-              <View style={{margin:"10%"}}>
+              <View style={{ margin: "10%" }}>
                 <Text style={styles.modalText}>Loom Details</Text>
                 <View style={styles.detailContainer}>
                   <Text style={styles.detailTitle}>Owner name:</Text>
@@ -705,7 +720,7 @@ const JobWorkEnquires = ({ navigation }) => {
           </View>
         </View>
       </Modal>
-      
+
 
     </View>
   );
@@ -721,15 +736,15 @@ const styles = StyleSheet.create({
   text: { textAlign: 'center', color: '#333', fontSize: 14 },
   cell: { padding: 5 },
   dataWrapper: { marginTop: 10 },
-  detailsContainer: { paddingHorizontal: 5, paddingTop: 20, backgroundColor: 'white',flex:1 },
+  detailsContainer: { paddingHorizontal: 5, paddingTop: 20, backgroundColor: 'white', flex: 1 },
   detailGroup: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20, marginLeft: "10%" },
   detailItem: { flex: 1, marginTop: "2%" },
   detailLabel: { fontWeight: 'bold', color: '#555', fontSize: 16 },
   detailValue: { color: '#333', fontSize: 16 },
   textInput: { borderColor: '#ccc', paddingLeft: 10, fontSize: 16, borderRadius: 5, height: 40, color: "#000" },
   buttonContainer: { flexDirection: 'row', justifyContent: "space-evenly", marginTop: 20, marginBottom: "40%" },
-  checkAvailabilityButton: { backgroundColor: 'white', padding: height*0.01, alignItems: 'center', borderRadius: 10, marginTop: 20, marginBottom: 10, borderColor: '#003C43', borderWidth: 2, width: width*0.80,height:height*0.06 },
-  checkAvailabilityText: { color: '#003C43', fontSize: 20, },
+  checkAvailabilityButton: { backgroundColor: '#003C43', padding: height * 0.01, alignItems: 'center', borderRadius: 10, marginTop: 20, marginBottom: 10, borderColor: '#003C43', borderWidth: 2, width: width * 0.80, height: height * 0.06 },
+  checkAvailabilityText: { color: '#fff', fontSize: 20, },
   checkAvailabilityText1: { color: '#fff', fontSize: 20, fontWeight: '500' },
   modalContainer: {
     flex: 1,

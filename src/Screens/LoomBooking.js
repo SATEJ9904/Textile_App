@@ -17,6 +17,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const LoomBooking = ({ navigation, route }) => {
+  
   const [loading, setLoading] = useState(true);
   const [loomNumbers, setLoomNumbers] = useState([]);
   const [selectedLoom, setSelectedLoom] = useState(null);
@@ -35,7 +36,7 @@ const LoomBooking = ({ navigation, route }) => {
 
 
   const OrderNo = route.params?.OrderNo || OrderNo1;
-  const fetchData = async () => {
+    const fetchData = async () => {
     try {
       const id = await AsyncStorage.getItem("Id");
       const today = new Date().toISOString().substring(0, 10);
@@ -217,7 +218,7 @@ const LoomBooking = ({ navigation, route }) => {
   };
 
   const handleBlockPress1 = (loom) => {
-    navigation.navigate("BookLoomForm", { LoomDetailId: loom.Id })
+    navigation.navigate("BookLoomForm", { LoomDetailId: loom.Id , OrderNo:OrderNo})
   };
 
   const handleCloseModal = () => {
