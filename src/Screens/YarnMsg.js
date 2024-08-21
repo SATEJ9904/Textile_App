@@ -16,6 +16,7 @@ const YarnMsg = ({ route }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [replyTo, setReply] = useState(null);
+  const [selectedImagecurrent, setSelectedImagecurrent] = useState(null)
 
   useEffect(() => {
     fetchData();
@@ -162,15 +163,17 @@ const YarnMsg = ({ route }) => {
   };
 
   const renderRepliedMessage = (replyMessage) => {
-    if (!replyMessage || replyMessage === null || replyMessage === "null") return null;
-
-    return (
+    if (!replyMessage || replyMessage.trim() === ""||replyMessage === undefined){
+      null
+    }else{
       <View style={styles.repliedMessageContainer}>
-        <Text style={styles.repliedMessageLabel}>Replying to:</Text>
-        <Text style={styles.repliedMessageText}>{replyMessage}</Text>
-      </View>
-    );
+      <Text style={styles.repliedMessageLabel}>Replying to:</Text>
+      <Text style={styles.repliedMessageText}>{replyMessage}</Text>
+    </View>
+    }
+  
   };
+  
 
   return (
     <View
@@ -224,7 +227,7 @@ const YarnMsg = ({ route }) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       />
-       {replyTo && replyTo.Message && (
+      {replyTo && replyTo.Message && (
         <View style={styles.replyContainer}>
           <Text style={styles.replyLabel}>Replying to:</Text>
           <Text style={styles.replyMessage}>{replyTo.Message}</Text>
@@ -235,7 +238,9 @@ const YarnMsg = ({ route }) => {
       )}
       <View style={styles.inputContainer}>
         {image && (
-          <Image source={{ uri: image.path }} style={styles.selectedImage} />
+          <TouchableOpacity onPress={() => setSelectedImagecurrent(image.path)}>
+            <Image source={{ uri: image.path }} style={styles.selectedImage} />
+          </TouchableOpacity>
         )}
         <TextInput
           style={styles.input}
@@ -261,6 +266,23 @@ const YarnMsg = ({ route }) => {
               <Icon name="close" size={30} color="#fff" />
             </TouchableOpacity>
           </View>
+        </Modal>
+      )}
+
+      {selectedImagecurrent && (
+        <Modal visible={true} transparent={true} onRequestClose={() => setSelectedImagecurrent(null)}>
+          <View style={styles.modalContainer}>
+            <Image source={{ uri: selectedImagecurrent }} style={styles.fullImage} />
+            <TouchableOpacity onPress={() => setSelectedImagecurrent(null)} style={styles.closeButton}>
+              <Icon name="close" size={30} color="#fff" />
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity
+            style={{width: '100%', height: '5%', backgroundColor: "#135D66", justifyContent: "center", alignItems: "center", }}
+            onPress={()=>{setImage(null);setSelectedImagecurrent(null);selectImageOption()}}
+          >
+            <Text style={{ color: "#fff", fontSize: 20, }}>Reacpture Image</Text>
+          </TouchableOpacity>
         </Modal>
       )}
     </View>

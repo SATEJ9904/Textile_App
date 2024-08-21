@@ -165,7 +165,7 @@ const KnottingOffersT = ({ navigation }) => {
             <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => navigation.openDrawer()}>
-                        <Image source={require('../Images/drawer1.png')} style={styles.drawerIcon} />
+                        <Image source={require('../Images/drawer.png')} style={styles.drawerIcon} />
                     </TouchableOpacity>
                     <View style={{ justifyContent: "center", alignItems: "center", width: "90%" }}>
                         <Text style={styles.headerText}>Knotting Offers</Text>

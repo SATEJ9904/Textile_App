@@ -8,6 +8,7 @@ const YarnUsers = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
+  const [yarncount, setyarnCount] = useState(null)
 
   useEffect(() => {
     fetch('https://textileapp.microtechsolutions.co.in/php/getdetail.php')
@@ -18,6 +19,7 @@ const YarnUsers = ({ navigation }) => {
         setUsers(uniqueUsers);
         setFilteredUsers(uniqueUsers);
         setLoading(false);
+        setyarnCount(uniqueUsers.length)
       })
       .catch((error) => {
         console.error('Error fetching data:', error);
@@ -39,10 +41,21 @@ const YarnUsers = ({ navigation }) => {
 
   const handleSearch = (query) => {
     setSearchQuery(query);
+  
     if (query === '') {
       setFilteredUsers(users);
     } else {
-      const filtered = users.filter(user => user.Name.toLowerCase().includes(query.toLowerCase()));
+      const filtered = users.filter(user => {
+        const lowerQuery = query.toLowerCase();
+  
+        // Using optional chaining and default values to prevent errors
+        return (
+          (user.Name?.toLowerCase() || '').includes(lowerQuery) ||
+          (user.AppUserId?.toLowerCase() || '').includes(lowerQuery) ||
+          (user.OwnerName?.toLowerCase() || '').includes(lowerQuery)
+        );
+      });
+  
       setFilteredUsers(filtered);
     }
   };
@@ -122,10 +135,13 @@ const YarnUsers = ({ navigation }) => {
       </View>
       <TextInput
         style={styles.searchBar}
-        placeholder="Search by name..."
+        placeholder="Search"
+        placeholderTextColor={"#000"}
         value={searchQuery}
         onChangeText={handleSearch}
       />
+      <Text style={[styles.cardTitle,{marginLeft:"5%",fontSize:20}]}>Yarn Count :- {yarncount}</Text>
+
       {loading ? (
         <ActivityIndicator size="large" color="#003C43" style={styles.loader} />
       ) : selectedUser ? (
@@ -175,7 +191,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   searchBar: {
-    height: 40,
+    height: "6%",
     borderColor: '#dfe3e6',
     borderWidth: 1,
     borderRadius: 10,
@@ -183,6 +199,9 @@ const styles = StyleSheet.create({
     margin: 20,
     backgroundColor: '#ffffff',
     fontSize: 16,
+    padding:"5%",
+    color:"#000"
+
   },
   cardContainer: {
     padding: 20,

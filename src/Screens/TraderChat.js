@@ -15,6 +15,8 @@ const TraderChat = ({ route }) => {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImagecurrent, setSelectedImagecurrent] = useState(null);
+
   const [replyTo, setReply] = useState(null);
 
   useEffect(() => {
@@ -36,14 +38,14 @@ const TraderChat = ({ route }) => {
 
     fetch('https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=YarnRate&Colname=TraderId&Colvalue=' + userId)
       .then(response => response.json())
-      .then(data =>   {
-        console.log(yarnId,userId)
-        const filteredMessages = data.filter(msg => msg.YarnId == yarnId && !msg.LoomId && msg.TraderId== userId );
+      .then(data => {
+        console.log(yarnId, userId)
+        const filteredMessages = data.filter(msg => msg.YarnId == yarnId && !msg.LoomId && msg.TraderId == userId);
         setMessages(filteredMessages);
         console.log(filteredMessages)
-    })
+      })
       .catch(error => console.error('Error fetching messages:', error));
-      setRefreshing(false);
+    setRefreshing(false);
 
   };
 
@@ -55,9 +57,9 @@ const TraderChat = ({ route }) => {
 
     try {
       const formdata = new FormData();
-      formdata.append("YarnId",yarnId);
-      formdata.append("LoomId",null );
-      formdata.append("TraderId", await AsyncStorage.getItem("Id") );
+      formdata.append("YarnId", yarnId);
+      formdata.append("LoomId", null);
+      formdata.append("TraderId", await AsyncStorage.getItem("Id"));
       formdata.append("Message", newMessage);
       formdata.append("Sender", "T");
       formdata.append("Reply", replyTo?.Message);
@@ -196,7 +198,7 @@ const TraderChat = ({ route }) => {
                 isCurrentUser ? styles.sentMessageContainer : styles.receivedMessageContainer
               ]}
             >
-              
+
               <TouchableOpacity
                 onLongPress={() => replyToMessage(item)}
                 onPress={() => item.DesignPaper && viewImage(item.DesignPaper)}
@@ -222,7 +224,7 @@ const TraderChat = ({ route }) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       />
-    {replyTo && replyTo.Message && (
+      {replyTo && replyTo.Message && (
         <View style={styles.replyContainer}>
           <Text style={styles.replyLabel}>Replying to:</Text>
           <Text style={styles.replyMessage}>{replyTo.Message}</Text>
@@ -233,7 +235,9 @@ const TraderChat = ({ route }) => {
       )}
       <View style={styles.inputContainer}>
         {image && (
-          <Image source={{ uri: image.path }} style={styles.selectedImage} />
+          <TouchableOpacity onPress={() => setSelectedImagecurrent(image.path)}>
+            <Image source={{ uri: image.path }} style={styles.selectedImage} />
+          </TouchableOpacity>
         )}
         <TextInput
           style={styles.input}
@@ -261,6 +265,23 @@ const TraderChat = ({ route }) => {
           </View>
         </Modal>
       )}
+
+      {selectedImagecurrent && (
+        <Modal visible={true} transparent={true} onRequestClose={() => setSelectedImagecurrent(null)}>
+          <View style={styles.modalContainer}>
+            <Image source={{ uri: selectedImagecurrent }} style={styles.fullImage} />
+            <TouchableOpacity onPress={() => setSelectedImagecurrent(null)} style={styles.closeButton}>
+              <Icon name="close" size={30} color="#fff" />
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity
+            style={{ width: '100%', height: '5%', backgroundColor: "#135D66", justifyContent: "center", alignItems: "center", }}
+            onPress={() => { setImage(null); setSelectedImagecurrent(null); selectImageOption() }}
+          >
+            <Text style={{ color: "#fff", fontSize: 20, }}>Reacpture Image</Text>
+          </TouchableOpacity>
+        </Modal>
+      )}
     </KeyboardAvoidingView>
   );
 };
@@ -268,7 +289,8 @@ const TraderChat = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#DADBDD',  },
+    backgroundColor: '#DADBDD',
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -301,7 +323,7 @@ const styles = StyleSheet.create({
   sentMessageContainer: {
     justifyContent: 'flex-end',
     alignItems: 'flex-end',
-    flexDirection:"column"
+    flexDirection: "column"
   },
   senderName: {
     color: 'orange',
@@ -311,7 +333,7 @@ const styles = StyleSheet.create({
   receivedMessageContainer: {
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
-    flexDirection:"column"
+    flexDirection: "column"
 
   },
   messageBubble: {
@@ -420,11 +442,11 @@ const styles = StyleSheet.create({
   replyLabel: {
     fontWeight: 'bold',
     marginRight: 5,
-    color:"#333"
+    color: "#333"
   },
   replyMessage: {
     flex: 1,
-    color:"#333"
+    color: "#333"
   },
 });
 

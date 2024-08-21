@@ -274,6 +274,7 @@ const JobWorkEnquires = ({ navigation }) => {
       Alert.alert("Data Submitted Successfully")
       setShowED(false);
       setShowE(true)
+      setModalVisible2(false)
     }
   }
 
@@ -313,6 +314,7 @@ const JobWorkEnquires = ({ navigation }) => {
   const NotInterested = () => {
     setShowE(true);
     setShowED(false)
+    setModalVisible3(false)
   }
 
   const handleBlockPress = (enquiries) => {
@@ -322,6 +324,8 @@ const JobWorkEnquires = ({ navigation }) => {
   };
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible2, setModalVisible2] = useState(false);
+  const [modalVisible3, setModalVisible3] = useState(false);
   const [selectedLoom, setSelectedLoom] = useState(null);
 
 
@@ -347,94 +351,93 @@ const JobWorkEnquires = ({ navigation }) => {
   const renderEnquiryDetails = () => {
     if (!selectedEnquiry) return null;
 
+    const isFieldNotProvided = (field) => field === 0 || field === undefined || field === null || field === '';
+
     return (
       <ScrollView contentContainerStyle={styles.detailsContainer}>
         <View style={styles.detailGroup}>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Enquiry No</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.EnquiryNo}</Text>
+            <Text style={styles.detailValue}>{isFieldNotProvided(selectedEnquiry.EnquiryNo) ? "Field not provided" : selectedEnquiry.EnquiryNo}</Text>
           </View>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Enquiry Date</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.EnquiryDate.date.substring(0, 10)}</Text>
+            <Text style={styles.detailValue}>{isFieldNotProvided(selectedEnquiry.EnquiryDate.date) ? "Field not provided" : selectedEnquiry.EnquiryDate.date.substring(0, 10)}</Text>
           </View>
         </View>
-        <View style={styles.detailGroup}>
+        {/* <View style={styles.detailGroup}>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Booking From</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.BookingFrom.date.substring(0, 10)}</Text>
+            <Text style={styles.detailValue">{isFieldNotProvided(selectedEnquiry.BookingFrom.date) ? "Field not provided" : selectedEnquiry.BookingFrom.date.substring(0, 10)}</Text>
           </View>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Booking To</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.BookingTo.date.substring(0, 10)}</Text>
+            <Text style={styles.detailValue}>{isFieldNotProvided(selectedEnquiry.BookingTo.date) ? "Field not provided" : selectedEnquiry.BookingTo.date.substring(0, 10)}</Text>
           </View>
-        </View>
+        </View> */}
         <View style={styles.detailGroup}>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Fabric Quality</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.FabricQuality}"</Text>
+            <Text style={styles.detailValue}>{isFieldNotProvided(selectedEnquiry.FabricQuality) ? "Field not provided" : selectedEnquiry.FabricQuality}</Text>
           </View>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Fabric Length</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.FabricLength}</Text>
+            <Text style={styles.detailValue}>{isFieldNotProvided(selectedEnquiry.FabricLength) ? "Field not provided" : selectedEnquiry.FabricLength}</Text>
           </View>
         </View>
         <View style={styles.detailGroup}>
-          <View style={[styles.detailItem]}>
+          <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Loom Required</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.LoomNo}</Text>
+            <Text style={styles.detailValue}>{isFieldNotProvided(selectedEnquiry.LoomNo) ? "Field not provided" : selectedEnquiry.LoomNo}</Text>
           </View>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Agent Name</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.AgentName}</Text>
+            <Text style={styles.detailValue}>{isFieldNotProvided(selectedEnquiry.AgentName) ? "Field not provided" : selectedEnquiry.AgentName}</Text>
           </View>
         </View>
         <View style={styles.detailGroup}>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Loom Type</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.MachineType}</Text>
+            <Text style={styles.detailValue}>{isFieldNotProvided(selectedEnquiry.MachineType) ? "Field not provided" : selectedEnquiry.MachineType}</Text>
           </View>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Loom Width</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.Width}</Text>
+            <Text style={styles.detailValue}>{isFieldNotProvided(selectedEnquiry.Width) ? "Field not provided" : selectedEnquiry.Width}</Text>
           </View>
         </View>
         <View style={styles.detailGroup}>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>RPM</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.RPM}</Text>
+            <Text style={styles.detailValue}>{isFieldNotProvided(selectedEnquiry.RPM) ? "Field not provided" : selectedEnquiry.RPM}</Text>
           </View>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Shedding Type</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.SheddingType}</Text>
+            <Text style={styles.detailValue}>{isFieldNotProvided(selectedEnquiry.SheddingType) ? "Field not provided" : selectedEnquiry.SheddingType}</Text>
           </View>
         </View>
         <View style={styles.detailGroup}>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>No of Frame</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.NoofFrame}</Text>
+            <Text style={styles.detailValue}>{isFieldNotProvided(selectedEnquiry.NoofFrame) ? "Field not provided" : selectedEnquiry.NoofFrame}</Text>
           </View>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>No of Feeder</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.NoofFeedero}</Text>
+            <Text style={styles.detailValue}>{isFieldNotProvided(selectedEnquiry.NoofFeedero) ? "Field not provided" : selectedEnquiry.NoofFeedero}</Text>
           </View>
         </View>
         <View style={styles.detailGroup}>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>On Table Fabric Width</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.FabricWidth}"</Text>
+            <Text style={styles.detailValue}>{isFieldNotProvided(selectedEnquiry.FabricWidth) ? "Field not provided" : selectedEnquiry.FabricWidth}</Text>
           </View>
           <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>DeliveryDate</Text>
-            <Text style={styles.detailValue}>{selectedEnquiry.DeliveryDate.date.substring(0, 10)}</Text>
+            <Text style={styles.detailLabel}>Delivery Date</Text>
+            <Text style={styles.detailValue}>{isFieldNotProvided(selectedEnquiry.DeliveryDate.date) ? "Field not provided" : selectedEnquiry.DeliveryDate.date.substring(0, 10)}</Text>
           </View>
-        </View>
-        <View style={styles.detailGroup}>
-
         </View>
         <View style={[styles.detailItem, { marginLeft: "10%" }]}>
           <Text style={styles.detailLabel}>Description</Text>
-          <Text style={styles.detailValue}>{selectedEnquiry.Description}</Text>
+          <Text style={styles.detailValue}>{isFieldNotProvided(selectedEnquiry.Description) ? "Field not provided" : selectedEnquiry.Description}</Text>
         </View>
         <View style={[styles.detailItem, { marginLeft: "10%", margin: "5%" }]}>
           <Text style={styles.detailLabel}>Design </Text>
@@ -456,7 +459,7 @@ const JobWorkEnquires = ({ navigation }) => {
 
             {
               selectedEnquiry.SelvageJacquard === 0 && selectedEnquiry.TopBeam === 0 && selectedEnquiry.Cramming === 0 && selectedEnquiry.LenoDesignEquipment === 0 ?
-             <Text style={{ color: "orange", fontSize: 17, marginTop: "3%", fontWeight: "500",margin:"5%" }}>! Other Loom Attachments not provided</Text> :null
+                <Text style={{ color: "orange", fontSize: 17, marginTop: "3%", fontWeight: "500", margin: "5%" }}>! Other Loom Attachments not provided</Text> : null
 
             }
 
@@ -495,7 +498,7 @@ const JobWorkEnquires = ({ navigation }) => {
 
           </View>
         </View>
-        <View style={[styles.detailItem, { borderWidth: 1, marginTop: "6%", margin: "3%", width: width * 0.90,  }]}>
+        <View style={[styles.detailItem, { borderWidth: 1, marginTop: "6%", margin: "3%", width: width * 0.90, }]}>
           <Text style={{ color: "#003C43", fontSize: 18, fontWeight: "600", margin: "5%", width: width * 0.60 }}>Check Loom Availability</Text>
 
           <View style={{ marginHorizontal: "5%", marginVertical: "5%" }}>
@@ -618,14 +621,14 @@ const JobWorkEnquires = ({ navigation }) => {
 
           <TouchableOpacity
             style={[styles.checkAvailabilityButton, { backgroundColor: "#135D66", borderWidth: 0, height: height * 0.06, width: width * 0.45 }]}
-            onPress={() => { EnquiryConfirm() }}
+            onPress={() => { setModalVisible2(true) }}
           >
             <Text style={styles.checkAvailabilityText1}> Submit </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.checkAvailabilityButton, { backgroundColor: "#FF7722", borderColor: '#FF7722', height: height * 0.06, width: width * 0.45 }]}
-            onPress={() => NotInterested()}
+            onPress={() => setModalVisible3(true)}
           >
             <Text style={styles.checkAvailabilityText1}> Not Interested </Text>
           </TouchableOpacity>
@@ -717,6 +720,56 @@ const JobWorkEnquires = ({ navigation }) => {
               </View>
             )}
 
+          </View>
+        </View>
+      </Modal>
+
+
+      <Modal
+        visible={modalVisible2}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setModalVisible2(false)}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContainer}>
+            <TouchableOpacity style={styles.backButton} onPress={() => setModalVisible2(false)}>
+              <Text style={styles.backButtonText}>Back</Text>
+            </TouchableOpacity>
+            <Text style={{ color: "#003C43", fontSize: 20, fontWeight: "600", marginTop: "5%" }}>Are You Sure To Submit The Request</Text>
+            <View style={{ flexDirection: "row", justifyContent: "space-evenly", width: "80%", marginTop: "10%" }}>
+              <TouchableOpacity style={[styles.backButton, { backgroundColor: "#003C43", width: "30%", justifyContent: "center", alignItems: "center" }]} onPress={() => EnquiryConfirm()}>
+                <Text style={styles.backButtonText}>Yes</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.backButton, { width: "30%", justifyContent: "center", alignItems: "center" }]} onPress={() => setModalVisible2(false)}>
+                <Text style={styles.backButtonText}>NO</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+
+      <Modal
+        visible={modalVisible3}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setModalVisible3(false)}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContainer}>
+            <TouchableOpacity style={styles.backButton} onPress={() => setModalVisible3(false)}>
+              <Text style={styles.backButtonText}>Back</Text>
+            </TouchableOpacity>
+            <Text style={{ color: "#003C43", fontSize: 20, fontWeight: "600", marginTop: "5%" }}>Are You Sure To Cancel</Text>
+            <View style={{ flexDirection: "row", justifyContent: "space-evenly", width: "80%", marginTop: "10%" }}>
+              <TouchableOpacity style={[styles.backButton, { backgroundColor: "#003C43", width: "30%", justifyContent: "center", alignItems: "center" }]} onPress={() => NotInterested()}>
+                <Text style={styles.backButtonText}>Yes</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.backButton, { width: "30%", justifyContent: "center", alignItems: "center" }]} onPress={() => setModalVisible3(false)}>
+                <Text style={styles.backButtonText}>NO</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>

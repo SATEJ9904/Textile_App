@@ -8,6 +8,7 @@ const TraderUser = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
+  const [tradercount, setTraderCount] = useState(null)
 
   useEffect(() => {
     fetch('https://textileapp.microtechsolutions.co.in/php/getdetail.php')
@@ -18,6 +19,7 @@ const TraderUser = ({ navigation }) => {
         setUsers(uniqueUsers);
         setFilteredUsers(uniqueUsers);
         setLoading(false);
+        setTraderCount(uniqueUsers.length)
       })
       .catch((error) => {
         console.error('Error fetching data:', error);
@@ -39,10 +41,21 @@ const TraderUser = ({ navigation }) => {
 
   const handleSearch = (query) => {
     setSearchQuery(query);
+  
     if (query === '') {
       setFilteredUsers(users);
     } else {
-      const filtered = users.filter(user => user.Name.toLowerCase().includes(query.toLowerCase()));
+      const filtered = users.filter(user => {
+        const lowerQuery = query.toLowerCase();
+  
+        // Using optional chaining and default values to prevent errors
+        return (
+          (user.Name?.toLowerCase() || '').includes(lowerQuery) ||
+          (user.AppUserId?.toLowerCase() || '').includes(lowerQuery) ||
+          (user.OwnerName?.toLowerCase() || '').includes(lowerQuery)
+        );
+      });
+  
       setFilteredUsers(filtered);
     }
   };
@@ -108,7 +121,7 @@ const TraderUser = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         {selectedUser ? (
-          <TouchableOpacity  style={{padding:"2%"}}  onPress={handleBackPress}>
+          <TouchableOpacity style={{ padding: "2%" }} onPress={handleBackPress}>
             <Image source={require("../Images/back.png")} style={styles.drawerIcon} />
           </TouchableOpacity>
         ) : (
@@ -122,10 +135,13 @@ const TraderUser = ({ navigation }) => {
       </View>
       <TextInput
         style={styles.searchBar}
-        placeholder="Search by name..."
+        placeholder="Search"
+        placeholderTextColor={"#000"}
         value={searchQuery}
         onChangeText={handleSearch}
       />
+      <Text style={[styles.cardTitle,{marginLeft:"5%",fontSize:20}]}>Traders Count :- {tradercount}</Text>
+
       {loading ? (
         <ActivityIndicator size="large" color="#003C43" style={styles.loader} />
       ) : selectedUser ? (
@@ -175,14 +191,17 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   searchBar: {
-    height: 40,
+    height: "6%",
     borderColor: '#dfe3e6',
     borderWidth: 1,
+    borderColor:"#555",
     borderRadius: 10,
     paddingHorizontal: 15,
     margin: 20,
     backgroundColor: '#ffffff',
     fontSize: 16,
+    padding:"5%",
+    color:"#000"
   },
   cardContainer: {
     padding: 20,

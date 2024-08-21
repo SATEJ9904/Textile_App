@@ -187,13 +187,17 @@ const ProfileTrader = ({ navigation }) => {
       </View>
 
       <View style={styles.summaryContainer}>
-        <View style={styles.summaryBlock}>
-          <Text style={styles.summaryTitle}>Total Enquires</Text>
-          <Text style={styles.summaryCount}>{displayedLooms}</Text>
+        <View>
+        <TouchableOpacity style={styles.summaryBlock} onPress={()=>navigation.navigate("Live orders")}>
+        <Text style={styles.summaryTitle}>Total Enquires</Text>
+        <Text style={styles.summaryCount}>{displayedLooms}</Text>
+        </TouchableOpacity>
         </View>
-        <View style={styles.summaryBlock}>
-          <Text style={styles.summaryTitle}>Total Orders</Text>
-          <Text style={styles.summaryCount}>{displayedOrders}</Text>
+        <View>
+        <TouchableOpacity  style={styles.summaryBlock} onPress={()=>navigation.navigate("ConfirmOrds")}>
+        <Text style={styles.summaryTitle}>Total Orders</Text>
+        <Text style={styles.summaryCount}>{displayedOrders}</Text>
+        </TouchableOpacity>
         </View>
       </View>
 

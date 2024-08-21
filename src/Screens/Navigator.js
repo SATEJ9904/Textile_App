@@ -75,6 +75,7 @@ import LiveBooking from './LiveBooking';
 import BookLoomForm from './BookLoomForm';
 import SignUpYarn from './SignUpYarn';
 import ProfileYarn from './ProfileYarn';
+import CanceledOrders from './CanceledOrders';
 
 
 
@@ -274,6 +275,29 @@ const LoomDrawerNavigator = () => (
         ),
 
         title: 'Completed Orders',
+        drawerLabelStyle: {
+          marginLeft: 0,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 18,
+
+        },
+
+      }} />
+
+
+    <LoomDrawer.Screen
+
+      name="CanceledOrders"
+      component={CanceledOrders}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Iconsn name={focused ? 'cancel' : 'cancel'} size={25} color={'grey'} />
+        ),
+
+        title: 'Canceled Orders',
         drawerLabelStyle: {
           marginLeft: 0,
           fontFamily: 'Roboto-Medium',

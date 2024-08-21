@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions, ImageBackground, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Dimensions, ImageBackground, Modal, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ImagePicker from 'react-native-image-crop-picker';
 
@@ -17,6 +17,8 @@ const ProfileTrader = ({ navigation }) => {
   const [totalOrders, setTotalOrders] = useState(0);
   const [displayedLooms, setDisplayedLooms] = useState(0);
   const [displayedOrders, setDisplayedOrders] = useState(0);
+  const [machineTypeCounts, setMachineTypeCounts] = useState([]);
+
 
   useEffect(() => {
     getData();
@@ -48,7 +50,7 @@ const ProfileTrader = ({ navigation }) => {
 
   const fetchLoomsData = async () => {
     try {
-      const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=Enquiry&Colname=TraderId&Colvalue='+await AsyncStorage.getItem("Id"));
+      const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=Enquiry&Colname=TraderId&Colvalue=' + await AsyncStorage.getItem("Id"));
       const data = await response.json();
       const uniqueLooms = new Set(data.map(item => item.EnquiryId)).size;
       setTotalLooms(uniqueLooms);
@@ -59,13 +61,13 @@ const ProfileTrader = ({ navigation }) => {
 
   const fetchOrdersData = async () => {
     try {
-      const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=EnquiryConfirm&Colname=LoomTraderId&Colvalue='+await AsyncStorage.getItem("Id"));
+      const response = await fetch('https://textileapp.microtechsolutions.co.in/php/userenquirycount.php?LoomTraderId=' + await AsyncStorage.getItem("Id"));
       const data = await response.json();
-      const uniqueOrders = new Set(data.map(item => item.EnquiryId)).size;
-      setTotalOrders(uniqueOrders);
+      setMachineTypeCounts(data);
     } catch (error) {
       console.error(error);
     }
+
   };
 
   const navigateToCompanyInfo = () => {
@@ -187,16 +189,25 @@ const ProfileTrader = ({ navigation }) => {
         )}
       </View>
 
-      <View style={styles.summaryContainer}>
-        <View style={styles.summaryBlock}>
-          <Text style={styles.summaryTitle}>Total Enquires</Text>
-          <Text style={styles.summaryCount}>{displayedLooms}</Text>
+      <ScrollView>
+        <View style={styles.summaryContainer}>
+          <View style={styles.summaryBlock}>
+            <Text style={styles.summaryTitle}>Total Enquires</Text>
+            <Text style={styles.summaryCount}>{displayedLooms}</Text>
+          </View>
+          {machineTypeCounts.map((machine, index) => (
+            <View style={styles.summaryBlock}>
+
+              <View key={index} style={styles.summaryBlock}>
+                <Text style={styles.summaryTitle}>Enquires Of {machine.MachineType}</Text>
+                <Text style={styles.summaryCount}>{machine.Count}</Text>
+              </View>
+
+            </View>
+          ))}
         </View>
-        <View style={styles.summaryBlock}>
-          <Text style={styles.summaryTitle}>Total Orders</Text>
-          <Text style={styles.summaryCount}>{displayedOrders}</Text>
-        </View>
-      </View>
+
+      </ScrollView>
 
       <Modal
         visible={modalVisible}
@@ -302,7 +313,7 @@ const styles = StyleSheet.create({
   },
   optionsContainer: {
     paddingHorizontal: 20,
-    marginTop:"15%"
+    marginTop: "15%"
   },
   optionCard: {
     backgroundColor: '#FFFFFF',
@@ -332,7 +343,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 20,
-    marginTop:"15%"
+    marginTop: "5%",
+    flexWrap:"wrap",
 
   },
   summaryBlock: {
@@ -341,11 +353,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: width * 0.4,
     alignItems: 'center',
+    marginBottom:"10%"
+
   },
   summaryTitle: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#FFFFFF',
     marginBottom: 10,
+    fontWeight:"500"
   },
   summaryCount: {
     fontSize: 22,

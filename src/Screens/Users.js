@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, FlatList, ActivityIndicator, TextInput, Modal, Alert } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, FlatList, ActivityIndicator, TextInput, Modal, Alert,Linking } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from 'react-native-geolocation-service';
@@ -34,6 +34,11 @@ const Users = ({ navigation }) => {
   };
 
   const checkLocationPermission = async () => {
+    const status = await check(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
+    handlePermissionStatus(status, 'location');
+  };
+
+  const requestLocationPermission = async () => {
     const status = await request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
     handlePermissionStatus(status, 'location');
   };
@@ -42,14 +47,31 @@ const Users = ({ navigation }) => {
     switch (status) {
       case RESULTS.UNAVAILABLE:
         Alert.alert(`${type} services are not available on this device.`);
+        setLoading(false);
         break;
       case RESULTS.DENIED:
         if (type === 'location') {
+          Alert.alert(
+            "Location Permission Required",
+            "Please allow location access to view the users.",
+            [
+              {
+                text: "Grant Permission",
+                onPress: requestLocationPermission,
+              },
+              {
+                text: "Cancel",
+                style: "cancel",
+                onPress: () => setLoading(false),
+              },
+            ]
+          );
           setLocationPermissionGranted(false);
         }
         break;
       case RESULTS.LIMITED:
         Alert.alert(`${type} permission is limited.`);
+        setLoading(false);
         break;
       case RESULTS.GRANTED:
         if (type === 'location') {
@@ -59,11 +81,28 @@ const Users = ({ navigation }) => {
         break;
       case RESULTS.BLOCKED:
         if (type === 'location') {
+          Alert.alert(
+            "Location Permission Blocked",
+            "Location permission is blocked. Please go to settings and enable it.",
+            [
+              {
+                text: "Open Settings",
+                onPress: () => Linking.openSettings(),
+              },
+              {
+                text: "Cancel",
+                style: "cancel",
+                onPress: () => setLoading(false),
+              },
+            ]
+          );
           setLocationPermissionGranted(false);
         }
         break;
     }
   };
+
+  const [userscount, setUsersCount] = useState(null)
 
   const fetchUsers = () => {
     fetch('https://textileapp.microtechsolutions.co.in/php/getappuser.php')
@@ -73,6 +112,7 @@ const Users = ({ navigation }) => {
         setUsers(uniqueUsers);
         setFilteredUsers(uniqueUsers);
         setLoading(false);
+        setUsersCount(uniqueUsers.length)
       })
       .catch((error) => {
         console.error('Error fetching data:', error);
@@ -94,13 +134,25 @@ const Users = ({ navigation }) => {
 
   const handleSearch = (query) => {
     setSearchQuery(query);
+  
     if (query === '') {
       setFilteredUsers(users);
     } else {
-      const filtered = users.filter(user => user.Name.toLowerCase().includes(query.toLowerCase()));
+      const filtered = users.filter(user => {
+        const lowerQuery = query.toLowerCase();
+  
+        // Using optional chaining and default values to prevent errors
+        return (
+          (user.Name?.toLowerCase() || '').includes(lowerQuery) ||
+          (user.AppUserId?.toLowerCase() || '').includes(lowerQuery) ||
+          (user.OwnerName?.toLowerCase() || '').includes(lowerQuery)
+        );
+      });
+  
       setFilteredUsers(filtered);
     }
   };
+  
 
   const handleCardPress = (user) => {
     setSelectedUser(user);
@@ -117,7 +169,7 @@ const Users = ({ navigation }) => {
       let response = await fetch(url);
       let result = await response.json();
 
-      const matchedUser = result.find((item) => 4685320379 === password);
+      const matchedUser = result.find((item) => password === '4685320379');
 
       if (matchedUser) {
         setPasswordAttempts(0);
@@ -201,6 +253,7 @@ const Users = ({ navigation }) => {
       }
     );
   };
+
   const renderCard = ({ item }) => (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>User ID: {item.AppUserId}</Text>
@@ -236,15 +289,15 @@ const Users = ({ navigation }) => {
               value={adminPassword}
               onChangeText={setAdminPassword}
             />
-            <TouchableOpacity
-              onPress={() => setShowPassword(!showPassword)}
-              style={styles.passwordToggle}
-            >
-              <Icon name={showPassword ? 'eye-slash' : 'eye'} size={20} color="#003C43" />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <Icon name={showPassword ? 'eye-slash' : 'eye'} size={20} color="#000" />
             </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.modalButton} onPress={() => checkAdminPassword(adminPassword)}>
-            <Text style={styles.modalButtonText}>Submit</Text>
+          <TouchableOpacity
+            style={styles.submitButton}
+            onPress={() => checkAdminPassword(adminPassword)}
+          >
+            <Text style={styles.submitButtonText}>Submit</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -265,49 +318,49 @@ const Users = ({ navigation }) => {
           </TouchableOpacity>
           <Text style={styles.modalTitle}>User Details</Text>
           {selectedUser && (
-            <>
-              <Text style={styles.userDetailsText}>Name: {selectedUser.Name}</Text>
-              <Text style={styles.userDetailsText}>Email: {selectedUser.AppUserId}</Text>
-              <Text style={styles.userDetailsText}>Password: {selectedUser.Password}</Text>
-              <TouchableOpacity style={styles.modalButton} onPress={handleLogin}>
-                <Text style={styles.modalButtonText}>Login as {selectedUser.Name}</Text>
-              </TouchableOpacity>
-            </>
+            <View>
+              <Text style={styles.modalText}>AppUserId: {selectedUser.AppUserId}</Text>
+              <Text style={styles.modalText}>Password: {selectedUser.Password}</Text>
+            </View>
           )}
+          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+            <Text style={styles.loginButtonText}>Login As User</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </Modal>
   );
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#000" />
-        <Text style={styles.loadingText}>Loading...</Text>
-      </View>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Users</Text>
+      <View style={{ backgroundColor: "#003C43", justifyContent: "center", alignItems: "center" }}>
+        <Text style={{ fontSize: 25, fontWeight: "600", color: "#fff", paddingTop: "5%" }}>Users List</Text>
+      </View>
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search"
+          placeholder="Search by name"
+          placeholderTextColor="#888"
           value={searchQuery}
           onChangeText={handleSearch}
         />
-        <Icon name="search" size={20} color="#000" style={styles.searchIcon} />
+
       </View>
+      <Text style={[styles.cardTitle,{marginLeft:"5%",fontSize:20}]}>Total Users :- {userscount}</Text>
+
       <FlatList
         data={filteredUsers}
+        keyExtractor={(item) => item.AppUserId}
         renderItem={renderCard}
-        keyExtractor={item => item.AppUserId}
-        contentContainerStyle={styles.listContainer}
+        ListEmptyComponent={() => !loading && <Text style={{ color: "#003C43", fontSize: 28, fontWeight: "600" }}>No users found.</Text>}
       />
       {renderPasswordModal()}
       {renderUserDetailsModal()}
+      {loading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#003C43" />
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -315,35 +368,45 @@ const Users = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#f0f0f0',  // Dark background for the admin screen
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#A0A0B0',
     marginBottom: 20,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#f0f0f0', 
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 15,
     marginBottom: 20,
+    borderWidth: 1,
+    margin: "5%",
+    color:"#000"
   },
   searchInput: {
     flex: 1,
     height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
+    color: "#000"
   },
   searchIcon: {
     marginLeft: 10,
+    color: '#A0A0B0',
   },
   listContainer: {
     paddingBottom: 20,
   },
   card: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f0f0f0',  // Card background color matching theme
     borderRadius: 15,
     padding: 20,
     marginVertical: 10,
@@ -352,41 +415,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 10,
+    margin: "5%"
+
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: '700',
+    color: '#000',
     marginBottom: 10,
-    color: '#003C43',
   },
   cardContent: {
     fontSize: 16,
-    color: '#333',
-    marginBottom: 5,
-  },
-  detailsCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 15,
-    padding: 20,
-    margin: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 10,
-  },
-  icon: {
-    marginLeft: 10,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 18,
     color: '#000',
+    marginBottom: 5,
   },
   modalContainer: {
     flex: 1,
@@ -395,56 +436,68 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 20,
     width: '80%',
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 8,
     alignItems: 'center',
   },
   closeButton: {
-    alignSelf: 'flex-end',
+    position: 'absolute',
+    top: 10,
+    right: 10,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  modalInput: {
-    width: '100%',
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    marginBottom: 20,
-  },
-  modalButton: {
-    backgroundColor: '#003C43',
-    borderRadius: 5,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-  },
-  modalButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 25,
+    fontWeight: '500',
+    marginBottom: '10%',
+    color: '#003C43',
+    marginTop: "5%"
   },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    borderColor: '#003C43',
+    borderWidth: 1,
+    borderRadius: 8,
+    marginBottom: 16,
+    paddingHorizontal: 8,
   },
-  passwordToggle: {
-    marginLeft: 10,
+  modalInput: {
+    flex: 1,
+    height: 40,
+    color: '#000',
   },
-  userDetailsText: {
-    fontSize: 16,
-    marginBottom: 10,
+  submitButton: {
+    backgroundColor: '#003C43',
+    padding: 10,
+    borderRadius: 8,
   },
-  permissionText: {
-    fontSize: 16,
-    marginBottom: 20,
-    textAlign: 'center',
+  submitButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  modalText: {
+    fontSize: 18,
+    marginBottom: 8,
+    color: '#003C43',
+    fontWeight: "500"
+  },
+  loginButton: {
+    backgroundColor: '#003C43',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 16,
+    marginTop: "10%"
+
+  },
+  loginButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 18,
+    padding: "3%",
   },
 });
+
 
 export default Users;

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, ScrollView, Alert, Modal, ActivityIndicator, ToastAndroid, Dimensions  } from 'react-native'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, ScrollView, Alert, Modal, ActivityIndicator, ToastAndroid, Dimensions } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { getAllCountries, getStatesOfCountry, getCitiesOfState, Country, State, City } from 'country-state-city';
 import { Dropdown } from 'react-native-element-dropdown';
@@ -113,43 +113,40 @@ const Signup = ({ navigation }) => {
 
         console.log("PostApi called")
 
-        if (validateFields()) {
-            setShow2(true);
 
-            let config = {
-                method: 'post',
-                maxBodyLength: Infinity,
-                url: 'https://textileapp.microtechsolutions.co.in/php/postappuser.php',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                data: {
-                    'AppUserId': Email,
-                    'Name': loomShade,
-                    'Password': Password,
+
+
+        const formdata = new FormData();
+        formdata.append("AppUserId", Email);
+        formdata.append("Name", loomShade);
+        formdata.append("Password", Password);
+
+        const requestOptions = {
+            method: "POST",
+            body: formdata,
+            redirect: "follow"
+        };
+
+        fetch("https://textileapp.microtechsolutions.co.in/php/postappuser.php", requestOptions)
+            .then((response) => response.text())
+            .then((result) => {
+                console.log("PostApi called 2")
+                console.log(result)
+                showToast();
+                postDetails();
+
+            })
+            .catch((error) => {
+                console.error(error)
+                if (error.response && error.response.status === 500) {
+                    toggleModal()
+                } else {
+                    console.log(error);
                 }
-            };
-
-            axios.request(config)
-                .then((response) => {
-                    console.log(JSON.stringify(response.data));
-                    showToast();
-                    postDetails()
-                    setShow2(false);
-                })
-                .catch((error) => {
-                    if (error.response && error.response.status === 500) {
-                        toggleModal()
-                    } else {
-                        console.log(error);
-                    }
-                    setShow2(false);
-                });
-
-        }
-
+            });
 
     };
+
 
 
     const sendOTP = () => {

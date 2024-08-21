@@ -17,7 +17,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 const { width } = Dimensions.get('window');
 const { height } = Dimensions.get('window');
 
-const ConfirmOrders = ({ navigation }) => {
+const ConfirmOrderKnotting = ({ navigation }) => {
 
     const [username, setUserName] = useState("");
     const [AppUserId, setAppUserId] = useState("")
@@ -94,9 +94,9 @@ const ConfirmOrders = ({ navigation }) => {
 
     const fetchData = async () => {
         try {
-            const response = await fetch('https://textileapp.microtechsolutions.co.in/php/loomliveorder.php?LoomTraderId=' + await AsyncStorage.getItem("Id"));
+            const response = await fetch('https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=KnottingOffer&Colname=LoomId&Colvalue=' + await AsyncStorage.getItem("Id"));
             const json = await response.json();
-            const sortedOrdersJson = json.sort((a, b) => b.LoomOrderId - a.LoomOrderId);
+            const sortedOrdersJson = json.sort((a, b) => b.KnottingId - a.KnottingId);
             setOrders(sortedOrdersJson);
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -904,7 +904,7 @@ const ConfirmOrders = ({ navigation }) => {
                         {showBlocks ? (
                             <View style={styles.ordersContainer}>
                                 {orders.map((order, index) => (
-                                    order.Confirmed === 1 ? (
+                                    order.ConfirmTrader && order.ConfirmLoom === 1 ? (
                                         <View key={index} style={styles.orderWrapper}>
 
                                             <TouchableOpacity style={styles.orderContainer}
@@ -912,7 +912,7 @@ const ConfirmOrders = ({ navigation }) => {
                                             >
 
                                                 <View style={{ paddingLeft: 10, marginBottom: 10, flexDirection: "row", justifyContent: "space-between" }}>
-                                                    <Text style={styles.orderText}>{`Order No : ${order.OrderNo}\nParty Name : ${order.PartyName}\nQuality : ${order.Quality}`}</Text>
+                                                    <Text style={styles.orderText}>{`Offer No : ${order.OfferNo}\nParty Name : ${order.TraderId}\nReed : ${order.Reed}\n ReedSpace : ${order.ReedSpace}`}</Text>
                                                     <TouchableOpacity onPress={() => ModalDataFetch(order.EnquiryId)}>
                                                         <Icon name="information-circle" size={22} color="grey" />
                                                     </TouchableOpacity>
@@ -1883,7 +1883,7 @@ const ConfirmOrders = ({ navigation }) => {
 }
 
 
-export default ConfirmOrders
+export default ConfirmOrderKnotting
 
 const styles = StyleSheet.create({
     container: {

@@ -20,6 +20,27 @@ const Home = ({ navigation }) => {
 
   const isMounted = useRef(true);
 
+const [data,setData]=useState(null)
+  const Test = () => {
+    const myHeaders = new Headers();
+    myHeaders.append("x-api-key", "yZiloFufnrsaWI_SRfNjZHoPkdUAJOTnVVeC3");
+    myHeaders.append("Authorization", "Basic VGVzdDoxMjM0NSFAIyQlUVdFUlRxdw==");
+
+    const requestOptions = {
+      method: "GET",
+      headers: myHeaders,
+      redirect: "follow"
+    };
+
+    fetch("https://textileapp.microtechsolutions.co.in/file/Test/test.php", requestOptions)
+      .then((response) => response.text())
+      .then((result) => {
+        console.log(result)
+        setData(result)
+      })
+      .catch((error) => console.error(error));
+  }
+
   useEffect(() => {
     isMounted.current = true;
 
@@ -42,6 +63,7 @@ const Home = ({ navigation }) => {
   }, []);
 
   useEffect(() => {
+    //Test();
     getData();
   }, []);
 
@@ -137,6 +159,8 @@ const Home = ({ navigation }) => {
 
               <Text style={{ fontSize: 20, color: "#000", marginBottom: 5 }}>{nameRef.current}</Text>
               <Text style={{ fontSize: 16, color: "#000", }}>{appUserIdRef.current}</Text>
+              {/* <Text style={{ fontSize: 16, color: "#000", }}>{data}</Text> */}
+
             </View>
 
             <View style={{ flex: 0.6, justifyContent: 'center', alignItems: 'center', backgroundColor: '#135D66', borderTopRightRadius: 20, borderBottomRightRadius: 20 }}>

@@ -195,7 +195,7 @@ const ConfirmEnquires = ({ navigation }) => {
 
   const renderEnquiries = () => (
     enquiries.map((item, index) => (
-        <TouchableOpacity key={index} onPress={() => selectEnquiry(item)}>
+      <TouchableOpacity key={index} onPress={() => selectEnquiry(item)}>
         <View style={styles.itemContainer}>
           <Text style={styles.itemText}>Enquiry No: {item.EnquiryNo}</Text>
           <TouchableOpacity style={{ padding: "2%", marginTop: "-2%" }} onPress={() => fetchEnquiryDetails1(item.EnquiryId)}>
@@ -229,8 +229,8 @@ const ConfirmEnquires = ({ navigation }) => {
   const SendEmail = (OrderNo) => {
     console.log("OrderNo = ", OrderNo)
     const formdata = new FormData();
-    formdata.append("AppUserId", 'satejshendage@gmail.com');
-    formdata.append("Body", 'Your ' +(selectedData?.LoomPossible)+' Looms are booked from '+(selectedData?.DatePossibleFrom.date.substring(0, 10))+' to '+(selectedData?.DatePossibleTo.date.substring(0, 10))+' is placed with ' + Name + '  Traders,with job rate of '+(selectedData?.JobRateExp)+' Paise Your OrderNo is '+OrderNo+' please Proceed for Contact Formation '+`\n`+'Contact Details of Trader:- '+`\n`+' Name : '+Name+ `\n`+'Contact No. : '+mobileno+ `\n`+'E-mail : '+AppUserId+ `\n`);
+    formdata.append("AppUserId", Email);
+    formdata.append("Body", 'Your ' + (selectedData?.LoomPossible) + ' Looms are booked from ' + (selectedData?.DatePossibleFrom.date.substring(0, 10)) + ' to ' + (selectedData?.DatePossibleTo.date.substring(0, 10)) + ' is placed with ' + Name + '  Traders,with job rate of ' + (selectedData?.JobRateExp) + ' Paise Your OrderNo is ' + OrderNo + ' please Proceed for Contact Formation ' + `\n` + 'Contact Details of Trader:- ' + `\n` + ' Name : ' + Name + `\n` + 'Contact No. : ' + mobileno + `\n` + 'E-mail : ' + AppUserId + `\n`);
 
     const requestOptions = {
       method: "POST",
@@ -252,7 +252,7 @@ const ConfirmEnquires = ({ navigation }) => {
       ) : (
         <>
           {showE ? (
-            <View>
+            <View style={{width:"100%"}}>
               <View style={{ flexDirection: "row", backgroundColor: "#003C43", width: "100%", marginBottom: "5%" }}>
                 <TouchableOpacity onPress={() => navigation.navigate('PlanLooms')}>
                   <ImageBackground
@@ -267,7 +267,7 @@ const ConfirmEnquires = ({ navigation }) => {
               <ScrollView>
 
                 {renderEnquiries()}
-                <Text style={{marginTop:"50%"}}></Text>
+                <Text style={{ marginTop: "50%" }}></Text>
               </ScrollView>
             </View>
           ) : null}
@@ -310,10 +310,9 @@ const ConfirmEnquires = ({ navigation }) => {
               <ScrollView>
                 <View style={styles.detailsHeaderContainer}>
                   <ScrollView horizontal>
-                    <Text style={styles.detailsHeaderText}>Loom</Text>
-                    <Text style={styles.detailsHeaderText}>Date Possible</Text>
-                    <Text style={[styles.detailsHeaderText, { marginLeft: 20 }]}>Job Rate Exp</Text>
-                    <Text style={[styles.detailsHeaderText, { marginRight: 30 }]}>Action</Text>
+                    <Text style={[styles.detailsHeaderText]}>Loom</Text>
+                    <Text style={[styles.detailsHeaderText, { marginLeft: 100 }]}>Date Possible</Text>
+                    <Text style={[styles.detailsHeaderText, { marginLeft: 50 }]}>Job Rate Exp</Text>
 
                   </ScrollView>
                 </View>
@@ -328,7 +327,7 @@ const ConfirmEnquires = ({ navigation }) => {
                             <Text style={[styles.detailsItemText, styles.column2]}>{item.DatePossibleTo.date.substring(0, 10)}</Text>
                           </View>
                           <Text style={[styles.detailsItemText, styles.column3]}>{item.JobRateExp}</Text>
-                          <TouchableOpacity
+                          {/* <TouchableOpacity
                             style={[
                               styles.confirmButton,
                               confirmed.has(item.LoomTraderId) ? styles.confirmedButton : null,
@@ -336,7 +335,11 @@ const ConfirmEnquires = ({ navigation }) => {
                             onPress={() => handleLoomDetails(item)}
                           >
                             <Text style={styles.buttonText}>View</Text>
+                          </TouchableOpacity> */}
+                          <TouchableOpacity style={{marginLeft:"-25%"}}  onPress={() => handleLoomDetails(item)}>
+                            <Icon name="information-circle" size={22} color="grey" />
                           </TouchableOpacity>
+
                         </View>
                       </ScrollView>
                     ))
@@ -360,7 +363,7 @@ const ConfirmEnquires = ({ navigation }) => {
                       <Text style={styles.backButtonText}>Back</Text>
                     </TouchableOpacity>
                     <View>
-                    <Text style={{fontWeight:"600",fontSize:20,color:"#000",marginBottom:"10%"}}>Enquiry Details</Text>
+                      <Text style={{ fontWeight: "600", fontSize: 20, color: "#000", marginBottom: "10%" }}>Enquiry Details</Text>
                     </View>
                     <Text style={styles.modalText}>Enquiry No: {item.EnquiryNo}</Text>
                     <Text style={styles.modalText}>Enquiry Date: {item.EnquiryDate.date.substring(0, 10)}</Text>
@@ -518,7 +521,9 @@ const styles = StyleSheet.create({
   },
   column2: {
     flex: 1.5,
-    flexDirection: "column"
+    flexDirection: "column",
+    marginLeft: "10%"
+
   },
   column3: {
     flex: 1,
@@ -550,9 +555,9 @@ const styles = StyleSheet.create({
   modalText: {
     fontSize: 16,
     marginBottom: 10,
-    fontWeight:"500",
-    marginTop:"7%",
-    color:"#000"
+    fontWeight: "500",
+    marginTop: "7%",
+    color: "#000"
   },
   detailContainer: {
     flexDirection: "row",
@@ -569,7 +574,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginLeft: "20%",
     height: height * 0.035,
-    width:width*1
+    width: width * 1
   },
   rowColor1: {
     backgroundColor: '#f9f9f9',

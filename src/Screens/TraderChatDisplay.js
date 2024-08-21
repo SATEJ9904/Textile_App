@@ -15,6 +15,7 @@ const TraderChatDisplay = ({ route }) => {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImagecurrent, setSelectedImagecurrent] = useState(null);
   const [replyTo, setReply] = useState(null);
 
   useEffect(() => {
@@ -234,7 +235,9 @@ const TraderChatDisplay = ({ route }) => {
       )}
       <View style={styles.inputContainer}>
         {image && (
-          <Image source={{ uri: image.path }} style={styles.selectedImage} />
+          <TouchableOpacity onPress={() => setSelectedImagecurrent(image.path)}>
+            <Image source={{ uri: image.path }} style={styles.selectedImage} />
+          </TouchableOpacity>
         )}
         <TextInput
           style={styles.input}
@@ -260,6 +263,23 @@ const TraderChatDisplay = ({ route }) => {
               <Icon name="close" size={30} color="#fff" />
             </TouchableOpacity>
           </View>
+        </Modal>
+      )}
+
+      {selectedImagecurrent && (
+        <Modal visible={true} transparent={true} onRequestClose={() => setSelectedImagecurrent(null)}>
+          <View style={styles.modalContainer}>
+            <Image source={{ uri: selectedImagecurrent }} style={styles.fullImage} />
+            <TouchableOpacity onPress={() => setSelectedImagecurrent(null)} style={styles.closeButton}>
+              <Icon name="close" size={30} color="#fff" />
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity
+            style={{width: '100%', height: '5%', backgroundColor: "#135D66", justifyContent: "center", alignItems: "center", }}
+            onPress={()=>{setImage(null);setSelectedImagecurrent(null);selectImageOption()}}
+          >
+            <Text style={{ color: "#fff", fontSize: 20, }}>Reacpture Image</Text>
+          </TouchableOpacity>
         </Modal>
       )}
     </KeyboardAvoidingView>

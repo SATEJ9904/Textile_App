@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 
 const CalculationScreen = () => {
     const [inputs, setInputs] = useState({
@@ -41,7 +41,29 @@ const CalculationScreen = () => {
         setInputs({ ...inputs, [name]: value });
     };
 
+    const showAlert = (message) => {
+        Alert.alert(
+            "Missing Fields",
+            message,
+            [{ text: "OK" }],
+            { cancelable: true }
+        );
+    };
+
+    const validateFields = (fields) => {
+        const missingFields = fields.filter(field => !inputs[field]);
+        if (missingFields.length > 0) {
+            const fieldNames = missingFields.join(', ');
+            showAlert(`Please fill the following fields: ${fieldNames}`);
+            return false;
+        }
+        return true;
+    };
+
     const calculateWarpWeight = () => {
+        const requiredFields = ['epi', 'fabricWidth', 'warpCrimp', 'warpCount', 'warpWaste', 'warpYarnRate'];
+        if (!validateFields(requiredFields)) return;
+
         const { epi, fabricWidth, warpCrimp, warpCount, warpWaste, warpYarnRate } = inputs;
         const netWarpWeight = (epi * fabricWidth * 0.59 * (100 + parseFloat(warpCrimp))) / (warpCount * 100000);
         const grossWarpWeight = netWarpWeight * (1 + parseFloat(warpWaste) / 100);
@@ -50,6 +72,9 @@ const CalculationScreen = () => {
     };
 
     const calculateWeftWeight = () => {
+        const requiredFields = ['ppi', 'fabricWidth', 'weftCrimp', 'weftCount', 'weftWaste', 'weftYarnRate'];
+        if (!validateFields(requiredFields)) return;
+
         const { ppi, fabricWidth, weftCrimp, weftCount, weftWaste, weftYarnRate } = inputs;
         const netWeftWeight = (ppi * fabricWidth * 0.59 * (100 + parseFloat(weftCrimp))) / (weftCount * 100000);
         const grossWeftWeight = netWeftWeight * (1 + parseFloat(weftWaste) / 100);
@@ -58,51 +83,71 @@ const CalculationScreen = () => {
     };
 
     const calculateSizingCost = () => {
+        const requiredFields = ['sizingRate'];
+        if (!validateFields(requiredFields)) return;
+
         const { sizingRate } = inputs;
         const totalSizingCost = sizingRate * parseFloat(results.warpWeight);
         setResults({ ...results, sizingCost: totalSizingCost.toFixed(2) });
     };
 
     const calculateWeavingCost = () => {
+        const requiredFields = ['jobWorkRate', 'ppi'];
+        if (!validateFields(requiredFields)) return;
+
         const { jobWorkRate, ppi } = inputs;
         const weavingCost = jobWorkRate * ppi;
         setResults({ ...results, weavingCost: weavingCost.toFixed(2) });
     };
 
     const calculateTotalFabricCost = () => {
+        if (!results.warpCost || !results.weftCost || !results.sizingCost || !results.weavingCost) {
+            showAlert("Please calculate Warp Weight, Weft Weight, Sizing Cost, and Weaving Cost first.");
+            return;
+        }
+
         const totalFabricCost = parseFloat(results.warpCost) + parseFloat(results.weftCost) + parseFloat(results.sizingCost) + parseFloat(results.weavingCost);
         setResults({ ...results, totalFabricCost: totalFabricCost.toFixed(2) });
     };
 
     const calculateJobWorkBilling = () => {
-        const { jobWorkRate } = inputs;
-        const jobWorkBilling =ppi * (jobWorkRate / 100)
+        const requiredFields = ['ppi', 'jobWorkRate'];
+        if (!validateFields(requiredFields)) return;
+
+        const { ppi, jobWorkRate } = inputs;
+        const jobWorkBilling = ppi * (jobWorkRate / 100);
         setResults({ ...results, jobWorkBilling: jobWorkBilling.toFixed(2) });
     };
 
     const calculateExpectedProduction = () => {
+        const requiredFields = ['loomSpeed', 'efficiency', 'time', 'ppi7'];
+        if (!validateFields(requiredFields)) return;
+
         const { loomSpeed, efficiency, time, ppi7 } = inputs;
         const expectedProduction = (loomSpeed * time * 60 * (efficiency / 100)) / (ppi7 * 39.37);
         setResults({ ...results, expectedProduction: expectedProduction.toFixed(2) });
     };
 
     const calculateExpectedTime = () => {
+        const requiredFields = ['orderQuantity', 'loomSpeed', 'efficiency', 'ppi8'];
+        if (!validateFields(requiredFields)) return;
+
         const { orderQuantity, loomSpeed, efficiency, ppi8 } = inputs;
         const expectedTime = (orderQuantity * ppi8 * 39.37) / (loomSpeed * 60 * (efficiency / 100));
         setResults({ ...results, expectedTime: expectedTime.toFixed(2) });
     };
-    
 
     return (
         <ScrollView style={styles.container}>
             <Text style={styles.title}>Textile Cost Calculator</Text>
 
+            {/* Warp Weight Calculation */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Warp Weight Calculation</Text>
                 <Text style={styles.label}>EPI</Text>
                 <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('epi', value)} />
 
-                <Text style={styles.label}>Fabric Width (inches)</Text>
+                <Text style={styles.label}>Fabric Width</Text>
                 <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('fabricWidth', value)} />
 
                 <Text style={styles.label}>Warp Crimp %</Text>
@@ -114,7 +159,7 @@ const CalculationScreen = () => {
                 <Text style={styles.label}>Warp Waste %</Text>
                 <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('warpWaste', value)} />
 
-                <Text style={styles.label}>Warp Yarn Rate (per Kg)</Text>
+                <Text style={styles.label}>Warp Yarn Rate</Text>
                 <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('warpYarnRate', value)} />
 
                 <TouchableOpacity style={styles.button} onPress={calculateWarpWeight}>
@@ -128,12 +173,13 @@ const CalculationScreen = () => {
                 )}
             </View>
 
+            {/* Weft Weight Calculation */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Weft Weight Calculation</Text>
                 <Text style={styles.label}>PPI</Text>
                 <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('ppi', value)} />
 
-                <Text style={styles.label}>Fabric Width (inches)</Text>
+                <Text style={styles.label}>Fabric Width</Text>
                 <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('fabricWidth', value)} />
 
                 <Text style={styles.label}>Weft Crimp %</Text>
@@ -145,7 +191,7 @@ const CalculationScreen = () => {
                 <Text style={styles.label}>Weft Waste %</Text>
                 <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('weftWaste', value)} />
 
-                <Text style={styles.label}>Weft Yarn Rate (per Kg)</Text>
+                <Text style={styles.label}>Weft Yarn Rate</Text>
                 <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('weftYarnRate', value)} />
 
                 <TouchableOpacity style={styles.button} onPress={calculateWeftWeight}>
@@ -159,46 +205,57 @@ const CalculationScreen = () => {
                 )}
             </View>
 
+            {/* Sizing Cost Calculation */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Sizing Cost Calculation</Text>
-                <Text style={styles.label}>Sizing Rate</Text>
+                <Text style={styles.label}>Sizing Rate </Text>
                 <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('sizingRate', value)} />
 
                 <TouchableOpacity style={styles.button} onPress={calculateSizingCost}>
                     <Text style={styles.buttonText}>Calculate Sizing Cost</Text>
                 </TouchableOpacity>
                 {results.sizingCost !== '' && (
-                    <Text style={styles.result}>Sizing Cost: {results.sizingCost} ₹</Text>
+                    <View>
+                        <Text style={styles.result}>Sizing Cost: {results.sizingCost} ₹</Text>
+                    </View>
                 )}
             </View>
 
+            {/* Weaving Cost Calculation */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Weaving Cost Calculation</Text>
                 <Text style={styles.label}>Job Work Rate</Text>
                 <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('jobWorkRate', value)} />
 
+                <Text style={styles.label}>PPI</Text>
+                <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('ppi', value)} />
+
                 <TouchableOpacity style={styles.button} onPress={calculateWeavingCost}>
                     <Text style={styles.buttonText}>Calculate Weaving Cost</Text>
                 </TouchableOpacity>
                 {results.weavingCost !== '' && (
-                    <Text style={styles.result}>Weaving Cost: {results.weavingCost} ₹</Text>
+                    <View>
+                        <Text style={styles.result}>Weaving Cost: {results.weavingCost} ₹</Text>
+                    </View>
                 )}
             </View>
 
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Total Fabric Cost Calculation</Text>
-                <TouchableOpacity style={styles.button} onPress={calculateTotalFabricCost}>
-                    <Text style={styles.buttonText}>Calculate Total Fabric Cost</Text>
-                </TouchableOpacity>
-                {results.totalFabricCost !== '' && (
-                    <Text style={styles.result}>Total Fabric Cost: {results.totalFabricCost} ₹</Text>
-                )}
-            </View>
+            {/* Total Fabric Cost Calculation */}
+            <TouchableOpacity style={styles.button} onPress={calculateTotalFabricCost}>
+                <Text style={styles.buttonText}>Calculate Total Fabric Cost</Text>
+            </TouchableOpacity>
+            {results.totalFabricCost !== '' && (
+                <Text style={styles.result}>Total Fabric Cost: {results.totalFabricCost} ₹</Text>
+            )}
 
+            {/* Job Work Billing Calculation */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Job Work Billing Calculation</Text>
-                <Text style={styles.label}>Order Quantity</Text>
-                <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('orderQuantity', value)} />
+                <Text style={styles.label}>PPI</Text>
+                <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('ppi', value)} />
+
+                <Text style={styles.label}>Job Work Rate</Text>
+                <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('jobWorkRate', value)} />
 
                 <TouchableOpacity style={styles.button} onPress={calculateJobWorkBilling}>
                     <Text style={styles.buttonText}>Calculate Job Work Billing</Text>
@@ -208,15 +265,16 @@ const CalculationScreen = () => {
                 )}
             </View>
 
+            {/* Expected Production Calculation */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Expected Production Calculation</Text>
                 <Text style={styles.label}>Loom Speed</Text>
                 <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('loomSpeed', value)} />
 
-                <Text style={styles.label}>Efficiency %</Text>
+                <Text style={styles.label}>Efficiency (%)</Text>
                 <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('efficiency', value)} />
 
-                <Text style={styles.label}>Time</Text>
+                <Text style={styles.label}>Time (hours)</Text>
                 <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('time', value)} />
 
                 <Text style={styles.label}>PPI</Text>
@@ -230,15 +288,16 @@ const CalculationScreen = () => {
                 )}
             </View>
 
+            {/* Expected Time Calculation */}
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Expected Time for Required Production Calculation</Text>
-                <Text style={styles.label}>Order Quantity</Text>
+                <Text style={styles.sectionTitle}>Expected Time Calculation</Text>
+                <Text style={styles.label}>Order Quantity </Text>
                 <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('orderQuantity', value)} />
 
-                <Text style={styles.label}>Loom Speed</Text>
+                <Text style={styles.label}>Loom Speed (picks per minute)</Text>
                 <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('loomSpeed', value)} />
 
-                <Text style={styles.label}>Efficiency %</Text>
+                <Text style={styles.label}>Efficiency (%)</Text>
                 <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('efficiency', value)} />
 
                 <Text style={styles.label}>PPI</Text>
@@ -255,50 +314,38 @@ const CalculationScreen = () => {
     );
 };
 
-export default CalculationScreen;
-
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 20,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#f8f8f8',
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        textAlign: 'center',
         marginBottom: 20,
+        textAlign: 'center',
         color:"#003C43"
     },
     section: {
-        backgroundColor: '#fff',
-        borderRadius: 8,
-        padding: 15,
-        marginBottom: 20,
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        shadowOffset: { width: 0, height: 2 },
-        elevation: 5,
+        marginBottom: 30,
     },
     sectionTitle: {
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 10,
-        color:"#000"
+        color:"#555"
     },
     label: {
         fontSize: 16,
-        fontWeight: '500',
         marginBottom: 5,
-        color:"grey"
+        color:"#333"
+
     },
     input: {
-        backgroundColor: '#fff',
-        borderColor: '#ddd',
         borderWidth: 1,
-        borderRadius: 8,
+        borderColor: '#ccc',
+        borderRadius: 5,
         padding: 10,
         fontSize: 16,
         marginBottom: 10,
@@ -306,10 +353,10 @@ const styles = StyleSheet.create({
     },
     button: {
         backgroundColor: '#003C43',
-        paddingVertical: 10,
-        borderRadius: 8,
+        padding: 15,
+        borderRadius: 5,
         alignItems: 'center',
-        marginTop: 10,
+        marginBottom: 10,
     },
     buttonText: {
         color: '#fff',
@@ -317,9 +364,11 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     result: {
-        fontSize: 16,
-        color: '#333',
-        marginTop: 10,
+        fontSize: 18,
+        marginTop: 5,
+        color:"#000",
+        fontWeight:"500"
     },
 });
 
+export default CalculationScreen;

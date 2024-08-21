@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, View, Image, TouchableOpacity, FlatList, ActivityIndicator, TextInput } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, Image, TouchableOpacity, FlatList, ActivityIndicator, TextInput, ScrollView } from 'react-native';
 import CountryFlag from 'react-native-country-flag'; // use a package like this for country flags
 
 const LoomUsers = ({ navigation }) => {
@@ -8,6 +8,8 @@ const LoomUsers = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
+  const [machineDetails, setMachineDetails] = useState([]);
+  const [loomcount, setLoomCount] = useState(null)
 
   useEffect(() => {
     fetch('https://textileapp.microtechsolutions.co.in/php/getdetail.php')
@@ -18,6 +20,7 @@ const LoomUsers = ({ navigation }) => {
         setUsers(uniqueUsers);
         setFilteredUsers(uniqueUsers);
         setLoading(false);
+        setLoomCount(uniqueUsers.length)
       })
       .catch((error) => {
         console.error('Error fetching data:', error);
@@ -36,23 +39,63 @@ const LoomUsers = ({ navigation }) => {
       }
     });
   };
-
+  
   const handleSearch = (query) => {
     setSearchQuery(query);
+  
     if (query === '') {
       setFilteredUsers(users);
     } else {
-      const filtered = users.filter(user => user.Name.toLowerCase().includes(query.toLowerCase()));
+      const filtered = users.filter(user => {
+        const lowerQuery = query.toLowerCase();
+  
+        // Using optional chaining and default values to prevent errors
+        return (
+          (user.Name?.toLowerCase() || '').includes(lowerQuery) ||
+          (user.AppUserId?.toLowerCase() || '').includes(lowerQuery) ||
+          (user.OwnerName?.toLowerCase() || '').includes(lowerQuery)
+        );
+      });
+  
       setFilteredUsers(filtered);
     }
   };
 
   const handleCardPress = (user) => {
     setSelectedUser(user);
+    fetchMachineDetails(user.Id); // Fetch machine details for the selected user
   };
 
   const handleBackPress = () => {
     setSelectedUser(null);
+    setMachineDetails([]); // Clear machine details when going back
+  };
+
+  const fetchMachineDetails = (userId) => {
+    console.log(userId)
+    fetch(`https://textileapp.microtechsolutions.co.in/php/userloomcount.php?LoomTraderId=${userId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        setMachineDetails(data);
+      })
+      .catch((error) => {
+        console.error('Error fetching machine details:', error);
+      });
+  };
+
+  const renderMachineBlocks = () => {
+    if (machineDetails.length === 0) return null;
+
+    return (
+      <View style={styles.machineContainer}>
+        {machineDetails.map((machine, index) => (
+          <View key={index} style={styles.machineBlock}>
+            <Text style={styles.machineType}>{machine.MachineType}</Text>
+            <Text style={styles.machineCount}>{machine.Count}</Text>
+          </View>
+        ))}
+      </View>
+    );
   };
 
   const renderCard = ({ item }) => (
@@ -75,7 +118,7 @@ const LoomUsers = ({ navigation }) => {
     };
 
     return (
-      <View style={styles.detailsCard}>
+      <ScrollView style={styles.detailsCard}>
         <Text style={styles.detailsTitle}>{selectedUser.Name}</Text>
         <Text style={styles.detailsTitle}>Details :</Text>
         <Text style={styles.detailsContent}>Email: {selectedUser.AppUserId}</Text>
@@ -90,25 +133,19 @@ const LoomUsers = ({ navigation }) => {
         <Text style={styles.detailsContent}>Registration Number: {selectedUser.RegistrationNumber}</Text>
         <Text style={styles.detailsContent}>Primary Contact: {selectedUser.PrimaryContact}</Text>
         <Text style={styles.detailsContent}>Role: {loomOrTraderMapping[selectedUser.LoomOrTrader]}</Text>
-      </View>
-    );
-  };
 
-  const getCountryCode = (country) => {
-    // Mapping of country names to ISO codes
-    const countryCodes = {
-      'India': 'IN',
-      'United States': 'US',
-      // Add more country mappings as needed
-    };
-    return countryCodes[country] || "IN";
+        {/* Render Machine Blocks */}
+        <Text style={styles.machineSectionTitle}>Machine Details:</Text>
+        {renderMachineBlocks()}
+      </ScrollView>
+    );
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         {selectedUser ? (
-          <TouchableOpacity style={{padding:"2%"}} onPress={handleBackPress}>
+          <TouchableOpacity style={{ padding: "2%" }} onPress={handleBackPress}>
             <Image source={require("../Images/back.png")} style={styles.drawerIcon} />
           </TouchableOpacity>
         ) : (
@@ -122,10 +159,13 @@ const LoomUsers = ({ navigation }) => {
       </View>
       <TextInput
         style={styles.searchBar}
-        placeholder="Search by name..."
+        placeholder="Search"
+        placeholderTextColor={"#000"}
         value={searchQuery}
         onChangeText={handleSearch}
       />
+      <Text style={[styles.cardTitle,{marginLeft:"5%",fontSize:20}]}>Loom Count :- {loomcount}</Text>
+
       {loading ? (
         <ActivityIndicator size="large" color="#003C43" style={styles.loader} />
       ) : selectedUser ? (
@@ -175,7 +215,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   searchBar: {
-    height: 40,
+    height: "6%",
     borderColor: '#dfe3e6',
     borderWidth: 1,
     borderRadius: 10,
@@ -183,6 +223,8 @@ const styles = StyleSheet.create({
     margin: 20,
     backgroundColor: '#ffffff',
     fontSize: 16,
+    color:"#000"
+
   },
   cardContainer: {
     padding: 20,
@@ -219,6 +261,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 10,
+    marginBottom: "5%"
   },
   detailsTitle: {
     fontSize: 24,
@@ -236,5 +279,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
+  },
+  machineContainer: {
+    marginTop: 20,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: "8%"
+  },
+  machineBlock: {
+    backgroundColor: '#003C43',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 10,
+    width: '47%',
+    alignItems: 'center',
+  },
+  machineType: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  machineCount: {
+    fontSize: 16,
+    color: '#fff',
+  },
+  machineSectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#003C43',
+    marginTop: 20,
   },
 });

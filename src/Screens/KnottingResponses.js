@@ -239,7 +239,7 @@ const KnottingResponses = ({ navigation }) => {
                         {showBlocks ? (
                             <View style={styles.ordersContainer}>
                                 {orders.map((order, index) =>
-                                    order.Confirmed !== 1 ? (
+                                    order.ConfirmLoom !== 1 ? (
                                         <View key={index} style={styles.orderWrapper}>
                                             <View style={styles.orderContainer}>
                                                 <View style={{ paddingLeft: 10, marginBottom: 10 }}>
@@ -312,7 +312,7 @@ const KnottingResponses = ({ navigation }) => {
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                     <TouchableOpacity
                         style={{ width: '100%', justifyContent: 'center', alignItems: 'center' }}
-                        onPress={() => navigation.navigate('ConfirmOrds')}
+                        onPress={() => navigation.navigate('ConfirmOrderKnotting')}
                     >
                         <Text style={{ color: '#003C43', fontSize: 20, padding: 5 }}>
                             Confirmed Orders

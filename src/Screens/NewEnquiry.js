@@ -62,6 +62,7 @@ const NewEnquiry = ({ navigation }) => {
     const [fabricWidth, setFabricWidth] = useState("");
     const [description, setDescription] = useState("")
     const [modalVisible2, setModalVisible2] = useState(false);
+    const [date,setDate]=useState(null)
     const width1 = Dimensions.get('window');
 
 
@@ -336,27 +337,27 @@ const NewEnquiry = ({ navigation }) => {
     const [EnquiryId, setEnquiryId] = useState("")
 
     const handleSubmit = (calculatedResult) => {
-
-        if (!updatedDateFrom || !updatedDateTo || !calculatedResult || !fabricLength || !numLoomsRequired || !jobRateOffered || !fabricWidth || !machineType || !sheddingType || !width || !rpm || !numFrames || !numFeeders) {
-            Alert.alert(" Please insert all fields")
+        if (!calculatedResult || !fabricLength || !machineType || !numFrames) {
+            Alert.alert("Please insert all fields");
         } else {
-
-
-            console.log("Fabric Quality = ", calculatedResult)
+            console.log("Fabric Quality = ", calculatedResult);
 
             const formdata = new FormData();
-            formdata.append("EnquiryDate", TodaysDate);
-            formdata.append("TraderId", id);
-            formdata.append("BookingFrom", updatedDateFrom);
-            formdata.append("BookingTo", updatedDateTo);
-            formdata.append("FabricQuality", calculatedResult);
-            formdata.append("FabricLength", fabricLength);
-            formdata.append("LoomRequired", numLoomsRequired);
-            formdata.append("AgentName", dalalAgent);
-            formdata.append("OfferedJobRate", jobRateOffered);
-            formdata.append("FabricWidth", fabricWidth);
-            formdata.append("DeliveryDate", formattedDate);
-            formdata.append("Description", description);
+            formdata.append("EnquiryDate", TodaysDate || '0');
+            formdata.append("TraderId", id || '0');
+            formdata.append("BookingFrom", updatedDateFrom || '0');
+            formdata.append("BookingTo", updatedDateTo || '0');
+            formdata.append("FabricQuality", calculatedResult || '0');
+            formdata.append("FabricLength", fabricLength || '0');
+            formdata.append("LoomRequired", numLoomsRequired || '0');
+            formdata.append("AgentName", dalalAgent || '0');
+            formdata.append("OfferedJobRate", jobRateOffered || '0');
+            formdata.append("FabricWidth", fabricWidth || '0');
+            formdata.append("DeliveryDate", formattedDate || '0');
+            formdata.append("Description", description || '0');
+            formdata.append("Date", date || '0');
+
+
             if (designPaper && designPaper.path) {
                 formdata.append('Photopath', {
                     uri: designPaper.path,
@@ -364,8 +365,9 @@ const NewEnquiry = ({ navigation }) => {
                     name: "designPaper.jpg",
                 });
             } else {
-                formdata.append('Photopath', null);
+                formdata.append('Photopath', '0'); // Change from null to '0'
             }
+
             const requestOptions = {
                 method: "POST",
                 body: formdata,
@@ -376,30 +378,26 @@ const NewEnquiry = ({ navigation }) => {
                 .then((response) => response.text())
                 .then((result) => {
                     console.log(result);
-                    SubmitEnquiryDetails(result)
-
+                    SubmitEnquiryDetails(result);
                 })
                 .catch((error) => console.error(error));
         }
-
-
     };
 
     const SubmitEnquiryDetails = (result) => {
-
         const formdata = new FormData();
-        formdata.append("EnquiryId", result);
-        formdata.append("LoomNo", numLoomsRequired);
-        formdata.append("MachineType", machineType);
-        formdata.append("Width", width);
-        formdata.append("RPM", rpm);
-        formdata.append("SheddingType", sheddingType);
-        formdata.append("NoofFrame", numFrames);
-        formdata.append("NoofFeedero", numFeeders);
-        formdata.append("SelvageJacquard", selvadgeJacquard);
-        formdata.append("TopBeam", topBeam);
-        formdata.append("Cramming", cramming);
-        formdata.append("LenoDesignEquipment", lenoDesign);
+        formdata.append("EnquiryId", result || '0');
+        formdata.append("LoomNo", numLoomsRequired || '0');
+        formdata.append("MachineType", machineType || '0');
+        formdata.append("Width", width || '0');
+        formdata.append("RPM", rpm || '0');
+        formdata.append("SheddingType", sheddingType || '0');
+        formdata.append("NoofFrame", numFrames || '0');
+        formdata.append("NoofFeedero", numFeeders || '0');
+        formdata.append("SelvageJacquard", selvadgeJacquard || '0');
+        formdata.append("TopBeam", topBeam || '0');
+        formdata.append("Cramming", cramming || '0');
+        formdata.append("LenoDesignEquipment", lenoDesign || '0');
 
         const requestOptions = {
             method: "POST",
@@ -411,9 +409,10 @@ const NewEnquiry = ({ navigation }) => {
             .then((response) => response.text())
             .then((result) => console.log(result))
             .catch((error) => console.error(error));
-        setModalVisible2(true)
-        ClearData()
-    }
+
+        setModalVisible2(true);
+        ClearData();
+    };
 
     const ClearData = () => {
         setNumLoomsRequired("")
@@ -499,111 +498,25 @@ const NewEnquiry = ({ navigation }) => {
 
                     {/* Date Fields */}
                     <View style={{ flexDirection: "column", justifyContent: "space-evenly" }}>
-                        <Text style={{ marginTop: "3%", fontSize: 20, marginLeft: "0%", color: "#000" }}>Date : {TodaysDate}</Text>
+                        <Text style={{ marginTop: "3%", fontSize: 20, marginLeft: "0%", color: "#000",fontWeight:"500" }}>Date : {TodaysDate}</Text>
 
-                        <View style={{ flexDirection: "row" }}>
-                            <Text style={{ marginTop: "3%", fontSize: 20, marginLeft: "0%", marginTop: "8%", color: "#000" }}>From :<Text style={styles.redText}>*  </Text></Text>
-                            <TextInput
-                                style={[styles.input, { width: "60%", marginTop: "5%" }]}
-                                value={updatedDateFrom}
-                                onChangeText={setFromDate}
-                                placeholder="From Date   "
-                                keyboardType="numeric"
-                                placeholderTextColor={"grey"}
-
-                            />
-                            <TouchableOpacity onPress={() => showModefrom('date')} style={{}}>
-                                <ImageBackground
-                                    source={require('../Images/calendar.png')}
-                                    style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#006A4E", marginLeft: "20%", marginTop: "18%" }}
-                                    imageStyle={{ borderRadius: 0 }}
-                                />
-                            </TouchableOpacity>
-
-                            {
-                                showDateFrom && (
-                                    <DateTimePicker
-                                        testID='dateTimePicker'
-                                        value={datefrom}
-                                        mode={modefrom}
-                                        is24Hour={false}
-                                        minimumDate={new Date()}
-                                        display='default'
-                                        onChange={(DateFrom)} />
-                                )
-                            }
-                        </View>
-                        <View style={{ flexDirection: "row" }}>
-                            <Text style={{ marginTop: "3%", fontSize: 20, marginLeft: "0%", paddingRight: "5%", color: "#000" }}>To  :<Text style={styles.redText}>*  </Text> </Text>
+                        <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500" , marginTop:"5%" }}>Expected From to To Dates :- </Text>
+                        <View style={{ flexDirection: "row", marginTop: "2%" }}>
 
                             <TextInput
-                                style={[styles.input, { width: "60%" }]}
-                                value={updatedDateTo}
-                                onChangeText={setToDate}
-                                placeholder="To Date    "
-                                placeholderTextColor={"grey"}
+                                style={[styles.input, { width: "100%" }]}
+                                value={date}
+                                onChangeText={setDate}
+                                placeholder="YYYY-MM-DD To YYYY-MM-DD"
                                 keyboardType="numeric"
+                                placeholderTextColor={"grey"}
                             />
-                            <TouchableOpacity onPress={() => showModeto('date')} style={{}}>
-                                <ImageBackground
-                                    source={require('../Images/calendar.png')}
-                                    style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#006A4E", marginLeft: "20%" }}
-                                    imageStyle={{ borderRadius: 0 }}
-                                />
-                            </TouchableOpacity>
-
-                            {
-                                showDateTo && (
-                                    <DateTimePicker
-                                        testID='dateTimePicker'
-                                        value={dateto}
-                                        mode={modeto}
-                                        is24Hour={false}
-                                        minimumDate={new Date()}
-                                        display='default'
-                                        onChange={(DateTo)} />
-                                )
-                            }
-                        </View>
-
-                        <View>
-                            <Text style={{ marginTop: "1%", fontSize: 20, marginLeft: "0%", paddingRight: "5%", color: "#000", marginBottom: "2%" }}>Delivery Date  : <Text style={styles.redText}>*</Text> </Text>
-
-                            <View style={{ flexDirection: "row", marginLeft: "15%" }}>
-                                <TextInput
-                                    style={[styles.input, { width: "70%" }]}
-                                    value={formattedDate}
-                                    editable={false}
-                                    placeholder="Delivery Date    "
-                                    placeholderTextColor={"grey"}
-                                    keyboardType="numeric"
-                                />
-                                <TouchableOpacity onPress={showDatePicker}>
-                                    <ImageBackground
-                                        source={require('../Images/calendar.png')}
-                                        style={{ width: 34, height: 30, alignSelf: 'flex-start', backgroundColor: "#006A4E", marginLeft: "20%" }}
-                                        imageStyle={{ borderRadius: 0 }}
-                                    />
-                                </TouchableOpacity>
-                            </View>
-                            {showDate && (
-                                <DateTimePicker
-                                    testID='dateTimePicker'
-                                    value={selectedDate}
-                                    mode='date'
-                                    is24Hour={true}
-                                    display='default'
-                                    onChange={handleDateChange}
-                                />
-                            )}
-
-
                         </View>
 
 
                     </View>
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%" }}>Fabric Quality :- <Text style={styles.redText}>*</Text> </Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>Fabric Quality :- <Text style={styles.redText}>*</Text> </Text>
                     <View style={styles.fabricQuality}>
 
                         <TextInput
@@ -626,7 +539,7 @@ const NewEnquiry = ({ navigation }) => {
                         <Text style={{ marginTop: "3%", fontSize: 20, color: "#000" }}> / </Text>
                         <TextInput
                             style={styles.fabricDetails}
-                            placeholder='Warp Count'
+                            placeholder={`Warp\nCount`}
                             keyboardType="default"
                             placeholderTextColor={"grey"}
                             value={warpCount}
@@ -635,7 +548,7 @@ const NewEnquiry = ({ navigation }) => {
                         <Text style={{ marginTop: "3%", fontSize: 20, color: "#000" }}> * </Text>
                         <TextInput
                             style={styles.fabricDetails}
-                            placeholder="Weft Count"
+                            placeholder={`Weft\nCount`}
                             keyboardType="default"
                             placeholderTextColor={"grey"}
                             value={weftCount}
@@ -644,7 +557,7 @@ const NewEnquiry = ({ navigation }) => {
                         <Text style={{ marginTop: "3%", fontSize: 20, color: "#000" }}> : </Text>
                         <TextInput
                             style={styles.fabricDetails}
-                            placeholder="Reed Space"
+                            placeholder={`Reed\nSpace`}
                             keyboardType="default"
                             placeholderTextColor={"grey"}
                             value={panna}
@@ -656,7 +569,7 @@ const NewEnquiry = ({ navigation }) => {
 
 
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%" }}>Fabric Length :- <Text style={styles.redText}>*</Text> </Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>Fabric Length :- <Text style={styles.redText}>*</Text> </Text>
                     <TextInput
 
                         style={styles.input}
@@ -667,7 +580,7 @@ const NewEnquiry = ({ navigation }) => {
                         placeholderTextColor={"grey"}
 
                     />
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%" }}>Fabric Width :- <Text style={styles.redText}>*</Text> </Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>Fabric Width :- </Text>
                     <View style={{ flexDirection: "row", marginTop: "2%" }}>
 
                         <TextInput
@@ -680,7 +593,7 @@ const NewEnquiry = ({ navigation }) => {
                         />
                     </View>
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%" }}>Agent Name :-</Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500" ,fontWeight:"500" }}>Agent Name :-</Text>
                     <TextInput
                         style={[styles.input, { width: "100%" }]}
                         value={dalalAgent}
@@ -691,7 +604,7 @@ const NewEnquiry = ({ navigation }) => {
                     />
 
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%" }}>Machine Type :- <Text style={styles.redText}>*</Text> </Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>Machine Type :- <Text style={styles.redText}>*</Text> </Text>
                     <Dropdown
                         style={[styles.input, isFocus3 && { borderColor: 'blue' }]}
                         placeholderStyle={styles.placeholderStyle}
@@ -714,7 +627,7 @@ const NewEnquiry = ({ navigation }) => {
                             setIsFocus3(false);
                         }} />
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%" }}>Machine Width :- <Text style={styles.redText}>*</Text> </Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>Machine Width :- </Text>
                     <View style={{ flexDirection: "row", marginTop: "2%" }}>
                         <TextInput
                             style={[styles.input, { width: "100%" }]}
@@ -728,7 +641,7 @@ const NewEnquiry = ({ navigation }) => {
                     </View>
 
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%" }}>RPM:- <Text style={styles.redText}>*</Text> </Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>RPM:-</Text>
                     <TextInput
                         style={styles.input}
                         value={rpm}
@@ -739,7 +652,7 @@ const NewEnquiry = ({ navigation }) => {
 
                     />
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%" }}>Shedding Type :- <Text style={styles.redText}>*</Text> </Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>Shedding Type :- </Text>
                     <Dropdown
                         style={[styles.input, isFocus4 && { borderColor: 'blue' }]}
                         placeholderStyle={styles.placeholderStyle}
@@ -762,7 +675,7 @@ const NewEnquiry = ({ navigation }) => {
                             setIsFocus4(false);
                         }} />
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%" }}>No Of Feeders :- <Text style={styles.redText}>*</Text> </Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>No Of Feeders :- </Text>
                     <Dropdown
                         style={[styles.input, isFocus6 && { borderColor: 'blue' }]}
                         placeholderStyle={styles.placeholderStyle}
@@ -786,7 +699,7 @@ const NewEnquiry = ({ navigation }) => {
                         }} />
 
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%" }}>No Of Frames :- <Text style={styles.redText}>*</Text> </Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>No Of Frames :-<Text style={styles.redText}> *</Text></Text>
                     <Dropdown
                         style={[styles.input, isFocus5 && { borderColor: 'blue' }]}
                         placeholderStyle={styles.placeholderStyle}
@@ -810,7 +723,7 @@ const NewEnquiry = ({ navigation }) => {
                         }} />
 
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%" }}>No Of Looms Required :- <Text style={styles.redText}>*</Text> </Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>No Of Looms Required :- </Text>
                     <TextInput
                         style={styles.input}
                         value={numLoomsRequired}
@@ -822,14 +735,13 @@ const NewEnquiry = ({ navigation }) => {
                     />
 
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%" }}>Job Rate:- <Text style={styles.redText}>*</Text> </Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>Job Rate:-</Text>
                     <View style={{ flexDirection: "row" }}>
                         <TextInput
                             style={[styles.input, { width: "100%" }]}
                             value={jobRateOffered}
                             onChangeText={setJobRateOffered}
                             placeholder="Job Rate Offered (In Paisa)"
-                            keyboardType="numeric"
                             placeholderTextColor={"grey"}
                         />
                     </View>
@@ -841,12 +753,13 @@ const NewEnquiry = ({ navigation }) => {
                         margin: "2%",
                         justifyContent: "center",
                         alignItems: "center",
+                        borderRadius:10
 
                     }}>
                         <Text style={{ color: "#003C43", fontSize: 20, fontWeight: "600", margin: "5%" }}>Other Loom Attachments</Text>
                         <View style={styles.checkboxContainer}>
 
-                            <Text style={{ marginRight: "12%", fontSize: 17, color: "#000" }}>Selvadge Jacquard</Text>
+                            <Text style={{ marginRight: "12%", fontSize: 17, color: "#000",fontWeight:"500" }}>Selvadge Jacquard</Text>
                             <CheckBox
                                 tintColors={{ true: 'blue', false: 'black' }} // Change color when checked and unchecked
                                 tintColor="black" // Change the box color when unchecked
@@ -859,7 +772,7 @@ const NewEnquiry = ({ navigation }) => {
                         </View>
                         <View style={styles.checkboxContainer}>
 
-                            <Text style={{ marginRight: "31%", fontSize: 17, color: "#000" }}>Top Beam</Text>
+                            <Text style={{ marginRight: "31%", fontSize: 17, color: "#000",fontWeight:"500" }}>Top Beam</Text>
                             <CheckBox
                                 tintColors={{ true: 'blue', false: 'black' }} // Change color when checked and unchecked
                                 tintColor="black" // Change the box color when unchecked
@@ -871,7 +784,7 @@ const NewEnquiry = ({ navigation }) => {
                         </View>
                         <View style={styles.checkboxContainer}>
 
-                            <Text style={{ marginRight: "31%", fontSize: 17, color: "#000" }}>Cramming</Text>
+                            <Text style={{ marginRight: "31%", fontSize: 17, color: "#000",fontWeight:"500" }}>Cramming</Text>
                             <CheckBox
                                 tintColors={{ true: 'blue', false: 'black' }} // Change color when checked and unchecked
                                 tintColor="black" // Change the box color when unchecked
@@ -884,7 +797,7 @@ const NewEnquiry = ({ navigation }) => {
                         </View>
                         <View style={styles.checkboxContainer}>
 
-                            <Text style={{ marginRight: "3%", fontSize: 17, color: "#000" }}>Leno Design Equipment</Text>
+                            <Text style={{ marginRight: "3%", fontSize: 17, color: "#000",fontWeight:"500" }}>Leno Design Equipment</Text>
                             <CheckBox
                                 tintColors={{ true: 'blue', false: 'black' }} // Change color when checked and unchecked
                                 tintColor="black" // Change the box color when unchecked
@@ -916,7 +829,7 @@ const NewEnquiry = ({ navigation }) => {
 
 
                     <View style={{ flexDirection: "column", marginVertical: "5%", marginTop: "5%" }}>
-                        <Text style={{ color: "#000", fontSize: 18 }}>Upload Design Paper (Optional)</Text>
+                        <Text style={{ color: "#000", fontSize: 18,fontWeight:"500" }}>Upload Design Paper</Text>
                         <View style={{ flexDirection: "row" }}>
                             {designPaper && (
                                 <ImageBackground
@@ -928,7 +841,7 @@ const NewEnquiry = ({ navigation }) => {
                                 designPaper ? null : <TouchableOpacity onPress={openCamera}>
                                     <ImageBackground
                                         source={require('../Images/camera.png')}
-                                        style={{ width: 34, height: 30, alignSelf: 'flex-start', marginLeft: "20%" }}
+                                        style={{ width: 34, height: 30, alignSelf: 'flex-start', marginLeft: "30%" ,marginTop:"15%"}}
                                         imageStyle={{ borderRadius: 0 }}
                                     />
                                 </TouchableOpacity>
@@ -1045,18 +958,18 @@ const styles = StyleSheet.create({
         color: "#000"
     },
     fabricQuality: {
-        width: width * 0.85,
+        width: width * 0.90,
         flexDirection: "row",
-        marginLeft:"-1%"
+        marginLeft: "-1%",
     },
     fabricDetails: {
-        flex: 2,
-        height: height * 0.05,
+        flex: 1,
+        height: height * 0.055,
         width: width * 0.12,
         borderColor: 'gray',
         borderBottomWidth: 1,
         marginBottom: height * 0.02,
-        fontSize: 15,
+        fontSize: 14,
         color: "#000",
         fontWeight: "800",
     },
@@ -1072,7 +985,7 @@ const styles = StyleSheet.create({
     input: {
         borderWidth: 1.5,
         borderColor: '#000',
-        borderRadius: 5,
+        borderRadius: 10,
         padding: 10,
         marginBottom: 15,
         fontSize: 17,

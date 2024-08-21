@@ -93,14 +93,6 @@ const GeneratedEnquires = ({ navigation }) => {
                             <Text style={styles.value}>{selectedEnquiry.EnquiryDate.date.substring(0, 10)}</Text>
                         </View>
                         <View style={styles.detailItem}>
-                            <Text style={styles.label}>BookingFrom:</Text>
-                            <Text style={styles.value}>{selectedEnquiry.BookingFrom.date.substring(0, 10)}</Text>
-                        </View>
-                        <View style={styles.detailItem}>
-                            <Text style={styles.label}>BookingTo:</Text>
-                            <Text style={styles.value}>{selectedEnquiry.BookingTo.date.substring(0, 10)}</Text>
-                        </View>
-                        <View style={styles.detailItem}>
                             <Text style={styles.label}>FabricQuality:</Text>
                             <Text style={styles.value}>{selectedEnquiry.FabricQuality}</Text>
                         </View>

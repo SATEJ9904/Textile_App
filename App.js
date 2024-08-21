@@ -78,6 +78,8 @@ import BookLoomForm from './src/Screens/BookLoomForm';
 import SignUpYarn from './src/Screens/SignUpYarn';
 import ProfileTrader from './src/Screens/ProfileTrader';
 import ProfileYarn from './src/Screens/ProfileYarn';
+import CanceledOrders from './src/Screens/CanceledOrders';
+import ConfirmOrderKnotting from './src/Screens/ConfirmOrderKnotting';
 
 
 
@@ -275,6 +277,29 @@ const LoomDrawerNavigator = () => (
         ),
 
         title: 'Completed Orders',
+        drawerLabelStyle: {
+          marginLeft: 0,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 18,
+
+        },
+
+      }} />
+
+
+    <LoomDrawer.Screen
+
+      name="CanceledOrders"
+      component={CanceledOrders}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Iconsn name={focused ? 'cancel' : 'cancel'} size={25} color={'grey'} />
+        ),
+
+        title: 'Canceled Orders',
         drawerLabelStyle: {
           marginLeft: 0,
           fontFamily: 'Roboto-Medium',
@@ -1048,6 +1073,7 @@ const App = () => {
         <Stack.Screen name="LiveBooking" component={LiveBooking} />
         <Stack.Screen name="BookLoomForm" component={BookLoomForm} />
         <Stack.Screen name="SignUpYarn" component={SignUpYarn} />
+        <Stack.Screen name="ConfirmOrderKnotting" component={ConfirmOrderKnotting} />
 
 
       </Stack.Navigator>

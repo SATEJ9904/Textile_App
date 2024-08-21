@@ -1,4 +1,4 @@
-import { SafeAreaView, StyleSheet, Text, View, Modal, Pressable, StatusBar, FlatList, RefreshControl, TouchableOpacity, ImageBackground, TextInput, ScrollView, Image, Button, Alert } from 'react-native'
+import { SafeAreaView, StyleSheet, Text, View, Modal, Pressable, StatusBar, FlatList, RefreshControl, TouchableOpacity, ImageBackground, TextInput, ScrollView, Image, Button, Alert, ActivityIndicator } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import DateTimePicker from '@react-native-community/datetimepicker';
 import CheckBox from '@react-native-community/checkbox';
@@ -8,6 +8,7 @@ import moment from 'moment';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from "@react-native-community/netinfo";
+import Icon from 'react-native-vector-icons/Ionicons';
 
 
 
@@ -19,6 +20,11 @@ const LiveOrders = ({ navigation }) => {
     const [id, setId] = useState("")
     const [showBlocks, setShowBlocks] = useState(true)
     const [selectedOrder, setSelectedOrder] = useState(null);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalVisible2, setModalVisible2] = useState(false);
+    const [modalVisible3, setModalVisible3] = useState(false);
+    const [loading, setLoading] = useState(true);
+
 
 
     useEffect(() => {
@@ -142,7 +148,28 @@ const LiveOrders = ({ navigation }) => {
         }
     };
 
+    const [ModalData, setModalData] = useState(null)
 
+    const ModalDataFetch = (Id) => {
+        console.log(Id)
+        const requestOptions = {
+            method: "GET",
+            redirect: "follow"
+        };
+
+        fetch("https://textileapp.microtechsolutions.co.in/php/getjoin.php?EnquiryId=" + Id, requestOptions)
+            .then((response) => response.json())
+            .then((result) => {
+                setModalData(result[0]); // Assuming the result is an array and we need the first item
+                setLoading(false);
+                setModalVisible(true)
+            })
+            .catch((error) => {
+                console.error(error);
+                setLoading(false);
+            });
+
+    }
 
 
     return (
@@ -185,10 +212,15 @@ const LiveOrders = ({ navigation }) => {
                             <View style={styles.ordersContainer}>
 
                                 {orders.map((order, index) => (
-                                    order.Confirmed !== 1 ? (
+                                    order.Confirmed !== 1 && order.Completed !== 1 ? (
                                         <View key={index} style={styles.orderWrapper}>
 
                                             <View style={styles.orderContainer}>
+                                                <View style={{justifyContent:"flex-end",alignItems:"flex-end"}}>
+                                                    <TouchableOpacity onPress={() => ModalDataFetch(order.EnquiryId)}>
+                                                        <Icon name="information-circle" size={22} color="grey" />
+                                                    </TouchableOpacity>
+                                                </View>
 
                                                 <View style={{ paddingLeft: 10, marginBottom: 10 }}>
                                                     <Text style={styles.orderText}>{`Order No : ${order.OrderNo}\nParty Name : ${order.PartyName}\nQuality : ${order.Quality}`}</Text>
@@ -198,7 +230,7 @@ const LiveOrders = ({ navigation }) => {
                                                     <View style={{ flex: 1, alignItems: 'center' }}>
                                                         <TouchableOpacity
                                                             style={[styles.button, { backgroundColor: '#77B0AA' }]}
-                                                            onPress={() => startOrder(order)}
+                                                            onPress={() => setModalVisible2(true)}
                                                         >
                                                             <Text style={styles.buttonText}>Start Order</Text>
                                                         </TouchableOpacity>
@@ -207,7 +239,7 @@ const LiveOrders = ({ navigation }) => {
                                                     <View style={{ flex: 1, alignItems: 'center' }}>
                                                         <TouchableOpacity
                                                             style={[styles.button, { backgroundColor: '#FF7722' }]}
-                                                            onPress={() => cancelOrder(order)}
+                                                            onPress={() => setModalVisible3(true)}
                                                         >
                                                             <Text style={styles.buttonText}>Cancel Order</Text>
                                                         </TouchableOpacity>
@@ -219,6 +251,54 @@ const LiveOrders = ({ navigation }) => {
 
                                             </View>
 
+                                            <Modal
+                                                visible={modalVisible2}
+                                                transparent={true}
+                                                animationType="fade"
+                                                onRequestClose={() => setModalVisible2(false)}
+                                            >
+                                                <View style={styles.modalBackground}>
+                                                    <View style={styles.modalContainer}>
+                                                        <TouchableOpacity style={styles.backButton} onPress={() => setModalVisible2(false)}>
+                                                            <Text style={styles.backButtonText}>Back</Text>
+                                                        </TouchableOpacity>
+                                                        <Text style={{ color: "#003C43", fontSize: 20, fontWeight: "600", marginTop: "5%" }}>Are You Sure To Confirm This Order</Text>
+                                                        <View style={{ flexDirection: "row", justifyContent: "space-evenly", width: "80%", marginTop: "10%" }}>
+                                                            <TouchableOpacity style={[styles.backButton, { backgroundColor: "#003C43", width: "30%", justifyContent: "center", alignItems: "center" }]} onPress={() => startOrder(order)}>
+                                                                <Text style={styles.backButtonText}>Yes</Text>
+                                                            </TouchableOpacity>
+                                                            <TouchableOpacity style={[styles.backButton, { width: "30%", justifyContent: "center", alignItems: "center" }]} onPress={() => setModalVisible2(false)}>
+                                                                <Text style={styles.backButtonText}>NO</Text>
+                                                            </TouchableOpacity>
+                                                        </View>
+                                                    </View>
+                                                </View>
+                                            </Modal>
+
+
+                                            <Modal
+                                                visible={modalVisible3}
+                                                transparent={true}
+                                                animationType="fade"
+                                                onRequestClose={() => setModalVisible3(false)}
+                                            >
+                                                <View style={styles.modalBackground}>
+                                                    <View style={styles.modalContainer}>
+                                                        <TouchableOpacity style={styles.backButton} onPress={() => setModalVisible3(false)}>
+                                                            <Text style={styles.backButtonText}>Back</Text>
+                                                        </TouchableOpacity>
+                                                        <Text style={{ color: "#003C43", fontSize: 20, fontWeight: "600", marginTop: "5%" }}>Are You Sure To Cancel This Order</Text>
+                                                        <View style={{ flexDirection: "row", justifyContent: "space-evenly", width: "80%", marginTop: "10%" }}>
+                                                            <TouchableOpacity style={[styles.backButton, { backgroundColor: "#003C43", width: "30%", justifyContent: "center", alignItems: "center" }]} onPress={() => cancelOrder(order)}>
+                                                                <Text style={styles.backButtonText}>Yes</Text>
+                                                            </TouchableOpacity>
+                                                            <TouchableOpacity style={[styles.backButton, { width: "30%", justifyContent: "center", alignItems: "center" }]} onPress={() => setModalVisible3(false)}>
+                                                                <Text style={styles.backButtonText}>NO</Text>
+                                                            </TouchableOpacity>
+                                                        </View>
+                                                    </View>
+                                                </View>
+                                            </Modal>
 
 
                                         </View>
@@ -251,8 +331,38 @@ const LiveOrders = ({ navigation }) => {
                     </TouchableOpacity>
                 </View>
 
-
-
+                <Modal visible={modalVisible} transparent={true} animationType="slide" onRequestClose={() => {
+                    setModalVisible(!modalVisible);
+                }}>
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(!modalVisible)}>
+                                <Icon name="exit" size={32} color="red" />
+                            </TouchableOpacity>
+                            <Text style={styles.modalTitle}>Order Details</Text>
+                            {loading ? (
+                                <ActivityIndicator size="large" color="#003C43" />
+                            ) : (
+                                <ScrollView contentContainerStyle={styles.scrollViewContent}>
+                                    {ModalData && (
+                                        <>
+                                            <Text style={styles.detailText}><Text style={styles.label}>Name:</Text> {ModalData.Name}</Text>
+                                            <Text style={styles.detailText}><Text style={styles.label}>Machine Type:</Text> {ModalData.MachineType}</Text>
+                                            <Text style={styles.detailText}><Text style={styles.label}>Width:</Text> {ModalData.Width}</Text>
+                                            <Text style={styles.detailText}><Text style={styles.label}>Shedding Type:</Text> {ModalData.SheddingType}</Text>
+                                            <Text style={styles.detailText}><Text style={styles.label}>No of Frames:</Text> {ModalData.NoofFrame}</Text>
+                                            <Text style={styles.detailText}><Text style={styles.label}>No of Feeders:</Text> {ModalData.NoofFeedero}</Text>
+                                            <Text style={styles.detailText}><Text style={styles.label}>Selvage Jacquard:</Text> {ModalData.SelvageJacquard ? "Yes" : "No"}</Text>
+                                            <Text style={styles.detailText}><Text style={styles.label}>Top Beam:</Text> {ModalData.TopBeam ? "Yes" : "No"}</Text>
+                                            <Text style={styles.detailText}><Text style={styles.label}>Cramming:</Text> {ModalData.Cramming ? "Yes" : "No"}</Text>
+                                            <Text style={styles.detailText}><Text style={styles.label}>Leno Design Equipment:</Text> {ModalData.LenoDesignEquipment ? "Yes" : "No"}</Text>
+                                        </>
+                                    )}
+                                </ScrollView>
+                            )}
+                        </View>
+                    </View>
+                </Modal>
 
             </View>
 
@@ -490,6 +600,97 @@ const styles = StyleSheet.create({
     tableCell: {
         flex: 1,
         fontSize: 16,
+    },
+    modalContainer: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        padding: 20,
+        borderRadius: 10,
+        alignItems: 'center'
+    },
+    modalMessage: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        textAlign: 'center'
+    },
+    modalBackground: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContainer: {
+        width: '80%',
+        backgroundColor: 'white',
+        padding: 20,
+        borderRadius: 8,
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    modalText: {
+        fontSize: 22,
+        marginBottom: "15%",
+        color: "#000",
+        fontWeight: "600",
+
+    },
+    backButton: {
+        backgroundColor: "#ff0000",
+        padding: 10,
+        borderRadius: 5,
+        marginBottom: 10,
+        alignSelf: 'flex-end',
+    },
+    backButtonText: {
+        color: "#fff",
+        fontWeight: "bold",
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        width: '90%',
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        padding: 20,
+        elevation: 5,
+    },
+    closeButton: {
+        alignSelf: 'flex-end',
+        marginBottom: 10,
+    },
+    modalTitle: {
+        fontSize: 25,
+        fontWeight: '600',
+        marginBottom: 20,
+        textAlign: 'center',
+        color: '#003C43',
+    },
+    scrollViewContent: {
+        paddingBottom: 20,
+    },
+    detailText: {
+        fontSize: 18,
+        marginBottom: "5%",
+        fontWeight: "600",
+        color: "#000",
+    },
+    label: {
+        fontWeight: 'bold',
     },
     '@media (max-width: 768px)': {
         container: {
