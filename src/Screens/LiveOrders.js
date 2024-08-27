@@ -23,7 +23,9 @@ const LiveOrders = ({ navigation }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [modalVisible2, setModalVisible2] = useState(false);
     const [modalVisible3, setModalVisible3] = useState(false);
+    const [modalVisible4, setModalVisible4] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [phoneno,setPhoneNo] = useState(null)
 
 
 
@@ -61,12 +63,13 @@ const LiveOrders = ({ navigation }) => {
         const AppUserId = await AsyncStorage.getItem("AppUserId");
         const LoomOrTrader = await AsyncStorage.getItem("LoomOrTrader")
         const Id = await AsyncStorage.getItem("Id")
+        const mobile = await AsyncStorage.getItem("PrimaryContact")
 
         setUserName(Name)
         setAppUserId(AppUserId)
         SetLoomOrTrader(LoomOrTrader)
         setId(Id)
-
+        setPhoneNo(mobile)
     }
 
 
@@ -109,6 +112,9 @@ const LiveOrders = ({ navigation }) => {
 
 
     const startOrder = async (order) => {
+        console.log(order)
+       
+       
         navigation.navigate("LiveBooking", { OrderNoId: order.LoomOrderId, OrderNo: order.OrderNo });
 
         const confirmed = true
@@ -119,8 +125,9 @@ const LiveOrders = ({ navigation }) => {
                 throw new Error('Something went wrong');
             } else {
                 Alert.alert("Order Confirmed Successfully !!!")
-
+                FetchTraderName(order)
                 console.log('Order updated successfully');
+              
             }
 
 
@@ -150,6 +157,7 @@ const LiveOrders = ({ navigation }) => {
 
     const [ModalData, setModalData] = useState(null)
 
+
     const ModalDataFetch = (Id) => {
         console.log(Id)
         const requestOptions = {
@@ -171,6 +179,65 @@ const LiveOrders = ({ navigation }) => {
 
     }
 
+    const [ModalData2, setModalData2] = useState(null)
+
+    const ModalDataFetch2 = (Id) => {
+        console.log(Id)
+        const requestOptions = {
+            method: "GET",
+            redirect: "follow"
+        };
+
+        fetch("https://textileapp.microtechsolutions.co.in/php/getiddetail.php?Id=" + Id, requestOptions)
+            .then((response) => response.json())
+            .then((result) => {
+                setModalData2(result[0]); // Assuming the result is an array and we need the first item
+                setLoading(false);
+                setModalVisible4(true)
+            })
+            .catch((error) => {
+                console.error(error);
+                setLoading(false);
+            });
+
+    }
+
+    const FetchTraderName = (order) => {
+        console.log(order.TraderId)
+        const requestOptions = {
+            method: "GET",
+            redirect: "follow"
+        };
+
+        fetch("https://textileapp.microtechsolutions.co.in/php/getiddetail.php?Id=" + order.TraderId, requestOptions)
+            .then((response) => response.json())
+            .then((result) => {
+                console.log(result)
+                SendEmail(result[0],order)
+            })
+            .catch((error) => {
+                console.error(error);
+                setLoading(false);
+            });
+
+    }
+
+    const SendEmail = (result,order) => {
+        const formdata = new FormData();
+        formdata.append("AppUserId", "satejshendage@gmail.com");
+        formdata.append("Body", `Your OrderNo `+(order.OrderNo)+` has been Confirmed from ` + (username) + ` Looms Followings are the Loom Details  Email:- \n` + (AppUserId) +`\n  Mobile NO:- ` +(phoneno) );
+
+        const requestOptions = {
+            method: "POST",
+            body: formdata,
+            redirect: "follow"
+        };
+
+        fetch("https://textileapp.microtechsolutions.co.in/php/sendemail.php", requestOptions)
+            .then((response) => response.text())
+            .then((result) => console.log(result))
+            .catch((error) => console.error(error));
+    }
 
     return (
         <SafeAreaView style={{ backgroundColor: "white", flex: 1 }}>
@@ -216,15 +283,15 @@ const LiveOrders = ({ navigation }) => {
                                         <View key={index} style={styles.orderWrapper}>
 
                                             <View style={styles.orderContainer}>
-                                                <View style={{justifyContent:"flex-end",alignItems:"flex-end"}}>
+                                                <View style={{ justifyContent: "flex-end", alignItems: "flex-end" }}>
                                                     <TouchableOpacity onPress={() => ModalDataFetch(order.EnquiryId)}>
                                                         <Icon name="information-circle" size={22} color="grey" />
                                                     </TouchableOpacity>
                                                 </View>
 
-                                                <View style={{ paddingLeft: 10, marginBottom: 10 }}>
+                                                <TouchableOpacity onLongPress={() => ModalDataFetch2(order.TraderId)} style={{ paddingLeft: 10, marginBottom: 10 }}>
                                                     <Text style={styles.orderText}>{`Order No : ${order.OrderNo}\nParty Name : ${order.PartyName}\nQuality : ${order.Quality}`}</Text>
-                                                </View>
+                                                </TouchableOpacity>
 
                                                 <View style={styles.buttonContainer}>
                                                     <View style={{ flex: 1, alignItems: 'center' }}>
@@ -363,6 +430,42 @@ const LiveOrders = ({ navigation }) => {
                         </View>
                     </View>
                 </Modal>
+
+                <Modal visible={modalVisible4} transparent={true} animationType="slide" onRequestClose={() => {
+                    setModalVisible4(!modalVisible4);
+                }}>
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible4(!modalVisible4)}>
+                                <Icon name="exit" size={32} color="red" />
+                            </TouchableOpacity>
+                            <Text style={styles.modalTitle}>Trader Details</Text>
+                            {loading ? (
+                                <ActivityIndicator size="large" color="#003C43" />
+                            ) : (
+                                <ScrollView contentContainerStyle={styles.scrollViewContent}>
+                                    {ModalData2 && (
+                                        <>
+                                            <Image
+                                                source={{ uri: ModalData2.Profilepic }}
+                                                style={{ width: "18%", height: "20%", marginBottom: "10%" }}
+                                            />
+                                            <Text style={styles.detailText}><Text style={styles.label}>Email:</Text> {ModalData2.AppUserId}</Text>
+                                            <Text style={styles.detailText}><Text style={styles.label}>Name:</Text> {ModalData2.Name}</Text>
+                                            <Text style={styles.detailText}><Text style={styles.label}>Address:</Text> {ModalData2.Address}</Text>
+                                            <Text style={styles.detailText}><Text style={styles.label}>State:</Text> {ModalData2.State}</Text>
+                                            <Text style={styles.detailText}><Text style={styles.label}>City:</Text> {ModalData2.City}</Text>
+                                            <Text style={styles.detailText}><Text style={styles.label}>Pincode:</Text> {ModalData2.Pincode}</Text>
+                                            <Text style={[styles.detailText, { marginBottom: "20%" }]}><Text style={styles.label}>Mobile No.:</Text> {ModalData2.PrimaryContact}</Text>
+
+                                        </>
+                                    )}
+                                </ScrollView>
+                            )}
+                        </View>
+                    </View>
+                </Modal>
+
 
             </View>
 

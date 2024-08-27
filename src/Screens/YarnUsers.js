@@ -41,13 +41,13 @@ const YarnUsers = ({ navigation }) => {
 
   const handleSearch = (query) => {
     setSearchQuery(query);
-  
+
     if (query === '') {
       setFilteredUsers(users);
     } else {
       const filtered = users.filter(user => {
         const lowerQuery = query.toLowerCase();
-  
+
         // Using optional chaining and default values to prevent errors
         return (
           (user.Name?.toLowerCase() || '').includes(lowerQuery) ||
@@ -55,7 +55,7 @@ const YarnUsers = ({ navigation }) => {
           (user.OwnerName?.toLowerCase() || '').includes(lowerQuery)
         );
       });
-  
+
       setFilteredUsers(filtered);
     }
   };
@@ -103,6 +103,13 @@ const YarnUsers = ({ navigation }) => {
         <Text style={styles.detailsContent}>Registration Number: {selectedUser.RegistrationNumber}</Text>
         <Text style={styles.detailsContent}>Primary Contact: {selectedUser.PrimaryContact}</Text>
         <Text style={styles.detailsContent}>Role: {loomOrTraderMapping[selectedUser.LoomOrTrader]}</Text>
+
+        <View style={{ width: "100%", marginBottom: "15%", justifyContent: "center", alignItems: "center", }}>
+          <TouchableOpacity onPress={() => navigation.navigate('Users', { appUserId: selectedUser.AppUserId })} style={{ backgroundColor: "#003C43", width: "90%", justifyContent: "center", alignItems: "center", borderRadius: 15 }}>
+            <Text style={{ color: "#fff", fontSize: 20, fontWeight: "600", padding: "3%" }}>Login As User</Text>
+          </TouchableOpacity>
+        </View>
+
       </View>
     );
   };
@@ -140,7 +147,7 @@ const YarnUsers = ({ navigation }) => {
         value={searchQuery}
         onChangeText={handleSearch}
       />
-      <Text style={[styles.cardTitle,{marginLeft:"5%",fontSize:20}]}>Yarn Count :- {yarncount}</Text>
+      <Text style={[styles.cardTitle, { marginLeft: "5%", fontSize: 20 }]}>Yarn Count :- {yarncount}</Text>
 
       {loading ? (
         <ActivityIndicator size="large" color="#003C43" style={styles.loader} />
@@ -199,8 +206,8 @@ const styles = StyleSheet.create({
     margin: 20,
     backgroundColor: '#ffffff',
     fontSize: 16,
-    padding:"5%",
-    color:"#000"
+    padding: "5%",
+    color: "#000"
 
   },
   cardContainer: {

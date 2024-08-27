@@ -104,7 +104,6 @@ const KnottingOffersT = ({ navigation }) => {
                 body: formdata,
                 redirect: "follow"
             });
-
             const result = await response.text();
             setLoading(false);
             if (result.trim() === "Knotting Offer Confirmed") {
@@ -232,8 +231,7 @@ const KnottingOffersT = ({ navigation }) => {
                                         <Paragraph style={styles.cardText}>Draft: {item.Draft}</Paragraph>
                                         <Paragraph style={styles.cardText}>Reed Space: {item.ReedSpace}</Paragraph>
                                         <Paragraph style={styles.cardText}>No of Looms: {item.NoofLooms}</Paragraph>
-                                        <Paragraph style={styles.cardText}>Available From: {new Date(item.AvailableFrom.date).toDateString()}</Paragraph>
-                                        <View style={styles.button}>
+                                        <Paragraph style={styles.cardText}>Available From: {new Date(item.AvailableFrom.date).toDateString()}</Paragraph>                                        <View style={styles.button}>
                                             <TouchableOpacity
                                                 style={styles.buttonContainer}
                                                 onPress={() => handleSubmit(item.Id)}
@@ -303,6 +301,9 @@ const styles = StyleSheet.create({
     input: {
         marginBottom: 10,
         backgroundColor: "white",
+        borderRadius: 10,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
     },
     dateContainer: {
         flexDirection: "row",
@@ -335,6 +336,15 @@ const styles = StyleSheet.create({
     },
     card: {
         marginBottom: 10,
+        borderRadius: 10,
+        elevation: 5,
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
     },
     cardTitle: {
         fontSize: 18,
@@ -376,11 +386,6 @@ const styles = StyleSheet.create({
         padding: 20,
         borderRadius: 10,
         alignItems: "center",
-    },
-    checkImage: {
-        width: 50,
-        height: 50,
-        marginBottom: 20,
     },
     modalText: {
         fontSize: 18,

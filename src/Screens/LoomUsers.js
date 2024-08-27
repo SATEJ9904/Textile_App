@@ -39,16 +39,16 @@ const LoomUsers = ({ navigation }) => {
       }
     });
   };
-  
+
   const handleSearch = (query) => {
     setSearchQuery(query);
-  
+
     if (query === '') {
       setFilteredUsers(users);
     } else {
       const filtered = users.filter(user => {
         const lowerQuery = query.toLowerCase();
-  
+
         // Using optional chaining and default values to prevent errors
         return (
           (user.Name?.toLowerCase() || '').includes(lowerQuery) ||
@@ -56,7 +56,7 @@ const LoomUsers = ({ navigation }) => {
           (user.OwnerName?.toLowerCase() || '').includes(lowerQuery)
         );
       });
-  
+
       setFilteredUsers(filtered);
     }
   };
@@ -134,9 +134,16 @@ const LoomUsers = ({ navigation }) => {
         <Text style={styles.detailsContent}>Primary Contact: {selectedUser.PrimaryContact}</Text>
         <Text style={styles.detailsContent}>Role: {loomOrTraderMapping[selectedUser.LoomOrTrader]}</Text>
 
+
         {/* Render Machine Blocks */}
         <Text style={styles.machineSectionTitle}>Machine Details:</Text>
         {renderMachineBlocks()}
+        <View style={{ width: "100%" ,marginBottom:"15%", justifyContent: "center", alignItems: "center",}}>
+          <TouchableOpacity onPress={()=> navigation.navigate('Users', { appUserId: selectedUser.AppUserId })} style={{ backgroundColor: "#003C43", width: "90%", justifyContent: "center", alignItems: "center", borderRadius: 15 }}>
+            <Text style={{ color: "#fff", fontSize: 20, fontWeight: "600", padding: "3%" }}>Login As User</Text>
+          </TouchableOpacity>
+        </View>
+
       </ScrollView>
     );
   };
@@ -164,7 +171,7 @@ const LoomUsers = ({ navigation }) => {
         value={searchQuery}
         onChangeText={handleSearch}
       />
-      <Text style={[styles.cardTitle,{marginLeft:"5%",fontSize:20}]}>Loom Count :- {loomcount}</Text>
+      <Text style={[styles.cardTitle, { marginLeft: "5%", fontSize: 20 }]}>Loom Count :- {loomcount}</Text>
 
       {loading ? (
         <ActivityIndicator size="large" color="#003C43" style={styles.loader} />
@@ -223,7 +230,7 @@ const styles = StyleSheet.create({
     margin: 20,
     backgroundColor: '#ffffff',
     fontSize: 16,
-    color:"#000"
+    color: "#000"
 
   },
   cardContainer: {

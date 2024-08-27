@@ -6,13 +6,12 @@ import ImagePicker from 'react-native-image-crop-picker';
 import LottieView from 'lottie-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native'; // Import navigation hook
+import { useNavigation } from '@react-navigation/native'; 
 
 const { width, height } = Dimensions.get('window');
 
 const KnottingOffersL = () => {
-    const navigation = useNavigation(); // Initialize navigation
-
+    const navigation = useNavigation(); 
 
     return (
         <View style={styles.container}>
@@ -21,21 +20,45 @@ const KnottingOffersL = () => {
                     <Image source={require("../Images/drawer1.png")} style={styles.drawerIcon} />
                 </TouchableOpacity>
                 <Text style={styles.headerText}>Knotting Offers</Text>
+                <View style={styles.headerRight}>
+                    <Icon name="notifications" size={24} color="#fff" />
+                    <Icon name="search" size={24} color="#fff" style={{ marginLeft: 20 }} />
+                </View>
             </View>
             <ScrollView contentContainerStyle={styles.scrollViewContent}>
                 <View style={styles.content}>
-                    <TouchableOpacity
-                        onPress={() => navigation.navigate('GenerateKnottingoffers')}
-                        style={styles.button}
-                    >
-                        <Text style={styles.buttonText}>Generate Knotting Offer</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={() => navigation.navigate('KnottingResponses')}
-                        style={styles.button}
-                    >
-                        <Text style={styles.buttonText}>Knotting Responses</Text>
-                    </TouchableOpacity>
+                    <View style={styles.cardContainer}>
+                        <Card style={styles.card}>
+                            <Card.Cover source={{uri : "https://storage.googleapis.com/a1aa/image/LWEwgd2jqC7WLpIFzczeFOnf9aHl6CobvKtfxG9tUefZ8FuaC.jpg"}} />
+                            <Card.Content>
+                                <Title style={styles.cardTitle}>Generate Knotting Offer</Title>
+                            </Card.Content>
+                            <Card.Actions>
+                                <TouchableOpacity
+                                    onPress={() => navigation.navigate('GenerateKnottingoffers')}
+                                    style={styles.cardButton}
+                                >
+                                    <Text style={styles.cardButtonText}>Generate</Text>
+                                </TouchableOpacity>
+                            </Card.Actions>
+                        </Card>
+                    </View>
+                    <View style={styles.cardContainer}>
+                        <Card style={styles.card}>
+                            <Card.Cover source={{uri : "https://storage.googleapis.com/a1aa/image/cEJXIQryQnrXDd6ZMkaF81S4vLLXbFc0IGS550oftKGf0wVTA.jpg"}} />
+                            <Card.Content>
+                                <Title style={styles.cardTitle}>Knotting Responses</Title>
+                            </Card.Content>
+                            <Card.Actions>
+                                <TouchableOpacity
+                                    onPress={() => navigation.navigate('KnottingResponses')}
+                                    style={styles.cardButton}
+                                >
+                                    <Text style={styles.cardButtonText}>View Responses</Text>
+                                </TouchableOpacity>
+                            </Card.Actions>
+                        </Card>
+                    </View>
                 </View>
             </ScrollView>
         </View>
@@ -54,6 +77,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flexDirection: "row",
         elevation: 5,
+        justifyContent: 'space-between',
     },
     drawerIcon: {
         width: 28,
@@ -67,6 +91,9 @@ const styles = StyleSheet.create({
         textShadowColor: 'rgba(0, 0, 0, 0.75)',
         textShadowOffset: { width: -1, height: 1 },
         textShadowRadius: 10,
+    },
+    headerRight: {
+        flexDirection: 'row',
     },
     scrollViewContent: {
         paddingHorizontal: '5%',
@@ -82,15 +109,29 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 5,
     },
-    button: {
-        backgroundColor: '#003C43',
-        paddingVertical: 15,
-        borderRadius: 10,
-        alignItems: 'center',
+    cardContainer: {
         marginBottom: 20,
-        elevation: 5,
     },
-    buttonText: {
+    card: {
+        borderRadius: 15,
+        elevation: 10,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+    },
+    cardTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    cardButton: {
+        backgroundColor: '#003C43',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 10,
+    },
+    cardButtonText: {
         color: 'white',
         fontSize: 16,
         fontWeight: 'bold',

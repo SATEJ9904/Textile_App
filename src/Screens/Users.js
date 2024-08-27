@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, FlatList, ActivityIndicator, TextInput, Modal, Alert,Linking } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, TouchableOpacity, FlatList, ActivityIndicator, TextInput, Modal, Alert, Linking, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from 'react-native-geolocation-service';
 import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import { launchCamera } from 'react-native-image-picker';
 
-const Users = ({ navigation }) => {
+const Users = ({ navigation, route }) => {
+  const { appUserId } = route.params || {};
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,6 +23,14 @@ const Users = ({ navigation }) => {
   useEffect(() => {
     checkPermissions();
   }, []);
+
+  useEffect(() => {
+    if (appUserId) {
+      handleSearch(appUserId); 
+    } else {
+      null
+    }
+  }, [appUserId]);
 
   const checkPermissions = async () => {
     await checkLocationPermission();
@@ -134,13 +143,13 @@ const Users = ({ navigation }) => {
 
   const handleSearch = (query) => {
     setSearchQuery(query);
-  
+
     if (query === '') {
       setFilteredUsers(users);
     } else {
       const filtered = users.filter(user => {
         const lowerQuery = query.toLowerCase();
-  
+
         // Using optional chaining and default values to prevent errors
         return (
           (user.Name?.toLowerCase() || '').includes(lowerQuery) ||
@@ -148,11 +157,11 @@ const Users = ({ navigation }) => {
           (user.OwnerName?.toLowerCase() || '').includes(lowerQuery)
         );
       });
-  
+
       setFilteredUsers(filtered);
     }
   };
-  
+
 
   const handleCardPress = (user) => {
     setSelectedUser(user);
@@ -333,8 +342,24 @@ const Users = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={{ backgroundColor: "#003C43", justifyContent: "center", alignItems: "center" }}>
-        <Text style={{ fontSize: 25, fontWeight: "600", color: "#fff", paddingTop: "5%" }}>Users List</Text>
+      <View style={{ backgroundColor: "#003C43", flexDirection: "row", alignItems: 'center', height: 50 }}>
+
+        <TouchableOpacity
+          style={{ padding: "2%" }}
+          onPress={() => navigation.openDrawer()}
+        >
+          <Image
+            source={require("../Images/drawer1.png")}
+            style={{ width: 28, height: 22, marginLeft: 10, }}
+
+          />
+        </TouchableOpacity>
+
+
+        <View style={{ flex: 0.9, alignItems: 'center' }}>
+          <Text style={{ fontSize: 26, color: "white", fontWeight: 500 }}> User List </Text>
+        </View>
+
       </View>
       <View style={styles.searchContainer}>
         <TextInput
@@ -346,7 +371,7 @@ const Users = ({ navigation }) => {
         />
 
       </View>
-      <Text style={[styles.cardTitle,{marginLeft:"5%",fontSize:20}]}>Total Users :- {userscount}</Text>
+      <Text style={[styles.cardTitle, { marginLeft: "5%", fontSize: 20 }]}>Total Users :- {userscount}</Text>
 
       <FlatList
         data={filteredUsers}
@@ -384,14 +409,14 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f0f0f0', 
+    backgroundColor: '#f0f0f0',
     borderRadius: 20,
     paddingVertical: 8,
     paddingHorizontal: 15,
     marginBottom: 20,
     borderWidth: 1,
     margin: "5%",
-    color:"#000"
+    color: "#000"
   },
   searchInput: {
     flex: 1,

@@ -5,7 +5,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 const { width, height } = Dimensions.get('window');
 
 const BookLoomForm = ({ route, navigation }) => {
-  const { LoomDetailId, OrderNo } = route.params;
+  const { LoomDetailId, OrderNo, FromDate, ToDate } = route.params;
 
   const [loomNo, setLoomNo] = useState('');
   const [loomAvailableFrom, setLoomAvailableFrom] = useState('N/A');
@@ -26,22 +26,19 @@ const BookLoomForm = ({ route, navigation }) => {
   const [knottingOrderId, setKnottingOrderId] = useState('');
 
   useEffect(() => {
-    console.log("ID = ", LoomDetailId);
     const fetchLoomDetails = async () => {
       try {
-        const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=LoomBooking&Colname=LoomDetailId&Colvalue=${LoomDetailId}`);
-        const result = await response.json();
-        console.log(result);
-        if (result && Array.isArray(result) && result.length > 0) {
-          result.forEach((item) => {
-            setLoomNo(item.LoomNo || 'N/A');
-            setLoomAvailableFrom(item.LoomAvailableFrom?.date ? item.LoomAvailableFrom.date.substring(0, 10) : 'N/A');
-            setLoomAvailableTo(item.LoomAvailableTo?.date ? item.LoomAvailableTo.date.substring(0, 10) : 'N/A');
-            setOrderNo(item.OrderNoId || 'N/A');
-            setBookingId(item.BookingId || 'N/A');
-
-          });
+        const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/loombooking.php?LoomDetailId=${LoomDetailId}&BookedFromDate=${FromDate}&BookedToDate=${ToDate}`);
+        const result = await response.json(); // Parse the response as JSON
+        if (result.length > 0) { // Check if the result array is not empty
+          const loomDetails = result[0]; // Access the first item in the array
+          setLoomNo(loomDetails.LoomNo); // Set the LoomNo state
+          setLoomAvailableFrom(loomDetails.LoomAvailableFrom.date.substring(0, 10)); // Assuming LoomAvailableFrom is a string in ISO format
+          setBookingId(loomDetails.BookingId)
+        } else {
+          console.log('No loom details found');
         }
+        setIsLoading(false);
         const bookedFromDates = result
           .filter(item => item.BookedFromDate !== null)
           .map(item => item.BookedFromDate.date);
@@ -50,16 +47,14 @@ const BookLoomForm = ({ route, navigation }) => {
         console.log("Dates = ", bookedFromDates)
 
       } catch (error) {
-        console.error(error);
-      } finally {
+        console.error('Error fetching loom details:', error);
         setIsLoading(false);
       }
-
-
     };
 
     fetchLoomDetails();
-  }, [LoomDetailId]);
+  }, [LoomDetailId, FromDate, ToDate]);
+
 
   const addMonths = (date, months) => {
     const d = new Date(date);
@@ -357,7 +352,7 @@ const BookLoomForm = ({ route, navigation }) => {
               <View style={styles.formGroup}>
                 <Text style={styles.label}>Booked From Date</Text>
                 <TouchableOpacity onPress={() => setShowFromDatePicker(true)} style={styles.datePickerButton}>
-                  <Text style={styles.datePickerButtonText}>{newBookedFromDate ? newBookedFromDate.toISOString().split('T')[0] : 'Select From Date'}</Text>
+                  <Text style={styles.datePickerButtonText}>{newBookedFromDate ? newBookedFromDate.toISOString().split('T')[0] : null || FromDate || 'Select From Date'}</Text>
                 </TouchableOpacity>
                 {showFromDatePicker && (
                   <DateTimePicker
@@ -373,7 +368,7 @@ const BookLoomForm = ({ route, navigation }) => {
               <View style={styles.formGroup}>
                 <Text style={styles.label}>Booked To Date</Text>
                 <TouchableOpacity onPress={() => setShowToDatePicker(true)} style={styles.datePickerButton}>
-                  <Text style={styles.datePickerButtonText}>{newBookedToDate ? newBookedToDate.toISOString().split('T')[0] : 'Select To Date'}</Text>
+                  <Text style={styles.datePickerButtonText}>{newBookedToDate ? newBookedToDate.toISOString().split('T')[0] : null || ToDate || 'Select To Date'}</Text>
                 </TouchableOpacity>
                 {showToDatePicker && (
                   <DateTimePicker

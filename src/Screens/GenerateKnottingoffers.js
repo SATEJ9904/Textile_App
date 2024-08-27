@@ -41,7 +41,7 @@ const GenerateKnottingoffers = ({ navigation }) => {
 
     const handleSubmit = async () => {
 
-        console.log(await AsyncStorage.getItem("Id"),reed, draft, reedSpace, noOfLooms, formatDate(availableFrom), jobRateRequired)
+        console.log(await AsyncStorage.getItem("Id"), reed, draft, reedSpace, noOfLooms, formatDate(availableFrom), jobRateRequired)
 
         const formdata = new FormData();
         formdata.append("Reed", reed);
@@ -104,6 +104,20 @@ const GenerateKnottingoffers = ({ navigation }) => {
         });
     };
 
+    const [enlargeImage, setEnlargeImage] = useState(false);
+    const [enlargedImage, setEnlargedImage] = useState(null);
+
+    const handleEnlargeImage = (image) => {
+        setEnlargeImage(true);
+        setEnlargedImage(image);
+    };
+
+    const handleExitEnlargeImage = () => {
+        setEnlargeImage(false);
+    };
+
+
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
@@ -114,86 +128,115 @@ const GenerateKnottingoffers = ({ navigation }) => {
             </View>
             <ScrollView contentContainerStyle={styles.scrollViewContent}>
                 <View style={styles.content}>
-                    <TextInput
-                        label="Reed"
-                        value={reed}
-                        onChangeText={setReed}
-                        style={styles.input}
-                        theme={{ colors: { primary: '#003C43' } }}
-                        keyboardType="numeric"
-                    />
-                    <TextInput
-                        label="Draft"
-                        value={draft}
-                        onChangeText={setDraft}
-                        style={styles.input}
-                        theme={{ colors: { primary: '#003C43' } }}
-                    />
-                    <TextInput
-                        label="Reed Space"
-                        value={reedSpace}
-                        onChangeText={setReedSpace}
-                        style={styles.input}
-                        theme={{ colors: { primary: '#003C43' } }}
-                        keyboardType="numeric"
-                    />
-                    <TextInput
-                        label="No of Looms"
-                        value={noOfLooms}
-                        onChangeText={setNoOfLooms}
-                        style={styles.input}
-                        theme={{ colors: { primary: '#003C43' } }}
-                        keyboardType="numeric"
-                    />
-                    <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePicker}>
+                    <View style={styles.formSection}>
+                        <Text style={styles.formTitle}>Knotting Offer Details</Text>
                         <TextInput
-                            label="Available From"
-                            value={availableFrom.toDateString()}
-                            style={[styles.input, { flex: 1 }]}
-                            editable={false}
+                            label="Reed"
+                            value={reed}
+                            onChangeText={setReed}
+                            style={styles.input}
+                            theme={{ colors: { primary: '#003C43' } }}
+                            keyboardType="numeric"
+                        />
+                        <TextInput
+                            label="Draft"
+                            value={draft}
+                            onChangeText={setDraft}
+                            style={styles.input}
                             theme={{ colors: { primary: '#003C43' } }}
                         />
-                        <IconButton
-                            icon="calendar"
-                            size={30}
-                            color="#003C43"
-                            onPress={() => setShowDatePicker(true)}
+                        <TextInput
+                            label="Reed Space"
+                            value={reedSpace}
+                            onChangeText={setReedSpace}
+                            style={styles.input}
+                            theme={{ colors: { primary: '#003C43' } }}
+                            keyboardType="numeric"
                         />
-                    </TouchableOpacity>
-                    {showDatePicker && (
-                        <DateTimePicker
-                            value={availableFrom}
-                            mode="date"
-                            display="default"
-                            onChange={onChangeDate}
+                        <TextInput
+                            label="No of Looms"
+                            value={noOfLooms}
+                            onChangeText={setNoOfLooms}
+                            style={styles.input}
+                            theme={{ colors: { primary: '#003C43' } }}
+                            keyboardType="numeric"
                         />
-                    )}
-                    <TextInput
-                        label="Job Rate Required"
-                        value={jobRateRequired}
-                        onChangeText={setJobRateRequired}
-                        style={styles.input}
-                        theme={{ colors: { primary: '#003C43' } }}
-                        keyboardType="numeric"
-                    />
+                    </View>
+                    <View style={styles.formSection}>
+                        <Text style={styles.formTitle}>Availability</Text>
+                        <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePicker}>
+                            <TextInput
+                                label="Available From"
+                                value={availableFrom.toDateString()}
+                                style={[styles.input, { flex: 1 }]}
+                                editable={false}
+                                theme={{ colors: { primary: '#003C43' } }}
+                            />
+                            <IconButton
+                                icon="calendar"
+                                size={30}
+                                color="#003C43"
+                                onPress={() => setShowDatePicker(true)}
+                            />
+                        </TouchableOpacity>
+                        {showDatePicker && (
+                            <DateTimePicker
+                                value={availableFrom}
+                                mode="date"
+                                display="default"
+                                onChange={onChangeDate}
+                            />
+                        )}
+                    </View>
+                    <View style={styles.formSection}>
+                        <Text style={styles.formTitle}>Job Rate Required</Text>
+                        <TextInput
+                            label="Job Rate Required"
+                            value={jobRateRequired}
+                            onChangeText={setJobRateRequired}
+                            style={styles.input}
+                            theme={{ colors: { primary: '#003C43' } }}
+                            keyboardType="numeric"
+                        />
+                    </View>
                     <TouchableOpacity onPress={handleImagePicker} style={styles.uploadButton}>
                         <Text style={styles.uploadButtonText}>Upload Design Paper</Text>
                     </TouchableOpacity>
-                    <View style={{flexDirection:"row",marginTop:"-5%",marginBottom:"5%"}}>
-                    <Icon name="information-circle" size={22} color="red" />
-                    <Text style={{color:"red"}}>! Not Complusary</Text>
+                    <View style={{ flexDirection: 'row', marginTop: '-5%', marginBottom: '5%' }}>
+                        <Icon name="information-circle" size={22} color="red" />
+                        <Text style={{ color: 'red' }}>! Not Complusary</Text>
                     </View>
                     {designPaper && (
                         <Card style={styles.card}>
                             <Card.Content>
                                 <Title style={styles.cardTitle}>Design Paper Uploaded</Title>
-                                <Image
-                                    source={{ uri: designPaper.path }}
-                                    style={styles.cardImage}
-                                />
+                                <TouchableOpacity onPress={() => handleEnlargeImage(designPaper.path)}>
+                                    <Image
+                                        source={{ uri: designPaper.path }}
+                                        style={styles.cardImage}
+
+                                    />
+                                </TouchableOpacity>
                             </Card.Content>
                         </Card>
                     )}
+
+                    <Modal
+                        animationType="slide"
+                        transparent={true}
+                        visible={enlargeImage}
+                        onRequestClose={handleExitEnlargeImage}
+                    >
+                        <View style={styles.enlargeImageContainer}>
+                            <Image
+                                source={{ uri: enlargedImage }}
+                                style={styles.enlargeImage}
+                            />
+                            <TouchableOpacity onPress={handleExitEnlargeImage} style={styles.exitButton}>
+                            <Icon name="exit" size={38} color="red" />
+                            </TouchableOpacity>
+                        </View>
+                    </Modal>
                     <Button mode="contained" onPress={handleSubmit} style={styles.submitButton}>
                         Submit
                     </Button>
@@ -279,6 +322,19 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 5,
+    },
+    formSection: {
+        marginBottom: 20,
+        padding: 20,
+        backgroundColor: '#f8f8f8',
+        borderRadius: 15,
+        elevation: 5,
+    },
+    formTitle: {
+        fontSize: 18,
+        color: '#003C43',
+        fontWeight: 'bold',
+        marginBottom: 10,
     },
     input: {
         marginBottom: 15,
@@ -375,6 +431,29 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         alignItems: 'center',
         marginTop: 10,
+    },
+    enlargeImageContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    enlargeImage: {
+        width: width * 0.8,
+        height: height * 0.8,
+        resizeMode: 'contain',
+    },
+    exitButton: {
+        position: 'absolute',
+        top: 20,
+        right: 20,
+        backgroundColor: 'white',
+        padding: 10,
+        borderRadius: 10,
+    },
+    exitButtonText: {
+        fontSize: 16,
+        color: 'black',
     },
 });
 

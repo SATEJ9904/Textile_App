@@ -196,17 +196,12 @@ const ProfileTrader = ({ navigation }) => {
             <Text style={styles.summaryCount}>{displayedLooms}</Text>
           </View>
           {machineTypeCounts.map((machine, index) => (
-            <View style={styles.summaryBlock}>
-
-              <View key={index} style={styles.summaryBlock}>
-                <Text style={styles.summaryTitle}>Enquires Of {machine.MachineType}</Text>
-                <Text style={styles.summaryCount}>{machine.Count}</Text>
-              </View>
-
+            <View style={styles.summaryBlock} key={index}>
+              <Text style={styles.summaryTitle}>Enquires Of {machine.MachineType}</Text>
+              <Text style={styles.summaryCount}>{machine.Count}</Text>
             </View>
           ))}
         </View>
-
       </ScrollView>
 
       <Modal
@@ -250,159 +245,157 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8F9FA',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#003C43',
-    height: 60,
-    paddingHorizontal: 20,
-  },
-  drawerButton: {
-    padding: 10,
-  },
-  drawerIcon: {
-    width: 24,
-    height: 24,
-  },
-  headerTextContainer: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  headerText: {
-    fontSize: 24,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
-  profileContainer: {
-    alignItems: 'center',
-    padding: 20,
-  },
-  profileImageContainer: {
-    marginBottom: 20,
-    position: 'relative',
-  },
-  profileImage: {
-    width: width * 0.4,
-    height: width * 0.4,
-    borderRadius: width * 0.2,
-    overflow: 'hidden',
-    justifyContent: 'flex-end',
-    alignItems: 'flex-end',
-    backgroundColor: '#CCCCCC', // Placeholder color for the image
-  },
-  addIconContainer: {
-    position: 'absolute',
-    bottom: 10,
-    right: 10,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#003C43',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addIcon: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  welcomeText: {
-    fontSize: 22,
-    fontWeight: '600',
-    color: '#333333',
-  },
-  optionsContainer: {
-    paddingHorizontal: 20,
-    marginTop: "15%"
-  },
-  optionCard: {
-    backgroundColor: '#FFFFFF',
-    padding: 20,
-    borderRadius: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  optionText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333333',
-  },
-  optionIcon: {
-    width: 24,
-    height: 24,
-    tintColor: '#003C43',
-  },
-  summaryContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 20,
-    marginTop: "5%",
-    flexWrap:"wrap",
-
-  },
-  summaryBlock: {
-    backgroundColor: '#003C43',
-    padding: 20,
-    borderRadius: 10,
-    width: width * 0.4,
-    alignItems: 'center',
-    marginBottom:"10%"
-
-  },
-  summaryTitle: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    marginBottom: 10,
-    fontWeight:"500"
-  },
-  summaryCount: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  modalContent: {
-    width: '80%',
-    backgroundColor: '#FFF',
-    borderRadius: 10,
-    padding: 20,
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  modalOption: {
-    paddingVertical: 10,
-  },
-  modalOptionText: {
-    fontSize: 16,
-    color: '#003C43',
-  },
-  enlargedImageContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.8)',
-  },
-  enlargedImage: {
-    width: width * 0.8,
-    height: width * 0.8,
-    resizeMode: 'contain',
-  },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#003C43',
+      height: 60,
+      paddingHorizontal: 20,
+    },
+    drawerButton: {
+      padding: 10,
+    },
+    drawerIcon: {
+      width: 24,
+      height: 24,
+    },
+    headerTextContainer: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    headerText: {
+      fontSize: 24,
+      color: '#FFFFFF',
+      fontWeight: 'bold',
+    },
+    profileContainer: {
+      alignItems: 'center',
+      padding: 20,
+    },
+    profileImageContainer: {
+      marginBottom: 20,
+      position: 'relative',
+    },
+    profileImage: {
+      width: width * 0.4,
+      height: width * 0.4,
+      borderRadius: width * 0.2,
+      overflow: 'hidden',
+      justifyContent: 'flex-end',
+      alignItems: 'flex-end',
+      backgroundColor: '#CCCCCC', // Placeholder color for the image
+    },
+    addIconContainer: {
+      position: 'absolute',
+      bottom: 10,
+      right: 10,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: '#003C43',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    addIcon: {
+      color: 'white',
+      fontSize: 24,
+      fontWeight: 'bold',
+    },
+    welcomeText: {
+      fontSize: 22,
+      fontWeight: '600',
+      color: '#333333',
+    },
+    optionsContainer: {
+      paddingHorizontal: 20,
+      marginTop: "15%"
+    },
+    optionCard: {
+      backgroundColor: '#FFFFFF',
+      padding: 20,
+      borderRadius: 10,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 15,
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.3,
+      shadowRadius: 5,
+      elevation: 5,
+    },
+    optionText: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: '#333333',
+    },
+    optionIcon: {
+      width: 24,
+      height: 24,
+      tintColor: '#003C43',
+    },
+    summaryContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      paddingVertical: 20,
+      marginTop: "5%",
+      flexWrap:"wrap",
+    },
+    summaryBlock: {
+      backgroundColor: '#003C43',
+      padding: 20,
+      borderRadius: 10,
+      width: width * 0.4,
+      alignItems: 'center',
+      marginBottom:"10%",
+    },
+    summaryTitle: {
+      fontSize: 16,
+      color: '#FFFFFF',
+      marginBottom: 10,
+      fontWeight:"500"
+    },
+    summaryCount: {
+      fontSize: 22,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+    },
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+      width: '80%',
+      backgroundColor: '#FFF',
+      borderRadius: 10,
+      padding: 20,
+      alignItems: 'center',
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 20,
+    },
+    modalOption: {
+      paddingVertical: 10,
+    },
+    modalOptionText: {
+      fontSize: 16,
+      color: '#003C43',
+    },
+    enlargedImageContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0,0,0,0.8)',
+    },
+    enlargedImage: {
+      width: width * 0.8,
+      height: width * 0.8,
+      resizeMode: 'contain',
+    },
 });
 
 export default ProfileTrader;

@@ -15,9 +15,11 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import DateTimePicker from '@react-native-community/datetimepicker';
+
 
 const LoomBooking = ({ navigation, route }) => {
-  
+
   const [loading, setLoading] = useState(true);
   const [loomNumbers, setLoomNumbers] = useState([]);
   const [selectedLoom, setSelectedLoom] = useState(null);
@@ -26,6 +28,7 @@ const LoomBooking = ({ navigation, route }) => {
   const [showEnquiryForm, setShowEnquiryForm] = useState(false);
   const [OrderNo1, setOrderNo] = useState('');
   const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
+  const [isBookingModalVisible2, setIsBookingModalVisible2] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
   const scaleAnim = useState(new Animated.Value(0))[0];
   const [refreshing, setRefreshing] = useState(false);
@@ -34,9 +37,62 @@ const LoomBooking = ({ navigation, route }) => {
   const [modalVisible2, setModalVisible2] = useState(false);
   const [bookedLoomNo, setBookedLoomNo] = useState(null);
 
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
+  const [isStartPickerVisible, setIsStartPickerVisible] = useState(false);
+  const [isEndPickerVisible, setIsEndPickerVisible] = useState(false);
+
+
+
+  const handleStartDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || startDate;
+    setIsStartPickerVisible(false);
+    setStartDate(currentDate);
+  };
+
+  const handleEndDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || endDate;
+    setIsEndPickerVisible(false);
+    setEndDate(currentDate);
+  };
+
+  // Helper function to format the date to YYYY-MM-DD
+  const formatDate = (date) => {
+    return date.toISOString().split('T')[0];
+  };
+
+  const handleSubmit = (Loom) => {
+console.log("Id=",Loom.Id,formatDate(startDate),formatDate(endDate))
+
+    const formdata = new FormData();
+    formdata.append("Fromdate",formatDate(startDate) );
+    formdata.append("Todate",formatDate(endDate));
+    formdata.append("LoomDetailId", Loom.Id);
+
+    const requestOptions = {
+      method: "POST",
+      body: formdata,
+      redirect: "follow"
+    };
+
+    fetch("https://textileapp.microtechsolutions.co.in/php/checkbookdate.php", requestOptions)
+      .then((response) => response.text())
+      .then((result) => {
+        console.log(result)
+        if (result === 'Available') {
+          Alert.alert("Dates Matched Proceeding To Book Your Loom")
+          navigation.navigate("BookLoomForm", { LoomDetailId: Loom.Id, OrderNo: OrderNo,FromDate: formatDate(startDate),ToDate:formatDate(endDate) })
+        } else {
+          Alert.alert("Dates Not Matched")
+        }
+      })
+      .catch((error) => console.error(error));
+     setIsBookingModalVisible2(false);
+  };
+
 
   const OrderNo = route.params?.OrderNo || OrderNo1;
-    const fetchData = async () => {
+  const fetchData = async () => {
     try {
       const id = await AsyncStorage.getItem("Id");
       const today = new Date().toISOString().substring(0, 10);
@@ -217,8 +273,12 @@ const LoomBooking = ({ navigation, route }) => {
     setBookedLoomNo(selectedLoom?.LoomNo);
   };
 
+  const [modalshown,setModalShown]=useState(null)
+
   const handleBlockPress1 = (loom) => {
-    navigation.navigate("BookLoomForm", { LoomDetailId: loom.Id , OrderNo:OrderNo})
+    // 
+    setSelectedLoom(loom)
+    setIsBookingModalVisible2(true)
   };
 
   const handleCloseModal = () => {
@@ -268,9 +328,9 @@ const LoomBooking = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
         <View style={styles.blockBottom}>
-          {loom.BookedToDate!=null ? (
+          {loom.BookedToDate != null ? (
             <View>
-              {(loom.LoomOrderId==null && loom.KnottingOrderId==null) ? (
+              {(loom.LoomOrderId == null && loom.KnottingOrderId == null) ? (
                 <View>
                   <Text style={styles.detailText1}>Booked</Text>
                   <Text style={styles.detailText1}>From: {loom.PartyName}</Text>
@@ -285,14 +345,14 @@ const LoomBooking = ({ navigation, route }) => {
                 </View>
               )}
               <TouchableOpacity style={styles.bookButton} onPress={() => handleBlockPress1(loom)}>
-                <Text style={styles.bookButtonText}>Book Loom</Text>
+                <Text style={styles.bookButtonText}>Check Dates</Text>
               </TouchableOpacity>
             </View>
           ) : (
             <View>
               <Text style={{ color: "#fff", fontSize: 15 }}>Available</Text>
               <TouchableOpacity style={styles.bookButton} onPress={() => handleBlockPress1(loom)}>
-                <Text style={styles.bookButtonText}>Book Loom</Text>
+                <Text style={styles.bookButtonText}>Check Dates </Text>
               </TouchableOpacity>
             </View>
           )}
@@ -519,6 +579,59 @@ const LoomBooking = ({ navigation, route }) => {
           </View>
         </View>
       </Modal>
+      <Modal
+      animationType="fade"
+      transparent={true}
+      visible={isBookingModalVisible2}
+      onRequestClose={() => setIsBookingModalVisible2(false)}
+    >
+      <View style={styles.modalBackground}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Check Availability For Loom</Text>
+
+                  <Text style={styles.modalTitle2}>Checking For : {selectedLoom?.LoomNo}</Text>
+
+
+          <TouchableOpacity
+            style={styles.dateInput}
+            onPress={() => setIsStartPickerVisible(true)}
+          >
+            <Text style={styles.dateText}>
+              Start Date: {formatDate(startDate)}
+            </Text>
+          </TouchableOpacity>
+          {isStartPickerVisible && (
+            <DateTimePicker
+              value={startDate}
+              mode="date"
+              display="default"
+              onChange={handleStartDateChange}
+            />
+          )}
+
+          <TouchableOpacity
+            style={styles.dateInput}
+            onPress={() => setIsEndPickerVisible(true)}
+          >
+            <Text style={styles.dateText}>
+              End Date: {formatDate(endDate)}
+            </Text>
+          </TouchableOpacity>
+          {isEndPickerVisible && (
+            <DateTimePicker
+              value={endDate}
+              mode="date"
+              display="default"
+              onChange={handleEndDateChange}
+            />
+          )}
+
+          <TouchableOpacity style={styles.submitButton} onPress={()=>handleSubmit(selectedLoom)}>
+            <Text style={styles.submitButtonText}>Submit</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
     </View>
   );
 };
@@ -627,6 +740,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
     textAlign: 'center',
+  },
+    modalTitle2: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+    alignSelf:"flex-start",
+    marginVertical:"2%",
+    color:"#000"
   },
   modalText: {
     fontSize: 16,
@@ -764,6 +886,55 @@ const styles = StyleSheet.create({
   },
   bookedBlock: {
     backgroundColor: '#ff9800',
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContainer: {
+    width: '85%',
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#003C43',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 15,
+    color: '#000',
+  },
+  dateInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 15,
+  },
+  dateText: {
+    color: '#000',
+  },
+  submitButton: {
+    backgroundColor: '#003C43',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

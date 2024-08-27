@@ -103,6 +103,12 @@ const TraderUser = ({ navigation }) => {
         <Text style={styles.detailsContent}>Registration Number: {selectedUser.RegistrationNumber}</Text>
         <Text style={styles.detailsContent}>Primary Contact: {selectedUser.PrimaryContact}</Text>
         <Text style={styles.detailsContent}>Role: {loomOrTraderMapping[selectedUser.LoomOrTrader]}</Text>
+
+        <View style={{ width: "100%" ,marginBottom:"15%", justifyContent: "center", alignItems: "center",}}>
+          <TouchableOpacity onPress={()=> navigation.navigate('Users', { appUserId: selectedUser.AppUserId })} style={{ backgroundColor: "#003C43", width: "90%", justifyContent: "center", alignItems: "center", borderRadius: 15 }}>
+            <Text style={{ color: "#fff", fontSize: 20, fontWeight: "600", padding: "3%" }}>Login As User</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };

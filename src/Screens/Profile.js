@@ -147,6 +147,7 @@ const ProfileTrader = ({ navigation }) => {
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerText}>User Profile</Text>
         </View>
+     
       </View>
 
       <View style={styles.profileContainer}>
