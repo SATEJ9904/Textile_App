@@ -79,15 +79,12 @@ const CanceledOrders = ({ navigation }) => {
         console.error(error);
         setLoading(false);
       });
-
   }
 
   const startOrder = async (order) => {
-    navigation.navigate("LiveBooking", { OrderNoId: order.LoomOrderId, OrderNo: order.OrderNo });
 
-    const confirmed = true
     try {
-        const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/updateloomorder.php?LoomOrderId=${order.LoomOrderId}&Confirmed=${confirmed}`);
+        const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/updateloomorder.php?LoomOrderId=${order.LoomOrderId}`);
 
         if (!response.ok) {
             throw new Error('Something went wrong');

@@ -8,16 +8,12 @@ import axios from 'axios'
 import ImagePicker from 'react-native-image-crop-picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-
 const { width } = Dimensions.get('window');
 const { height } = Dimensions.get('window');
 
-
 const PlanLooms = ({ navigation, focused }) => {
-
   const [showTable, setShowTable] = useState(true);
   const [showForm, setShowForm] = useState(false);
- 
   const [modalVisible, setModalVisible] = useState(false);
   const [Name, setName] = useState("");
   const [AppUserId, setAppUserId] = useState("")
@@ -27,8 +23,6 @@ const PlanLooms = ({ navigation, focused }) => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [loading, setLoading] = useState(false);
   const [modalVisible2, setModalVisible2] = useState(false);
-
-
 
   useEffect(() => {
     fetchselectedEnquiryId();
@@ -55,7 +49,6 @@ const PlanLooms = ({ navigation, focused }) => {
 
   const [TodaysDate, setTodaysDate] = useState(null)
 
-
   const fetchselectedEnquiryId = async () => {
     try {
       const response = await axios.get('https://textileapp.microtechsolutions.co.in/php/getidenquiry.php?Colname=TraderId&Colvalue=' + id);
@@ -64,8 +57,6 @@ const PlanLooms = ({ navigation, focused }) => {
       console.error(error);
     }
   };
-
-
 
   const getData = async () => {
     const Name = await AsyncStorage.getItem("Name");
@@ -80,7 +71,6 @@ const PlanLooms = ({ navigation, focused }) => {
 
   }
 
-
   const yesbutton = () => {
     setShowForm(false)
     setShowTable(true)
@@ -90,31 +80,24 @@ const PlanLooms = ({ navigation, focused }) => {
     setDesignPaper(null)
   }
 
-
   return (
-    <SafeAreaView style={{ flex: 1 ,backgroundColor:"#fff" }}>
-
-      <StatusBar backgroundColor={"#003C43"}></StatusBar>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+      <StatusBar backgroundColor={"#003C43"} />
       <View style={{ backgroundColor: "#003C43", flexDirection: "row", alignItems: 'center', height: 50 }}>
-
         <TouchableOpacity
           onPress={() => navigation.openDrawer()}
         >
           <Image
             source={require("../Images/drawer1.png")}
             style={{ width: 28, height: 22, marginLeft: 10, }}
-
           />
         </TouchableOpacity>
-
 
         <View style={{ flex: 0.9, alignItems: 'center' }}>
           <Text style={{ fontSize: 26, color: "white", fontWeight: 500 }}>  Plan Looms </Text>
         </View>
 
       </View>
-
-
 
       {selectedItem ? (
         <View>
@@ -126,7 +109,7 @@ const PlanLooms = ({ navigation, focused }) => {
             <Text>EnquiryNo: {selectedItem.EnquiryNo}</Text>
             <Text>EnquiryDate: {selectedItem.EnquiryDate.date.substring(0, 10)}</Text>
             <Text>TraderId: {selectedItem.TraderId}</Text>
-            <Text>BookingFrom: {selectedItem.BookingFrom.date.substring(0, 10)}</Text>
+           <Text>BookingFrom: {selectedItem.BookingFrom.date.substring(0, 10)}</Text>
             <Text>BookingTo: {selectedItem.BookingTo.date.substring(0, 10)}</Text>
             <Text>FabricQuality: {selectedItem.FabricQuality}</Text>
             <Text>LoomRequired: {selectedItem.LoomRequired}</Text>
@@ -138,11 +121,10 @@ const PlanLooms = ({ navigation, focused }) => {
       ) : (
         <ScrollView>
           {
-
             showTable ? <View style={styles.container}>
 
               <TouchableOpacity
-                onPress={() =>navigation.navigate("NewEnquiry")}
+                onPress={() => navigation.navigate("NewEnquiry")}
                 style={styles.btn}
               >
                 <View style={{ flex: 2, justifyContent: "center", alignItems: "center" }}>

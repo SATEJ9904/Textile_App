@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react'
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ImageView from "react-native-image-viewing";
 import NetInfo from "@react-native-community/netinfo";
+import Icon from 'react-native-vector-icons/Ionicons';
+
 
 
 const { width } = Dimensions.get('window');
@@ -359,7 +361,7 @@ const LiveOrderstrader = ({ navigation }) => {
   };
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalVisible2, setModalVisible2] = useState(false);
+  const [modalVisible4, setModalVisible4] = useState(false);
   const [contractsigned, setCOtractSigned] = useState(false);
   const [Name, setName] = useState("");
   const [AppUserId, setAppUserId] = useState("");
@@ -397,6 +399,11 @@ const LiveOrderstrader = ({ navigation }) => {
     fetchDataFPAD(order)
     callfuns();
     setShopwForms(true)
+  };
+
+  const handleOrderPressModal = (order) => {
+    ModalDataFetch2(order.Id);
+    setModalVisible4(true);
   };
 
   const yesbutton2 = () => {
@@ -526,6 +533,29 @@ const LiveOrderstrader = ({ navigation }) => {
   }
 
 
+  const [ModalData2, setModalData2] = useState(null)
+
+  const ModalDataFetch2 = (Id) => {
+    console.log("Id = ", Id)
+    const requestOptions = {
+      method: "GET",
+      redirect: "follow"
+    };
+
+    fetch("https://textileapp.microtechsolutions.co.in/php/getiddetail.php?Id=" + Id, requestOptions)
+      .then((response) => response.json())
+      .then((result) => {
+        setModalData2(result[0]); // Assuming the result is an array and we need the first item
+        setModalVisible4(true)
+        console.log(result[0])
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
+  }
+
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <StatusBar backgroundColor={"#003C43"}></StatusBar>
@@ -559,8 +589,12 @@ const LiveOrderstrader = ({ navigation }) => {
             {orders.map((order, index) => (
               order.Confirmed === 1 ? (
                 <View key={index} style={styles.orderWrapper}>
+                    <TouchableOpacity style={{ alignSelf: "flex-end" }} onPress={() => handleOrderPressModal(order)}>
+                        <Icon name="information-circle" size={22} color="grey" />
+                      </TouchableOpacity>
                   <TouchableOpacity style={styles.orderContainer} onPress={() => handleOrderPress(order)}>
                     <View style={{ paddingLeft: 10, marginBottom: 10 }}>
+                    
                       <Text style={styles.orderText}>{`Order No : ${order.OrderNo}\nName : ${order.Name}\nQuality : ${order.Quality}`}</Text>
                     </View>
                   </TouchableOpacity>
@@ -919,10 +953,10 @@ const LiveOrderstrader = ({ navigation }) => {
 
 
                         {FPAD.map((item, index) => (
-                            <View key={index} style={{ padding: 10, alignItems: "flex-start", justifyContent: "center", width: width * 0.85, borderBottomWidth: 1 }}>
-                              <Text style={{ color: "#000" }}>{item.UpdatedOn.date.substring(0, 10)}</Text>
-                              <Text style={{ color: "#000" }}>{item.Name} : {item.Comment}</Text>
-                            </View>
+                          <View key={index} style={{ padding: 10, alignItems: "flex-start", justifyContent: "center", width: width * 0.85, borderBottomWidth: 1 }}>
+                            <Text style={{ color: "#000" }}>{item.UpdatedOn.date.substring(0, 10)}</Text>
+                            <Text style={{ color: "#000" }}>{item.Name} : {item.Comment}</Text>
+                          </View>
                         ))}
 
 
@@ -1219,6 +1253,44 @@ const LiveOrderstrader = ({ navigation }) => {
                       </View>
                     </View>
                   </Modal>
+
+                  <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={modalVisible4}
+                    onRequestClose={() => {
+                      setModalVisible4(!modalVisible4);
+                    }}>
+                    <View style={styles.centeredView}>
+                      <View style={styles.modalView}>
+                        <TouchableOpacity style={{alignSelf:"flex-end"}} onPress={() => setModalVisible4(!modalVisible4)}>
+                          <Icon name="exit" size={32} color="red" />
+                        </TouchableOpacity>
+                        <Text style={{fontSize:20,fontWeight:"600",color:"#003C43"}}>Loom Details</Text>
+                        <ScrollView contentContainerStyle={styles.scrollViewContent}>
+
+                          {ModalData2 && (
+                            <>
+                              <Image
+                                source={{ uri: ModalData2.Profilepic }}
+                                style={{ width: "35%", height: "18%", marginBottom: "10%",marginTop:"15%",borderRadius:50 }}
+                              />
+                              <Text style={styles.modalText}><Text style={styles.modalText}>Email:</Text> {ModalData2.AppUserId}</Text>
+                              <Text style={styles.modalText}><Text style={styles.modalText}>Name:</Text> {ModalData2.Name}</Text>
+                              <Text style={styles.modalText}><Text style={styles.modalText}>Address:</Text> {ModalData2.Address}</Text>
+                              <Text style={styles.modalText}><Text style={styles.modalText}>State:</Text> {ModalData2.State}</Text>
+                              <Text style={styles.modalText}><Text style={styles.modalText}>City:</Text> {ModalData2.City}</Text>
+                              <Text style={styles.modalText}><Text style={styles.modalText}>Pincode:</Text> {ModalData2.Pincode}</Text>
+                              <Text style={[styles.modalText, { marginBottom: "20%" }]}><Text style={styles.modalText}>Mobile No.:</Text> {ModalData2.PrimaryContact}</Text>
+
+                            </>
+                          )}
+                        </ScrollView>
+                      </View>
+                    </View>
+                  </Modal>
+
+
                 </View>
 
               )}
@@ -1249,12 +1321,13 @@ const styles = StyleSheet.create({
   },
   orderWrapper: {
     marginBottom: 20,
-  },
-  orderContainer: {
-    padding: 10,
     borderRadius: 15,
     borderWidth: 2,
     borderColor: "#003C43",
+  },
+  orderContainer: {
+    padding: 10,
+
   },
   orderText: {
     color: 'black', // Text color for better contrast
@@ -1388,7 +1461,7 @@ const styles = StyleSheet.create({
     marginLeft: 20,
     marginRight: 20
   },
-  label: {
+  modalText: {
     fontSize: 18,
     marginBottom: 5,
   },
