@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, FlatList, Text, TouchableOpacity, Image, Modal, Pressable, Alert, RefreshControl, ScrollView } from 'react-native';
+import { View, StyleSheet, FlatList, Text, TouchableOpacity, Image, Modal, Pressable, Alert, RefreshControl } from 'react-native';
 import { TextInput, Card, Title, Paragraph, IconButton } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,13 +8,13 @@ import LottieView from 'lottie-react-native';
 const KnottingOffersT = ({ navigation }) => {
     const [reed, setReed] = useState('');
     const [reedSpace, setReedSpace] = useState('');
-    const [date, setDate] = useState(null); // Set date to null initially
+    const [date, setDate] = useState(null);
     const [show, setShow] = useState(false);
     const [data, setData] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [modal, setModal] = useState(false);
-    const [isAllOffersActive, setIsAllOffersActive] = useState(false); // State to manage All Offers tab
+    const [isAllOffersActive, setIsAllOffersActive] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [loomNames, setLoomNames] = useState({});
     const isMounted = useRef(false);
@@ -29,12 +29,10 @@ const KnottingOffersT = ({ navigation }) => {
         try {
             const response = await fetch('https://textileapp.microtechsolutions.co.in/php/gettable.php?table=KnottingOffer');
             const result = await response.json();
-
             const initialFilterData = result.filter(item => !item.ConfirmTrader);
             setFilteredData(initialFilterData);
             setData(initialFilterData);
             fetchLoomNames(initialFilterData.map(item => item.LoomId));
-            console.log(initialFilterData.map(item => item.LoomId))
         } catch (error) {
             console.error('Error fetching data:', error);
         }
@@ -43,33 +41,28 @@ const KnottingOffersT = ({ navigation }) => {
     const fetchLoomNames = async (loomIds) => {
         try {
             const uniqueLoomIds = [...new Set(loomIds)];
-            const loomNamePromises = uniqueLoomIds.map(id => 
+            const loomNamePromises = uniqueLoomIds.map(id =>
                 fetch(`https://textileapp.microtechsolutions.co.in/php/getiddetail.php?Id=${id}`)
                     .then(response => response.json())
                     .catch(error => {
                         console.error(`Error fetching loom name for ID ${id}:`, error);
-                        return { Name: 'Unknown' }; // Provide a default value in case of an error
+                        return { Name: 'Unknown' };
                     })
             );
-    
+
             const loomNameResults = await Promise.all(loomNamePromises);
-            console.log('Loom name results:', loomNameResults); // Log the results to inspect the response
-    
             const loomNameMap = loomNameResults.reduce((map, result, index) => {
-                console.log(`Processing result for Loom ID ${uniqueLoomIds[index]}:`, result); // Log each result
-               result.map((item)=>{
-                if (item && item.Name) {
-                    map[uniqueLoomIds[index]] = item.Name;
-                    console.log(item.Name)
-                } else {
-                    map[uniqueLoomIds[index]] = 'Unknown'; // Default value if Name is not present
-                }
-               })
+                result.map((item) => {
+                    if (item && item.Name) {
+                        map[uniqueLoomIds[index]] = item.Name;
+                    } else {
+                        map[uniqueLoomIds[index]] = 'Unknown';
+                    }
+                })
                 return map;
             }, {});
-    
+
             setLoomNames(loomNameMap);
-            console.log(loomNameMap)
         } catch (error) {
             console.error('Error fetching loom names:', error);
         }
@@ -88,39 +81,37 @@ const KnottingOffersT = ({ navigation }) => {
         const currentDate = selectedDate || date;
         setShow(false);
         setDate(currentDate);
-        setIsAllOffersActive(false); // Deactivate All Offers tab when a new date is selected
+        setIsAllOffersActive(false);
     };
 
     const handleSubmit = async (offerId) => {
         setLoading(true);
-        try {
-            const traderId = await AsyncStorage.getItem('Id');
-            const formdata = new FormData();
-            formdata.append("Id", offerId);
-            formdata.append("TraderId", traderId);
+        const formdata = new FormData();
+        formdata.append("Id", offerId);
+        formdata.append("TraderId", AsyncStorage.getItem("Id"));
 
-            const response = await fetch("https://textileapp.microtechsolutions.co.in/php/updateknottingoffer.php", {
-                method: "POST",
-                body: formdata,
-                redirect: "follow"
+        const requestOptions = {
+            method: "POST",
+            body: formdata,
+            redirect: "follow"
+        };
+
+        fetch("https://textileapp.microtechsolutions.co.in/php/updateknottingoffer.php", requestOptions)
+            .then((response) => response.text())
+            .then((result) => {
+                console.log(result);
+                setLoading(false);
+                Alert.alert("Knotting Order Confirmed");
+            })
+            .catch((error) => {
+                console.error(error);
+                setLoading(false);
+                Alert.alert("Knotting Order not Confirmed");
             });
-            const result = await response.text();
-            setLoading(false);
-            if (result.trim() === "Knotting Offer Confirmed") {
-                setModal(true);
-            } else {
-                Alert.alert("Error", result.trim());
-            }
-        } catch (error) {
-            console.error(error);
-            setLoading(false);
-            Alert.alert("Error", "An error occurred while processing your request.");
-        }
     };
 
     const handleAllOffersClick = () => {
         if (isAllOffersActive) {
-            // Reapply previous filters if All Offers tab is clicked again
             const filtered = data.filter(item =>
                 (reed ? item.Reed.toLowerCase().includes(reed.toLowerCase()) : true) &&
                 (reedSpace ? item.ReedSpace.toLowerCase().includes(reedSpace.toLowerCase()) : true) &&
@@ -128,149 +119,129 @@ const KnottingOffersT = ({ navigation }) => {
             );
             setFilteredData(filtered);
         } else {
-            // Show all offers when All Offers tab is clicked
             setFilteredData(data.filter(item => item.ConfirmTrader === null));
             setDate(null);
         }
-        setIsAllOffersActive(!isAllOffersActive); // Toggle tab active state
+        setIsAllOffersActive(!isAllOffersActive);
     };
-
-    if (loading) {
-        return (
-            <View style={styles.animationContainer}>
-                <LottieView
-                    source={require('../Animation/car_animation.json')}
-                    autoPlay
-                    loop
-                />
-                <Text style={styles.redirectText}>Processing Your Order...</Text>
-            </View>
-        );
-    }
 
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
-        fetchData(); // Refresh the data on pull down
+        fetchData();
         setTimeout(() => {
             if (isMounted.current) {
                 setRefreshing(false);
             }
         }, 2000);
-        console.log("refreshed");
     }, []);
+
+    const renderHeader = () => (
+        <View>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.openDrawer()}>
+                    <Image source={require('../Images/drawer.png')} style={styles.drawerIcon} />
+                </TouchableOpacity>
+                <View style={{ justifyContent: "center", alignItems: "center", width: "90%" }}>
+                    <Text style={styles.headerText}>Knotting Offers</Text>
+                </View>
+            </View>
+
+            <View style={styles.content}>
+                <TextInput
+                    label="Reed"
+                    value={reed}
+                    onChangeText={setReed}
+                    style={styles.input}
+                    theme={{ colors: { primary: '#003C43' } }}
+                />
+                <TextInput
+                    label="Reed Space"
+                    value={reedSpace}
+                    onChangeText={setReedSpace}
+                    style={styles.input}
+                    theme={{ colors: { primary: '#003C43' } }}
+                />
+                <View style={styles.dateContainer}>
+                    <TextInput
+                        label="Date"
+                        value={date ? date.toDateString() : ''}
+                        style={[styles.input, { flex: 1 }]}
+                        editable={false}
+                        theme={{ colors: { primary: '#003C43' } }}
+                    />
+                    <IconButton
+                        icon="calendar"
+                        size={30}
+                        color="#003C43"
+                        onPress={() => setShow(true)}
+                        style={styles.calendarIcon}
+                    />
+                </View>
+                <View style={styles.tabContainer}>
+                    <TouchableOpacity
+                        style={[styles.tab, isAllOffersActive && styles.activeTab]}
+                        onPress={handleAllOffersClick}
+                    >
+                        <Text style={[styles.tabText, isAllOffersActive && styles.activeTabText]}>All Offers</Text>
+                    </TouchableOpacity>
+                </View>
+                {show && (
+                    <DateTimePicker
+                        value={date || new Date()}
+                        mode="date"
+                        display="default"
+                        onChange={onChange}
+                    />
+                )}
+            </View>
+        </View>
+    );
 
     return (
         <View style={styles.container}>
-            <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.openDrawer()}>
-                        <Image source={require('../Images/drawer.png')} style={styles.drawerIcon} />
-                    </TouchableOpacity>
-                    <View style={{ justifyContent: "center", alignItems: "center", width: "90%" }}>
-                        <Text style={styles.headerText}>Knotting Offers</Text>
-                    </View>
-                </View>
-
-                <View style={styles.content}>
-                    <TextInput
-                        label="Reed"
-                        value={reed}
-                        onChangeText={setReed}
-                        style={styles.input}
-                        theme={{ colors: { primary: '#003C43' } }}
+            {loading ? (
+                <View style={styles.animationContainer}>
+                    <LottieView
+                        source={require('../Animation/car_animation.json')}
+                        autoPlay
+                        loop
                     />
-                    <TextInput
-                        label="Reed Space"
-                        value={reedSpace}
-                        onChangeText={setReedSpace}
-                        style={styles.input}
-                        theme={{ colors: { primary: '#003C43' } }}
-                    />
-                    <View style={styles.dateContainer}>
-                        <TextInput
-                            label="Date"
-                            value={date ? date.toDateString() : ''}
-                            style={[styles.input, { flex: 1 }]}
-                            editable={false}
-                            theme={{ colors: { primary: '#003C43' } }}
-                        />
-                        <IconButton
-                            icon="calendar"
-                            size={30}
-                            color="#003C43"
-                            onPress={() => setShow(true)}
-                            style={styles.calendarIcon}
-                        />
-                    </View>
-                    <View style={styles.tabContainer}>
-                        <TouchableOpacity
-                            style={[styles.tab, isAllOffersActive && styles.activeTab]}
-                            onPress={handleAllOffersClick}
-                        >
-                            <Text style={[styles.tabText, isAllOffersActive && styles.activeTabText]}>All Offers</Text>
-                        </TouchableOpacity>
-                    </View>
-                    {show && (
-                        <DateTimePicker
-                            value={date || new Date()}
-                            mode="date"
-                            display="default"
-                            onChange={onChange}
-                        />
-                    )}
-                    {filteredData.length > 0 ? (
-                        <FlatList
-                            data={filteredData}
-                            keyExtractor={(item) => item.KnottingId}
-                            renderItem={({ item }) => (
-                                <Card style={styles.card}>
-                                    <Card.Content>
-                                        <Title style={styles.cardTitle}>Offer No: {item.KnottingId}</Title>
-                                        <Paragraph style={styles.cardText}>Loom Unit: {loomNames[item.LoomId]}</Paragraph>
-                                        <Paragraph style={styles.cardText}>Reed: {item.Reed}</Paragraph>
-                                        <Paragraph style={styles.cardText}>Draft: {item.Draft}</Paragraph>
-                                        <Paragraph style={styles.cardText}>Reed Space: {item.ReedSpace}</Paragraph>
-                                        <Paragraph style={styles.cardText}>No of Looms: {item.NoofLooms}</Paragraph>
-                                        <Paragraph style={styles.cardText}>Available From: {new Date(item.AvailableFrom.date).toDateString()}</Paragraph>                                        <View style={styles.button}>
-                                            <TouchableOpacity
-                                                style={styles.buttonContainer}
-                                                onPress={() => handleSubmit(item.Id)}
-                                            >
-                                                <Text style={styles.buttonText}>Book Offer</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    </Card.Content>
-                                </Card>
-                            )}
-                        />
-                    ) : (
-                        <View style={styles.noDataContainer}>
-                            <Text style={styles.noDataText}>No offers found.</Text>
-                        </View>
-                    )}
+                    <Text style={styles.redirectText}>Processing Your Order...</Text>
                 </View>
-                <Modal
-                    animationType="slide"
-                    transparent={true}
-                    visible={modal}
-                    onRequestClose={() => setModal(false)}
-                >
-                    <View style={styles.modalContainer}>
-                        <View style={styles.modalContent}>
-                            <Text style={styles.modalText}>Offer Confirmed</Text>
-                            <Pressable
-                                style={styles.modalButton}
-                                onPress={() => {
-                                    setModal(false);
-                                    navigation.goBack();
-                                }}
-                            >
-                                <Text style={styles.modalButtonText}>Go Back</Text>
-                            </Pressable>
-                        </View>
-                    </View>
-                </Modal>
-            </ScrollView>
+            ) : (
+                <FlatList
+                    data={filteredData}
+                    keyExtractor={(item) => item.KnottingId.toString()}
+                    renderItem={({ item }) => (
+                        <Card style={styles.card}>
+                        <Card.Content>
+                            <Title style={styles.cardTitle}>Offer No: {item.KnottingId}</Title>
+                            <Paragraph style={styles.cardText}>Loom Unit: {loomNames[item.LoomId]}</Paragraph>
+                            <Paragraph style={styles.cardText}>Reed: {item.Reed}</Paragraph>
+                            <Paragraph style={styles.cardText}>Draft: {item.Draft}</Paragraph>
+                            <Paragraph style={styles.cardText}>Reed Space: {item.ReedSpace}</Paragraph>
+                            <Paragraph style={styles.cardText}>No of Looms: {item.NoofLooms}</Paragraph>
+                            <Paragraph style={styles.cardText}>Available From: {new Date(item.AvailableFrom.date).toDateString()}</Paragraph>
+                            <View style={styles.button}>
+                                <TouchableOpacity
+                                    style={styles.buttonContainer}
+                                    onPress={() => handleSubmit(item.Id)}
+                                >
+                                    <Text style={styles.buttonText}>Book Offer</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </Card.Content>
+                    </Card>
+                    )}
+                    ListHeaderComponent={renderHeader}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                        />
+                    }
+                />
+            )}
         </View>
     );
 };

@@ -132,7 +132,7 @@ dependencies {
         implementation jscFlavor
     }
     implementation 'com.google.android.gms:play-services-location:21.0.1' // add this line
-
+    implementation project(':react-native-file-viewer')
    
 }
 

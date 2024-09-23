@@ -76,6 +76,11 @@ import BookLoomForm from './BookLoomForm';
 import SignUpYarn from './SignUpYarn';
 import ProfileYarn from './ProfileYarn';
 import CanceledOrders from './CanceledOrders';
+import Market from './Market';
+import GenerateOffers from './GenerateOffers';
+import ViewOffers from './ViewOffers';
+import Message from './Message';
+import MessageSelections from './MessageSelections';
 
 
 
@@ -238,6 +243,27 @@ const LoomDrawerNavigator = () => (
 
       }} />
 
+
+    <LoomDrawer.Screen
+
+      name="Market Offers"
+      component={Market}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icon name={focused ? 'rupee' : 'rupee'} size={25} color={'grey'} />
+        ),
+        title: 'Market Offers',
+        drawerLabelStyle: {
+          marginLeft: 10,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 18,
+
+        },
+
+      }} />
 
 
     <LoomDrawer.Screen
@@ -481,8 +507,8 @@ const TraderDrawerNavigator = () => (
 
     <TraderDrawer.Screen
 
-      name="GetYarnRatesTrader"
-      component={GetYarnRatesTrader}
+      name="Market"
+      component={Market}
       options={{
         drawerActiveBackgroundColor: '#fff',
         drawerActiveTintColor: '#000',
@@ -490,7 +516,7 @@ const TraderDrawerNavigator = () => (
         drawerIcon: ({ focused }) => (
           <Icon name={focused ? 'rupee' : 'rupee'} size={25} color={'grey'} />
         ),
-        title: 'Get Yarn Rates',
+        title: 'Market',
         drawerLabelStyle: {
           marginLeft: 10,
           fontFamily: 'Roboto-Medium',
@@ -565,7 +591,7 @@ const TraderDrawerNavigator = () => (
 
     <TraderDrawer.Screen
 
-      name="Profile"
+      name="ProfileTrader"
       component={Profile}
       options={{
         drawerActiveBackgroundColor: '#fff',
@@ -929,6 +955,27 @@ const YarnDrawerNavigator = () => (
 
       }} />
 
+    <YarnDrawer.Screen
+
+      name="Market"
+      component={Market}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Iconsn name={focused ? 'android-messages' : 'android-messages'} size={25} color={'grey'} />
+        ),
+        title: 'Market',
+        drawerLabelStyle: {
+          marginLeft: 0,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 18,
+
+        },
+
+
+      }} />
 
     <YarnDrawer.Screen
 
@@ -988,7 +1035,8 @@ const Navigator = () => {
   const permission = async () => {
     PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
     PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA);
-
+    PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE)
+    PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE)
   }
 
 
@@ -1057,6 +1105,11 @@ const Navigator = () => {
         <Stack.Screen name="LiveBooking" component={LiveBooking} />
         <Stack.Screen name="BookLoomForm" component={BookLoomForm} />
         <Stack.Screen name="SignUpYarn" component={SignUpYarn} />
+        <Stack.Screen name="GenerateOffers" component={GenerateOffers} />
+        <Stack.Screen name="ViewOffers" component={ViewOffers} />
+        <Stack.Screen name="Message" component={Message} />
+        <Stack.Screen name="MessageSelections" component={MessageSelections} />
+        <Stack.Screen name="MessageUserSelection" component={MessageUserSelection} />
 
       </Stack.Navigator>
     </NavigationContainer>

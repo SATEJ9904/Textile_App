@@ -4,7 +4,6 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from 'react-native-geolocation-service';
 import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
-import { launchCamera } from 'react-native-image-picker';
 
 const Users = ({ navigation, route }) => {
   const { appUserId } = route.params || {};
@@ -224,7 +223,7 @@ const Users = ({ navigation, route }) => {
           .then((response) => response.text())
           .then((result) => {
             console.log(result);
-            captureImage();
+          
           })
           .catch((error) => console.error(error));
       },
@@ -242,26 +241,6 @@ const Users = ({ navigation, route }) => {
     );
   };
 
-  const captureImage = () => {
-    launchCamera(
-      {
-        mediaType: 'photo',
-        cameraType: 'front',
-        saveToPhotos: false,
-      },
-      (response) => {
-        if (response.didCancel) {
-          console.log('User cancelled image capture');
-        } else if (response.errorCode) {
-          console.log('Camera Error: ', response.errorCode);
-        } else if (response.assets && response.assets.length > 0) {
-          const uri = response.assets[0].uri;
-          console.log(uri);
-          // Here, you can handle the captured image, e.g., send it to a server
-        }
-      }
-    );
-  };
 
   const renderCard = ({ item }) => (
     <View style={styles.card}>

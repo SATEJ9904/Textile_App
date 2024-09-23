@@ -10,7 +10,9 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 
 const { width } = Dimensions.get('window');
 const { height } = Dimensions.get('window');
-
+const fontSize = (size) => Math.round(size * scaleWidth);
+const baseWidth = 360; // Assuming 360 is the base width you are designing for
+const scaleWidth = width / baseWidth;
 const PlanLooms = ({ navigation, focused }) => {
   const [showTable, setShowTable] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -109,7 +111,7 @@ const PlanLooms = ({ navigation, focused }) => {
             <Text>EnquiryNo: {selectedItem.EnquiryNo}</Text>
             <Text>EnquiryDate: {selectedItem.EnquiryDate.date.substring(0, 10)}</Text>
             <Text>TraderId: {selectedItem.TraderId}</Text>
-           <Text>BookingFrom: {selectedItem.BookingFrom.date.substring(0, 10)}</Text>
+            <Text>BookingFrom: {selectedItem.BookingFrom.date.substring(0, 10)}</Text>
             <Text>BookingTo: {selectedItem.BookingTo.date.substring(0, 10)}</Text>
             <Text>FabricQuality: {selectedItem.FabricQuality}</Text>
             <Text>LoomRequired: {selectedItem.LoomRequired}</Text>
@@ -128,11 +130,15 @@ const PlanLooms = ({ navigation, focused }) => {
                 style={styles.btn}
               >
                 <View style={{ flex: 2, justifyContent: "center", alignItems: "center" }}>
-                  <Icon name='user-plus' size={45} color={'#003C43'} />
+                  <Image
+                    source={require('../Images/assignment.png')}
+                    style={{ width: 100, height: 100 }}
+                  />
                 </View>
 
-                <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-                  <Text style={{ fontSize: 20, color: '#003C43', fontWeight: '500' }}> Generate Enquiry </Text>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: "center" }}>
+                  <Text style={{ fontSize: 22, color: '#003C43', fontWeight: '500', marginTop: "5%" }}> Generate Enquiry </Text>
+                  <Text style={{ fontSize: 15, color: '#003C43', fontWeight: '500' }}> Easy create the Enquires for Looms </Text>
 
                 </View>
 
@@ -143,11 +149,15 @@ const PlanLooms = ({ navigation, focused }) => {
                 style={styles.btn}
               >
                 <View style={{ flex: 2, justifyContent: "center", alignItems: "center" }}>
-                  <Icon name='check-square-o' size={55} color={'#003C43'} />
+                  <Image
+                    source={require('../Images/daily-tasks.png')}
+                    style={{ width: 100, height: 100 }}
+                  />
                 </View>
 
-                <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-                  <Text style={{ fontSize: 18, color: '#003C43', fontWeight: '500', height: "100%" }}> Check Enquiry Response </Text>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: "center" }}>
+                  <Text style={{ fontSize: 22, color: '#003C43', fontWeight: '500', marginTop: "8%" }}> Enquiry Response </Text>
+                  <Text style={{ fontSize: 15, color: '#003C43', fontWeight: '500' }}> Track responses from loom providers  </Text>
 
                 </View>
 
@@ -158,11 +168,15 @@ const PlanLooms = ({ navigation, focused }) => {
                 style={styles.btn}
               >
                 <View style={{ flex: 2, justifyContent: "center", alignItems: "center" }}>
-                  <Icon name='list-alt' size={55} color={'#003C43'} />
+                  <Image
+                    source={require('../Images/accountability.png')}
+                    style={{ width: 100, height: 100 }}
+                  />
                 </View>
 
-                <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-                  <Text style={{ fontSize: 20, color: '#003C43', fontWeight: '500' }}> Your Enquires </Text>
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: "center" }}>
+                  <Text style={{ fontSize: 22, color: '#003C43', fontWeight: '500', marginTop: "8%" }}> Your Enquires </Text>
+                  <Text style={{ fontSize: 15, color: '#003C43', fontWeight: '500' }}> History of your past inquiries and follow up. </Text>
 
                 </View>
 
@@ -189,131 +203,121 @@ const styles = StyleSheet.create({
     padding: 10,
     paddingTop: 30,
     alignItems: 'center',
-    width: width * 1,
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#F5F5F5', // Light background for contrast
   },
   header: {
     flexDirection: 'row',
     marginBottom: 10,
-    //   borderWidth: 1,
-    borderColor: '#000',
+    alignItems: 'center',
   },
-
   headerText: {
     fontWeight: 'bold',
-    color: "#000",
-    fontSize: 15
+    color: "#003C43", // Brand color
+    fontSize: fontSize(24), // Dynamic font size for more emphasis
   },
   headerText1: {
-    color: "#000",
-    fontSize: 15
+    color: "#003C43", // Use brand color for smaller text
+    fontSize: fontSize(15),
   },
   row: {
     flexDirection: 'row',
-    //   borderWidth: 1,
-    borderColor: '#000',
+    justifyContent: 'space-between',
+    padding: 10,
   },
   cell: {
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 10,
-    color: "#000"
+    paddingVertical: 12,
+    color: "#000",
+    borderColor: '#ddd', // Use lighter borders for better readability
+    borderRadius: 5, // Slight rounding of corners for modern look
   },
   fabricQuality: {
-    width: width * 1,
+    width: '100%',
     flexDirection: "row",
+    marginBottom: 10, // Add space between rows
   },
   fabricDetails: {
     height: height * 0.05,
     width: width * 0.15,
-    borderColor: 'gray',
-    borderBottomWidth: 1,
+    borderColor: '#003C43', // Darker border for better visibility
+    borderBottomWidth: 1.5, // Thicker border for emphasis
     marginBottom: height * 0.02,
-    fontSize: 10,
-    color: "#000",
-    fontWeight: "800"
+    fontSize: fontSize(12), // Slightly larger font for readability
+    color: "#003C43", // Use a dark color for text
+    fontWeight: "700", // Heavier font for important details
   },
   flatList: {
     marginTop: 10,
-    color: "#000"
+    color: "#000",
   },
   containerform: {
     padding: 20,
     color: "#000",
-    width: width * 0.99,
+    width: '100%',
+    backgroundColor: '#fff', // White background for form
+    borderRadius: 10, // Round the corners for a clean look
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5, // Subtle shadow for a floating effect
   },
   input: {
     borderWidth: 1.5,
-    borderColor: '#000',
-    borderRadius: 5,
-    padding: 10,
+    borderColor: '#003C43', // Use brand color for input borders
+    borderRadius: 10, // Softer rounding for input fields
+    padding: 12, // Increase padding for a spacious feel
     marginBottom: 15,
-    fontSize: 17,
+    fontSize: fontSize(17), // Dynamic font size for readability
     color: "#000",
-    fontWeight: "500"
-  },
-  input1: {
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 15,
-    fontSize: 20,
-    color: "#000"
+    fontWeight: "500",
+    backgroundColor: '#fff', // White background for inputs
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2, // Subtle shadow for inputs
   },
   button: {
-    backgroundColor: '#003C43',
+    backgroundColor: '#003C43', // Brand color for buttons
     padding: 15,
-    borderRadius: 5,
+    borderRadius: 10, // Rounded button corners
     alignItems: 'center',
     marginTop: 10,
+    width: '100%', // Full-width buttons for balance
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 5, // Shadow to give button a floating effect
   },
   buttonText: {
-    color: 'white',
+    color: 'white', // White text for contrast
     fontWeight: 'bold',
-  },
-  notInterestedButton: {
-    backgroundColor: 'red',
+    fontSize: fontSize(18), // Larger text for emphasis
   },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
     marginLeft: "3%",
-
   },
   dropdown: {
     height: 50,
-    borderColor: 'gray',
-    borderWidth: 0.5,
+    borderColor: '#003C43', // Darker border for dropdown
+    borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 8,
-  },
-  icon: {
-    marginRight: 5,
-  },
-  label: {
-    position: 'absolute',
-    backgroundColor: 'white',
-    left: 22,
-    top: 8,
-    zIndex: 999,
-    paddingHorizontal: 8,
-    fontSize: 16,
-  },
-  placeholderStyle: {
-    fontSize: 17,
-    color: "grey"
-  },
-  selectedTextStyle: {
-    fontSize: 17,
-    color: "#000"
-  },
-  iconStyle: {
-    width: 20,
-    height: 20,
-  },
-  inputSearchStyle: {
-    height: 40,
-    fontSize: 17,
+    backgroundColor: '#fff', // White background for dropdown
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 3, // Shadow for dropdown
   },
   centeredView: {
     flex: 1,
@@ -323,65 +327,46 @@ const styles = StyleSheet.create({
   },
   modalView: {
     margin: 20,
-    backgroundColor: 'white',
+    backgroundColor: 'white', // White background for modal
     borderRadius: 20,
     padding: 35,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 5,
+    elevation: 5, // Slightly more elevation for modals
   },
   button1: {
     borderRadius: 10,
     padding: 10,
+    paddingHorizontal: 15,
+    backgroundColor: '#003C43', // Brand color for modal buttons
     elevation: 2,
-    paddingHorizontal: 15
   },
   buttonOpen: {
-    backgroundColor: "red",
-  },
-  buttonClose: {
-    backgroundColor: "red",
-    margin: "5%"
+    backgroundColor: "red", // Red for destructive actions
   },
   textStyle: {
-    color: 'white',
+    color: 'white', // White text for contrast
     fontWeight: 'bold',
     textAlign: 'center',
-    backgroundColor: "red"
-  },
-  buttonOpen1: {
-    backgroundColor: "#003C43",
-  },
-  buttonClose1: {
-    backgroundColor: "#003C43",
-    margin: "5%"
-  },
-  textStyle1: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    backgroundColor: "#003C43"
-  },
-  modalText: {
-    marginBottom: 15,
-    textAlign: 'center',
-    color: "#000",
-    fontSize: 17
+    backgroundColor: "red", // Red background for emphasis
   },
   btn: {
-    height: 150,
+    height: "28%",
     width: width * 0.8,
-    padding: 10,
+    padding: 15, // Increase padding for touchable buttons
     borderRadius: 15,
-    borderWidth: 3,
+    borderWidth: 2,
     marginBottom: 30,
-    borderColor: '#003C43',
-    alignItems: 'center'
-  }
-})
+    borderColor: '#003C43', // Brand color for button borders
+    alignItems: 'center',
+    backgroundColor: '#fff', // White background with border
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 6, // Subtle shadow for card effect
+  },
+});
