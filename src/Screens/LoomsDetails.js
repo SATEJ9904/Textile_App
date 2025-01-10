@@ -306,10 +306,10 @@ const LoomDetails = ({ navigation }) => {
 
                 <TouchableOpacity
                  style={{padding:"3%"}}
-                    onPress={() => navigation.openDrawer()}
+                    onPress={() => navigation.goBack()}
                 >
                     <Image
-                        source={require("../Images/drawer1.png")}
+                        source={require("../Images/back.png")}
                         style={{ width: 28, height: 22, marginLeft: 10, }}
 
                     />
@@ -380,7 +380,7 @@ const LoomDetails = ({ navigation }) => {
                         maxHeight={300}
                         labelField="label"
                         valueField="value"
-                        placeholder={!isFocus4 ? 'Select shedding Type' : '...'}
+                        placeholder={!isFocus4 ? 'Select Shedding Type' : '...'}
                         searchPlaceholder="Search..."
                         value={sheddingType}
                         onFocus={() => setIsFocus4(true)}

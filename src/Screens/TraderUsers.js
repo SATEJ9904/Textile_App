@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   searchBar: {
-    height: "6%",
+    height: "16%",
     borderColor: '#dfe3e6',
     borderWidth: 1,
     borderColor:"#555",
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     margin: 20,
     backgroundColor: '#ffffff',
     fontSize: 16,
-    padding:"5%",
+    padding:"3%",
     color:"#000"
   },
   cardContainer: {

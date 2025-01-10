@@ -39,7 +39,7 @@ const SelfInfo = ({ navigation }) => {
         getData().then(() => setRefreshing(false));
     }, []);
 
-    const roleDisplay = userInfo.Role === 'T' ? 'Trader' :userInfo.Role === "T"? 'Loom' :userInfo.Role === "Y" ? "Yarn":userInfo.Role === "A" ? "Admin":null;
+    const roleDisplay = userInfo.Role === 'T' ? 'Trader' :userInfo.Role === "L"? 'Loom' :userInfo.Role === "Y" ? "Yarn":userInfo.Role === "A" ? "Admin":null;
 
     const countryFlag = (countryCode) => {
         // Return a country flag emoji based on the country code
@@ -48,7 +48,7 @@ const SelfInfo = ({ navigation }) => {
             IN: '🇮🇳',
             // Add more country codes and flags as needed
         };
-        return countryFlags[countryCode] || '🏳️';
+        return countryFlags[countryCode] || '';
     };
 
     return (

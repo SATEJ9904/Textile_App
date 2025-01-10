@@ -86,6 +86,10 @@ import ViewOffers from './src/Screens/ViewOffers';
 import Message from './src/Screens/Message';
 import MessageSelections from './src/Screens/MessageSelections';
 import MessageUserSelection from './src/Screens/MessageUserSelection';
+import Subscription from './src/Screens/Subscription';
+import LoomDetails from './src/Screens/LoomsDetails';
+import KnottingConfirmedT from './src/Screens/KnottingConfirmedT';
+import KROfferList from './src/Screens/KROfferList';
 
 
 
@@ -136,7 +140,26 @@ const LoomDrawerNavigator = () => (
       }} />
 
 
+    <LoomDrawer.Screen
 
+      name="KnottingOffersL"
+      component={KnottingOffersL}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icons name={focused ? 'local-offer' : 'local-offer'} size={25} color={'grey'} />
+        ),
+        title: 'Knotting Offers',
+        drawerLabelStyle: {
+          marginLeft: 10,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 18,
+
+        },
+
+      }} />
 
 
     <LoomDrawer.Screen
@@ -160,29 +183,6 @@ const LoomDrawerNavigator = () => (
 
       }} />
 
-
-
-
-    <LoomDrawer.Screen
-
-      name="LoomDetails"
-      component={LoomsDetails}
-      options={{
-        drawerActiveBackgroundColor: '#fff',
-        drawerActiveTintColor: '#000',
-        drawerInactiveTintColor: '#000',
-        drawerIcon: ({ focused }) => (
-          <Icon name={focused ? 'address-card' : 'address-card'} size={25} color={'grey'} />
-        ),
-        title: 'Looms Details',
-        drawerLabelStyle: {
-          marginLeft: 0,
-          fontFamily: 'Roboto-Medium',
-          fontSize: 18,
-
-        },
-
-      }} />
 
 
     <LoomDrawer.Screen
@@ -228,37 +228,18 @@ const LoomDrawerNavigator = () => (
 
       }} />
 
-    <LoomDrawer.Screen
 
-      name="KnottingOffersL"
-      component={KnottingOffersL}
-      options={{
-        drawerActiveBackgroundColor: '#fff',
-        drawerActiveTintColor: '#000',
-        drawerInactiveTintColor: '#000',
-        drawerIcon: ({ focused }) => (
-          <Icons name={focused ? 'local-offer' : 'local-offer'} size={25} color={'grey'} />
-        ),
-        title: 'Knotting Offers',
-        drawerLabelStyle: {
-          marginLeft: 10,
-          fontFamily: 'Roboto-Medium',
-          fontSize: 18,
-
-        },
-
-      }} />
 
     <LoomDrawer.Screen
 
-      name="Market Offers"
+      name="Market"
       component={Market}
       options={{
         drawerActiveBackgroundColor: '#fff',
         drawerActiveTintColor: '#000',
         drawerInactiveTintColor: '#000',
         drawerIcon: ({ focused }) => (
-          <Icon name={focused ? 'rupee' : 'rupee'} size={25} color={'grey'} />
+          <Iconsn name={focused ? 'Shopping' : 'Shopping'} size={25} color={'grey'} />
         ),
         title: 'Market Offers',
         drawerLabelStyle: {
@@ -336,26 +317,6 @@ const LoomDrawerNavigator = () => (
 
       }} />
 
-    <LoomDrawer.Screen
-
-      name="GetYarnRates"
-      component={GetYarnRates}
-      options={{
-        drawerActiveBackgroundColor: '#fff',
-        drawerActiveTintColor: '#000',
-        drawerInactiveTintColor: '#000',
-        drawerIcon: ({ focused }) => (
-          <Icon name={focused ? 'rupee' : 'rupee'} size={25} color={'grey'} />
-        ),
-        title: 'Get Yarn Rates',
-        drawerLabelStyle: {
-          marginLeft: 10,
-          fontFamily: 'Roboto-Medium',
-          fontSize: 18,
-
-        },
-
-      }} />
 
     <LoomDrawer.Screen
 
@@ -443,6 +404,28 @@ const TraderDrawerNavigator = () => (
 
       }} />
 
+    <TraderDrawer.Screen
+
+      name="KnottingOffersT"
+      component={KnottingOffersT}
+      options={{
+        drawerActiveBackgroundColor: '#fff',
+        drawerActiveTintColor: '#000',
+        drawerInactiveTintColor: '#000',
+        drawerIcon: ({ focused }) => (
+          <Icons name={focused ? 'local-offer' : 'local-offer'} size={25} color={'grey'} />
+        ),
+        title: 'Knotting Offers',
+        drawerLabelStyle: {
+          marginLeft: 10,
+          fontFamily: 'Roboto-Medium',
+          fontSize: 15,
+
+        },
+
+      }} />
+
+
 
     <TraderDrawer.Screen
 
@@ -486,26 +469,6 @@ const TraderDrawerNavigator = () => (
 
       }} />
 
-    <TraderDrawer.Screen
-
-      name="KnottingOffersT"
-      component={KnottingOffersT}
-      options={{
-        drawerActiveBackgroundColor: '#fff',
-        drawerActiveTintColor: '#000',
-        drawerInactiveTintColor: '#000',
-        drawerIcon: ({ focused }) => (
-          <Icons name={focused ? 'discount' : 'discount'} size={25} color={'grey'} />
-        ),
-        title: 'Knotting Offers',
-        drawerLabelStyle: {
-          marginLeft: 10,
-          fontFamily: 'Roboto-Medium',
-          fontSize: 15,
-
-        },
-
-      }} />
 
     <TraderDrawer.Screen
 
@@ -549,26 +512,7 @@ const TraderDrawerNavigator = () => (
 
       }} />
 
-    <TraderDrawer.Screen
 
-      name="IncompleteOrders"
-      component={IncompleteOrders}
-      options={{
-        drawerActiveBackgroundColor: '#fff',
-        drawerActiveTintColor: '#000',
-        drawerInactiveTintColor: '#000',
-        drawerIcon: ({ focused }) => (
-          <Icon name={focused ? 'exclamation-circle' : 'exclamation-circle'} size={25} color={'grey'} />
-        ),
-        title: 'Incomplete Orders',
-        drawerLabelStyle: {
-          marginLeft: 10,
-          fontFamily: 'Roboto-Medium',
-          fontSize: 15,
-
-        },
-
-      }} />
 
     <TraderDrawer.Screen
 
@@ -890,49 +834,6 @@ const YarnDrawerNavigator = () => (
 
       }} />
 
-    <YarnDrawer.Screen
-
-      name="LoomMsgs"
-      component={LoomMsgs}
-      options={{
-        drawerActiveBackgroundColor: '#fff',
-        drawerActiveTintColor: '#000',
-        drawerInactiveTintColor: '#000',
-        drawerIcon: ({ focused }) => (
-          <Iconsn name={focused ? 'android-messages' : 'android-messages'} size={25} color={'grey'} />
-        ),
-        title: 'Loom Messages',
-        drawerLabelStyle: {
-          marginLeft: 0,
-          fontFamily: 'Roboto-Medium',
-          fontSize: 18,
-
-        },
-
-
-      }} />
-
-    <YarnDrawer.Screen
-
-      name="TraderMsgs"
-      component={TraderMsgs}
-      options={{
-        drawerActiveBackgroundColor: '#fff',
-        drawerActiveTintColor: '#000',
-        drawerInactiveTintColor: '#000',
-        drawerIcon: ({ focused }) => (
-          <Iconsn name={focused ? 'message-text-outline' : 'message-text-outline'} size={25} color={'grey'} />
-        ),
-        title: 'Trader Messages',
-        drawerLabelStyle: {
-          marginLeft: 0,
-          fontFamily: 'Roboto-Medium',
-          fontSize: 18,
-
-        },
-
-
-      }} />
 
     <YarnDrawer.Screen
 
@@ -1091,6 +992,7 @@ const App = () => {
         <Stack.Screen name="DrawerNavigator" component={DrawerNavigator} />
         <Stack.Screen name="Navigator" component={Navigator} />
         <Stack.Screen name="Difference" component={LTDIFF} />
+        <Stack.Screen name="LoomDetails" component={LoomDetails} />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Splash" component={Splash} />
         <Stack.Screen name="Splash2" component={Splash2} />
@@ -1099,7 +1001,6 @@ const App = () => {
         <Stack.Screen name="SignupTrader" component={SignupTrader} />
         <Stack.Screen name="LoginTrader" component={LoginTrader} />
         <Stack.Screen name="Data" component={Data} />
-        <Stack.Screen name="LoomBooking" component={LoomBooking} />
         <Stack.Screen name="ConfirmEnquires" component={ConfirmEnquires} />
         <Stack.Screen name="NoInternet" component={NoInternetScreen} />
         <Stack.Screen name="ConfirmOrds" component={ConfirmOrders} />
@@ -1130,6 +1031,10 @@ const App = () => {
         <Stack.Screen name="Message" component={Message} />
         <Stack.Screen name="MessageSelections" component={MessageSelections} />
         <Stack.Screen name="MessageUserSelection" component={MessageUserSelection} />
+        <Stack.Screen name="Subscription" component={Subscription} />
+        <Stack.Screen name="KnottingConfirmedT" component={KnottingConfirmedT} />
+        <Stack.Screen name="KROfferList" component={KROfferList} />
+
 
 
       </Stack.Navigator>

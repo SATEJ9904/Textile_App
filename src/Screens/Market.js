@@ -1,10 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, Modal, Image, ScrollView, Dimensions } from 'react-native';
 import { TextInput, Button, IconButton, Snackbar, Card, Title } from 'react-native-paper';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import ImagePicker from 'react-native-image-crop-picker';
-import LottieView from 'lottie-react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native'; 
 
@@ -29,9 +25,11 @@ const Market = () => {
                 <View style={styles.content}>
                     <View style={styles.cardContainer}>
                         <Card style={styles.card}>
-                            <Card.Cover source={{uri : "https://static.vecteezy.com/system/resources/previews/032/977/838/non_2x/make-offer-rubber-grunge-stamp-seal-vector.jpg"}} />
+                            <Card.Cover source={require("../Images/Client2.jpg")} />
                             <Card.Content>
                                 <Title style={styles.cardTitle}>Generate Offer</Title>
+                                <Title style={styles.cardTitle2}>Here you can offer your yarn, greige fabric and finish fabric to all the market.</Title>
+
                             </Card.Content>
                             <Card.Actions>
                                 <TouchableOpacity
@@ -45,9 +43,11 @@ const Market = () => {
                     </View>
                     <View style={styles.cardContainer}>
                         <Card style={styles.card}>
-                            <Card.Cover source={{uri : "https://img.freepik.com/free-vector/special-offer-modern-sale-banner-template_1017-20667.jpg"}} />
-                            <Card.Content>
+                        <Card.Cover source={require("../Images/client1.jpg")} />
+                        <Card.Content>
                                 <Title style={styles.cardTitle}>View Offers</Title>
+                                <Title style={styles.cardTitle2}>Here you can view offers of yarn, greige fabric, finish fabric made by others</Title>
+
                             </Card.Content>
                             <Card.Actions>
                                 <TouchableOpacity
@@ -122,6 +122,11 @@ const styles = StyleSheet.create({
     },
     cardTitle: {
         fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    cardTitle2: {
+        fontSize: 15,
         fontWeight: 'bold',
         color: '#333',
     },

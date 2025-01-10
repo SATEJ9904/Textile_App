@@ -14,7 +14,11 @@ const MyLoom = ({ navigation }) => {
                 if (LoomTraderId) {
                     const response = await axios.get(`https://textileapp.microtechsolutions.co.in/php/bookingjoin.php?LoomTraderId=${LoomTraderId}`);
                     if (response.data) {
-                        setLoomList(response.data);
+                        // Filter out duplicates based on LoomNo
+                        const uniqueLoomList = response.data.filter((loom, index, self) =>
+                            index === self.findIndex((t) => t.LoomNo === loom.LoomNo)
+                        );
+                        setLoomList(uniqueLoomList);
                     }
                 } else {
                     console.error('No LoomTraderId found in AsyncStorage');

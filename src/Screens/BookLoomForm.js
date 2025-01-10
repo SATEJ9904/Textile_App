@@ -5,7 +5,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 const { width, height } = Dimensions.get('window');
 
 const BookLoomForm = ({ route, navigation }) => {
-  const { LoomDetailId, OrderNo, FromDate, ToDate } = route.params;
+  const { LoomDetailId, OrderNo, FromDate, ToDate, KnottingId } = route.params;
 
   const [loomNo, setLoomNo] = useState('');
   const [loomAvailableFrom, setLoomAvailableFrom] = useState('N/A');
@@ -24,6 +24,13 @@ const BookLoomForm = ({ route, navigation }) => {
   const [bookingId, setBookingId] = useState('');
   const [formType, setFormType] = useState(null);
   const [knottingOrderId, setKnottingOrderId] = useState('');
+
+
+  useEffect(() => {
+    if (KnottingId) {
+      setFormType('knotting'); // If KnottingId exists, set formType to "knotting"
+    }
+  },[])
 
   useEffect(() => {
     const fetchLoomDetails = async () => {
@@ -54,6 +61,7 @@ const BookLoomForm = ({ route, navigation }) => {
 
     fetchLoomDetails();
   }, [LoomDetailId, FromDate, ToDate]);
+
 
 
   const addMonths = (date, months) => {
@@ -319,7 +327,7 @@ const BookLoomForm = ({ route, navigation }) => {
             <Text style={styles.optionButtonText}>Book for Knotting Orders</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.optionButton} onPress={() => setFormType('other')}>
-            <Text style={styles.optionButtonText}>Book For Other Orders</Text>
+            <Text style={styles.optionButtonText}>Book For Gaiting Orders</Text>
           </TouchableOpacity>
         </View>
       );
@@ -335,7 +343,7 @@ const BookLoomForm = ({ route, navigation }) => {
 
               </View>
               <View style={styles.formGroup}>
-                <Text style={[styles.label, { fontSize: 20, fontWeight: "600" }]}>Knotting Order Id = {OrderNo}</Text>
+                <Text style={[styles.label, { fontSize: 20, fontWeight: "600" }]}>Knotting Order Id = {KnottingId}</Text>
               </View>
 
               <View style={styles.formGroup}>
@@ -402,7 +410,7 @@ const BookLoomForm = ({ route, navigation }) => {
           <View style={styles.formContainer}>
 
             <View style={{ justifyContent: "center", alignItems: "center" }}>
-              <Text style={styles.headerLabel}>Other Orders Form</Text>
+              <Text style={styles.headerLabel}>Gaiting Orders Form</Text>
             </View>
 
             <View style={styles.formGroup}>

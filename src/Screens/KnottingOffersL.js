@@ -29,9 +29,10 @@ const KnottingOffersL = () => {
                 <View style={styles.content}>
                     <View style={styles.cardContainer}>
                         <Card style={styles.card}>
-                            <Card.Cover source={{uri : "https://storage.googleapis.com/a1aa/image/LWEwgd2jqC7WLpIFzczeFOnf9aHl6CobvKtfxG9tUefZ8FuaC.jpg"}} />
+                            <Card.Cover source={require("../Images/knottingoffergen.jpg")} />
                             <Card.Content>
                                 <Title style={styles.cardTitle}>Generate Knotting Offer</Title>
+
                             </Card.Content>
                             <Card.Actions>
                                 <TouchableOpacity
@@ -45,13 +46,14 @@ const KnottingOffersL = () => {
                     </View>
                     <View style={styles.cardContainer}>
                         <Card style={styles.card}>
-                            <Card.Cover source={{uri : "https://storage.googleapis.com/a1aa/image/cEJXIQryQnrXDd6ZMkaF81S4vLLXbFc0IGS550oftKGf0wVTA.jpg"}} />
-                            <Card.Content>
+                        <Card.Cover source={{uri : "https://storage.googleapis.com/a1aa/image/cEJXIQryQnrXDd6ZMkaF81S4vLLXbFc0IGS550oftKGf0wVTA.jpg"}} />
+                        <Card.Content>
                                 <Title style={styles.cardTitle}>Knotting Responses</Title>
+
                             </Card.Content>
                             <Card.Actions>
                                 <TouchableOpacity
-                                    onPress={() => navigation.navigate('KnottingResponses')}
+                                    onPress={() => navigation.navigate('KROfferList')}
                                     style={styles.cardButton}
                                 >
                                     <Text style={styles.cardButtonText}>View Responses</Text>
@@ -122,6 +124,11 @@ const styles = StyleSheet.create({
     },
     cardTitle: {
         fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    cardTitle2: {
+        fontSize: 15,
         fontWeight: 'bold',
         color: '#333',
     },

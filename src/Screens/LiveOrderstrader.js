@@ -535,8 +535,9 @@ const LiveOrderstrader = ({ navigation }) => {
 
   const [ModalData2, setModalData2] = useState(null)
 
-  const ModalDataFetch2 = (Id) => {
-    console.log("Id = ", Id)
+  const ModalDataFetch2 = (Order) => {
+    console.log("Id = ", Order.Id)
+    Id = Order.Id
     const requestOptions = {
       method: "GET",
       redirect: "follow"
@@ -589,12 +590,12 @@ const LiveOrderstrader = ({ navigation }) => {
             {orders.map((order, index) => (
               order.Confirmed === 1 ? (
                 <View key={index} style={styles.orderWrapper}>
-                    <TouchableOpacity style={{ alignSelf: "flex-end" }} onPress={() => handleOrderPressModal(order)}>
-                        <Icon name="information-circle" size={22} color="grey" />
-                      </TouchableOpacity>
+                  <TouchableOpacity style={{ alignSelf: "flex-end" }} onPress={() => ModalDataFetch2(order)}>
+                    <Icon name="information-circle" size={22} color="grey" />
+                  </TouchableOpacity>
                   <TouchableOpacity style={styles.orderContainer} onPress={() => handleOrderPress(order)}>
                     <View style={{ paddingLeft: 10, marginBottom: 10 }}>
-                    
+
                       <Text style={styles.orderText}>{`Order No : ${order.OrderNo}\nName : ${order.Name}\nQuality : ${order.Quality}`}</Text>
                     </View>
                   </TouchableOpacity>
@@ -1254,41 +1255,6 @@ const LiveOrderstrader = ({ navigation }) => {
                     </View>
                   </Modal>
 
-                  <Modal
-                    animationType="slide"
-                    transparent={true}
-                    visible={modalVisible4}
-                    onRequestClose={() => {
-                      setModalVisible4(!modalVisible4);
-                    }}>
-                    <View style={styles.centeredView}>
-                      <View style={styles.modalView}>
-                        <TouchableOpacity style={{alignSelf:"flex-end"}} onPress={() => setModalVisible4(!modalVisible4)}>
-                          <Icon name="exit" size={32} color="red" />
-                        </TouchableOpacity>
-                        <Text style={{fontSize:20,fontWeight:"600",color:"#003C43"}}>Loom Details</Text>
-                        <ScrollView contentContainerStyle={styles.scrollViewContent}>
-
-                          {ModalData2 && (
-                            <>
-                              <Image
-                                source={{ uri: ModalData2.Profilepic }}
-                                style={{ width: "35%", height: "18%", marginBottom: "10%",marginTop:"15%",borderRadius:50 }}
-                              />
-                              <Text style={styles.modalText}><Text style={styles.modalText}>Email:</Text> {ModalData2.AppUserId}</Text>
-                              <Text style={styles.modalText}><Text style={styles.modalText}>Name:</Text> {ModalData2.Name}</Text>
-                              <Text style={styles.modalText}><Text style={styles.modalText}>Address:</Text> {ModalData2.Address}</Text>
-                              <Text style={styles.modalText}><Text style={styles.modalText}>State:</Text> {ModalData2.State}</Text>
-                              <Text style={styles.modalText}><Text style={styles.modalText}>City:</Text> {ModalData2.City}</Text>
-                              <Text style={styles.modalText}><Text style={styles.modalText}>Pincode:</Text> {ModalData2.Pincode}</Text>
-                              <Text style={[styles.modalText, { marginBottom: "20%" }]}><Text style={styles.modalText}>Mobile No.:</Text> {ModalData2.PrimaryContact}</Text>
-
-                            </>
-                          )}
-                        </ScrollView>
-                      </View>
-                    </View>
-                  </Modal>
 
 
                 </View>
@@ -1297,6 +1263,43 @@ const LiveOrderstrader = ({ navigation }) => {
 
             </View> : null
         }
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible4}
+          onRequestClose={() => {
+            setModalVisible4(!modalVisible4);
+          }}>
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <TouchableOpacity style={{ alignSelf: "flex-end" }} onPress={() => setModalVisible4(!modalVisible4)}>
+                <Icon name="exit" size={32} color="red" />
+              </TouchableOpacity>
+              <Text style={{ fontSize: 20, fontWeight: "600", color: "#003C43" }}>Loom Details</Text>
+              <ScrollView contentContainerStyle={styles.scrollViewContent}>
+
+                {ModalData2 && (
+                  <>
+                    <Image
+                      source={{ uri: ModalData2.Profilepic }}
+                      style={{ width: "35%", height: "18%", marginBottom: "10%", marginTop: "15%", borderRadius: 50 }}
+                    />
+                    <Text style={styles.modalText}><Text style={styles.modalText}>Email:</Text> {ModalData2.AppUserId}</Text>
+                    <Text style={styles.modalText}><Text style={styles.modalText}>Name:</Text> {ModalData2.Name}</Text>
+                    <Text style={styles.modalText}><Text style={styles.modalText}>Address:</Text> {ModalData2.Address}</Text>
+                    <Text style={styles.modalText}><Text style={styles.modalText}>State:</Text> {ModalData2.State}</Text>
+                    <Text style={styles.modalText}><Text style={styles.modalText}>City:</Text> {ModalData2.City}</Text>
+                    <Text style={styles.modalText}><Text style={styles.modalText}>Pincode:</Text> {ModalData2.Pincode}</Text>
+                    <Text style={[styles.modalText, { marginBottom: "20%" }]}><Text style={styles.modalText}>Mobile No.:</Text> {ModalData2.PrimaryContact}</Text>
+
+                  </>
+                )}
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
 
         <Text style={{ marginTop: "18%" }}></Text>
       </ScrollView>
@@ -1494,41 +1497,67 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 22,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',  // Dark semi-transparent background for focus on modal
   },
   modalView: {
+    height:"70%",
     margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 35,
+    backgroundColor: '#fff',
+    borderRadius: 30,  // More rounded corners for a modern look
+    padding: 40,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 10,  // Taller shadow for depth
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOpacity: 0.3,  // Lighter shadow for subtle effect
+    shadowRadius: 20,  // Softer shadow edges
+    elevation: 10,  // Higher elevation for pronounced shadow effect
   },
   buttonClose1: {
-    backgroundColor: "green",
-    margin: "5%",
-    width: 200,
-    justifyContent: "center"
+    backgroundColor: "#ff6347",  // Tomato color for a vibrant button
+    borderRadius: 25,  // Rounded button
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginTop: 20,
+    width: '80%',  // Full-width button for modern look
+    justifyContent: "center",
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },  // Button shadow for 3D effect
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 6,
   },
   textStyle1: {
-    color: 'white',
+    color: '#fff',
     fontWeight: 'bold',
     textAlign: 'center',
-    backgroundColor: "green"
+    fontSize: 16,
+    letterSpacing: 1.2,  // Spacing for modern typography feel
   },
   modalText: {
-    marginBottom: 15,
+    marginBottom: 20,
     textAlign: 'center',
-    color: "#000",
-    fontSize: 17
+    color: "#003C43",  // Dark teal color for contrast
+    fontSize: 18,
+    fontWeight: '600',  // Bolder font for emphasis
+    letterSpacing: 0.8,
   },
+  scrollViewContent: {
+    alignItems: 'center',
+    paddingBottom: 30,  // Extra padding for better scrolling UX
+  },
+  profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,  // Full-circle profile picture
+    marginBottom: 30,
+    borderWidth: 4,  // Thick border for standout look
+    borderColor: '#ff6347',  // Border color matching close button
+  },
+
   tableHeader: {
     width: width * 0.85,
     flexDirection: 'row',

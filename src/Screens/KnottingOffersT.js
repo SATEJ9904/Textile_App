@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, FlatList, Text, TouchableOpacity, Image, Modal, Pressable, Alert, RefreshControl } from 'react-native';
+import { View, StyleSheet, FlatList, Text, TouchableOpacity, Modal, Alert, RefreshControl, Image, ActivityIndicator } from 'react-native';
 import { TextInput, Card, Title, Paragraph, IconButton } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LottieView from 'lottie-react-native';
+import LinearGradient from 'react-native-linear-gradient';
 
 const KnottingOffersT = ({ navigation }) => {
     const [reed, setReed] = useState('');
@@ -13,56 +14,79 @@ const KnottingOffersT = ({ navigation }) => {
     const [data, setData] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [modal, setModal] = useState(false);
-    const [isAllOffersActive, setIsAllOffersActive] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [loomNames, setLoomNames] = useState({});
+    const [contactno, setContactNo] = useState({});
     const isMounted = useRef(false);
 
     useEffect(() => {
         isMounted.current = true;
         fetchData();
-        return () => { isMounted.current = false; };
+        return () => {
+            isMounted.current = false;
+        };
     }, []);
 
     const fetchData = async () => {
         try {
             const response = await fetch('https://textileapp.microtechsolutions.co.in/php/gettable.php?table=KnottingOffer');
             const result = await response.json();
-            const initialFilterData = result.filter(item => !item.ConfirmTrader);
+    
+            // Sort by numeric value of OfferNo in descending order (after removing prefix)
+            const sortedData = result.sort((a, b) => {
+                const numericA = parseInt(a.OfferNo.replace(/^(OF|OR)/, ''), 10);
+                const numericB = parseInt(b.OfferNo.replace(/^(OF|OR)/, ''), 10);
+                return numericB - numericA;
+            });
+    
+            // Use a Map to store the latest entry for each OfferNo
+            const offerMap = new Map();
+    
+            // Filter out duplicates and keep only the latest entry for each OfferNo
+            const uniqueData = sortedData.filter(item => {
+                if (!offerMap.has(item.OfferNo)) {
+                    offerMap.set(item.OfferNo, item);  // Add the latest item
+                    return true;
+                }
+                return false;  // Skip duplicates
+            });
+    
+            // Filter the data for offers without ConfirmTrader (if required)
+            const initialFilterData = uniqueData.filter(item => item.ConfirmLoom === null);
+    
+            // Update state with sorted and filtered data
             setFilteredData(initialFilterData);
             setData(initialFilterData);
+    
+            // Fetch loom names for the corresponding LoomIds
             fetchLoomNames(initialFilterData.map(item => item.LoomId));
         } catch (error) {
             console.error('Error fetching data:', error);
         }
     };
+    
 
     const fetchLoomNames = async (loomIds) => {
+        if (!loomIds || loomIds.length === 0) return;
         try {
             const uniqueLoomIds = [...new Set(loomIds)];
             const loomNamePromises = uniqueLoomIds.map(id =>
                 fetch(`https://textileapp.microtechsolutions.co.in/php/getiddetail.php?Id=${id}`)
                     .then(response => response.json())
-                    .catch(error => {
-                        console.error(`Error fetching loom name for ID ${id}:`, error);
-                        return { Name: 'Unknown' };
-                    })
+                    .catch(() => [{ Name: 'Unknown' }])
             );
-
             const loomNameResults = await Promise.all(loomNamePromises);
-            const loomNameMap = loomNameResults.reduce((map, result, index) => {
-                result.map((item) => {
-                    if (item && item.Name) {
-                        map[uniqueLoomIds[index]] = item.Name;
-                    } else {
-                        map[uniqueLoomIds[index]] = 'Unknown';
-                    }
-                })
-                return map;
-            }, {});
 
-            setLoomNames(loomNameMap);
+            if (isMounted.current) {
+                setLoomNames(loomNameResults.reduce((map, result, index) => {
+                    map[uniqueLoomIds[index]] = result[0]?.Name || 'Unknown';
+                    return map;
+                }, {}));
+                setContactNo(loomNameResults.reduce((map, result, index) => {
+                    map[uniqueLoomIds[index]] = result[0]?.PrimaryContact || 'Unknown';
+                    return map;
+                }, {}));
+            }
         } catch (error) {
             console.error('Error fetching loom names:', error);
         }
@@ -81,49 +105,68 @@ const KnottingOffersT = ({ navigation }) => {
         const currentDate = selectedDate || date;
         setShow(false);
         setDate(currentDate);
-        setIsAllOffersActive(false);
     };
 
-    const handleSubmit = async (offerId) => {
-        setLoading(true);
-        const formdata = new FormData();
-        formdata.append("Id", offerId);
-        formdata.append("TraderId", AsyncStorage.getItem("Id"));
+    const handleSubmit = async (item) => {
 
-        const requestOptions = {
-            method: "POST",
-            body: formdata,
-            redirect: "follow"
-        };
+const TraderId = await AsyncStorage.getItem("Id")
 
-        fetch("https://textileapp.microtechsolutions.co.in/php/updateknottingoffer.php", requestOptions)
-            .then((response) => response.text())
-            .then((result) => {
-                console.log(result);
-                setLoading(false);
-                Alert.alert("Knotting Order Confirmed");
-            })
-            .catch((error) => {
-                console.error(error);
-                setLoading(false);
-                Alert.alert("Knotting Order not Confirmed");
-            });
+        Alert.alert(
+            "Confirm Booking",
+            "Are you sure you want to book this offer?",
+            [
+                {
+                    text: "No",
+                    onPress: () => console.log("Booking Cancelled"),
+                    style: "cancel",
+                },
+                {
+                    text: "Yes",
+                    onPress: async () => {
+                        setLoading(true);
+                        const formdata = new FormData();
+                        formdata.append("Reed", item.Reed);
+                        formdata.append("Draft", item.Draft);
+                        formdata.append("ReedSpace", item.ReedSpace);
+                        formdata.append("NoofLooms", item.NoofLooms);
+                        formdata.append("AvailableFrom", item.AvailableFrom.date.substring(0, 10));
+                        formdata.append("JobRateRequired", item.JobRateRequired);
+                        formdata.append("DesignPaper", item.DesignPaper);
+                        formdata.append("OfferNo", item.OfferNo);
+                        formdata.append("LoomId", item.LoomId);
+                        formdata.append("TraderId", TraderId);
+
+                        const requestOptions = {
+                            method: "POST",
+                            body: formdata,
+                            redirect: "follow"
+                        };
+
+                        fetch("https://textileapp.microtechsolutions.co.in/php/postknottingtrader.php", requestOptions)
+                            .then((response) => response.text())
+                            .then((result) => {
+                                console.log(result)
+                                if (result.trim() === "Value Inserted") {
+                                    Alert.alert("Success", "Offer has been successfully booked!");
+                                    fetchData(); // Refresh data after booking
+                                    setLoading(false);
+                                } else {
+                                    Alert.alert("Error", result.trim());
+                                }
+
+                            })
+                            .catch((error) => {
+                                setLoading(false);
+                                Alert.alert("Error", "An error occurred while processing your request.");
+                                console.error(error)});
+                    },
+                },
+            ]
+        );
     };
 
-    const handleAllOffersClick = () => {
-        if (isAllOffersActive) {
-            const filtered = data.filter(item =>
-                (reed ? item.Reed.toLowerCase().includes(reed.toLowerCase()) : true) &&
-                (reedSpace ? item.ReedSpace.toLowerCase().includes(reedSpace.toLowerCase()) : true) &&
-                (date ? new Date(item.AvailableFrom.date) >= date : true)
-            );
-            setFilteredData(filtered);
-        } else {
-            setFilteredData(data.filter(item => item.ConfirmTrader === null));
-            setDate(null);
-        }
-        setIsAllOffersActive(!isAllOffersActive);
-    };
+    const [selectedImage, setSelectedImage] = useState(null);
+
 
     const onRefresh = React.useCallback(() => {
         setRefreshing(true);
@@ -135,32 +178,46 @@ const KnottingOffersT = ({ navigation }) => {
         }, 2000);
     }, []);
 
-    const renderHeader = () => (
-        <View>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.openDrawer()}>
+    if (loading) {
+        return (
+            <View style={styles.animationContainer}>
+                <LottieView
+                    source={require('../Animation/car_animation.json')}
+                    autoPlay
+                    loop
+                />
+                <Text style={styles.redirectText}>Processing Your Order...</Text>
+            </View>
+        );
+    }
+
+    return (
+        <View style={styles.container}>
+            <LinearGradient colors={['#003C43', '#135D66']} style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.toggleDrawer()} style={styles.drawerButton}>
                     <Image source={require('../Images/drawer.png')} style={styles.drawerIcon} />
                 </TouchableOpacity>
-                <View style={{ justifyContent: "center", alignItems: "center", width: "90%" }}>
-                    <Text style={styles.headerText}>Knotting Offers</Text>
-                </View>
-            </View>
+                <Text style={styles.headerText}>Knotting Offers</Text>
+            </LinearGradient>
 
-            <View style={styles.content}>
-                <TextInput
-                    label="Reed"
-                    value={reed}
-                    onChangeText={setReed}
-                    style={styles.input}
-                    theme={{ colors: { primary: '#003C43' } }}
-                />
-                <TextInput
-                    label="Reed Space"
-                    value={reedSpace}
-                    onChangeText={setReedSpace}
-                    style={styles.input}
-                    theme={{ colors: { primary: '#003C43' } }}
-                />
+            {/* Search Boxes */}
+            <View style={styles.searchContainer}>
+                <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
+                    <TextInput
+                        label="Reed"
+                        value={reed}
+                        onChangeText={setReed}
+                        style={styles.input}
+                        theme={{ colors: { primary: '#003C43' } }}
+                    />
+                    <TextInput
+                        label="Reed Space"
+                        value={reedSpace}
+                        onChangeText={setReedSpace}
+                        style={styles.input}
+                        theme={{ colors: { primary: '#003C43' } }}
+                    />
+                </View>
                 <View style={styles.dateContainer}>
                     <TextInput
                         label="Date"
@@ -174,16 +231,7 @@ const KnottingOffersT = ({ navigation }) => {
                         size={30}
                         color="#003C43"
                         onPress={() => setShow(true)}
-                        style={styles.calendarIcon}
                     />
-                </View>
-                <View style={styles.tabContainer}>
-                    <TouchableOpacity
-                        style={[styles.tab, isAllOffersActive && styles.activeTab]}
-                        onPress={handleAllOffersClick}
-                    >
-                        <Text style={[styles.tabText, isAllOffersActive && styles.activeTabText]}>All Offers</Text>
-                    </TouchableOpacity>
                 </View>
                 {show && (
                     <DateTimePicker
@@ -193,55 +241,119 @@ const KnottingOffersT = ({ navigation }) => {
                         onChange={onChange}
                     />
                 )}
-            </View>
-        </View>
-    );
 
-    return (
-        <View style={styles.container}>
-            {loading ? (
-                <View style={styles.animationContainer}>
-                    <LottieView
-                        source={require('../Animation/car_animation.json')}
-                        autoPlay
-                        loop
-                    />
-                    <Text style={styles.redirectText}>Processing Your Order...</Text>
+
+                <View style={{ alignItems: 'center', marginTop: 10 }}>
+                    <TouchableOpacity
+                        style={styles.clearButton}
+                        onPress={() => {
+                            setReed('');
+                            setReedSpace('');
+                            setDate(null);
+                        }}
+                    >
+                        <Text style={styles.clearButtonText}>Clear Filters</Text>
+                    </TouchableOpacity>
                 </View>
-            ) : (
-                <FlatList
-                    data={filteredData}
-                    keyExtractor={(item) => item.KnottingId.toString()}
-                    renderItem={({ item }) => (
-                        <Card style={styles.card}>
+            </View>
+
+            <FlatList
+                data={filteredData}
+                keyExtractor={(item) => item.KnottingId.toString()}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+                renderItem={({ item }) => (
+                    <Card style={styles.card}>
                         <Card.Content>
-                            <Title style={styles.cardTitle}>Offer No: {item.KnottingId}</Title>
-                            <Paragraph style={styles.cardText}>Loom Unit: {loomNames[item.LoomId]}</Paragraph>
-                            <Paragraph style={styles.cardText}>Reed: {item.Reed}</Paragraph>
-                            <Paragraph style={styles.cardText}>Draft: {item.Draft}</Paragraph>
-                            <Paragraph style={styles.cardText}>Reed Space: {item.ReedSpace}</Paragraph>
-                            <Paragraph style={styles.cardText}>No of Looms: {item.NoofLooms}</Paragraph>
-                            <Paragraph style={styles.cardText}>Available From: {new Date(item.AvailableFrom.date).toDateString()}</Paragraph>
-                            <View style={styles.button}>
+                            <Title style={styles.cardTitle}>Offer No: {item.OfferNo}</Title>
+                            <Paragraph>Loom Unit: {loomNames[item.LoomId]}</Paragraph>
+                            <Paragraph>Contact: {contactno[item.LoomId]}</Paragraph>
+                            <Paragraph>Reed: {item.Reed}</Paragraph>
+                            <Paragraph>Draft: {item.Draft}</Paragraph>
+                            <Paragraph>Reed Space: {item.ReedSpace}</Paragraph>
+                            <Paragraph>No.Of Looms: {item.NoofLooms}</Paragraph>
+                            <Paragraph>Job Rate Required (in paisa): {item.JobRateRequired}</Paragraph>
+                            <Paragraph>Available From: {new Date(item.AvailableFrom.date).toDateString()}</Paragraph>
+                            {item.DesignPaper ? (
                                 <TouchableOpacity
-                                    style={styles.buttonContainer}
-                                    onPress={() => handleSubmit(item.Id)}
+                                    style={styles.attachmentButton}
+                                    onPress={() => setSelectedImage(item.DesignPaper)}
                                 >
-                                    <Text style={styles.buttonText}>Book Offer</Text>
+                                    <Text style={styles.attachmentText}>View Design Paper</Text>
                                 </TouchableOpacity>
-                            </View>
+                            ) : null}
+                            <TouchableOpacity
+                                style={styles.buttonContainer}
+                                onPress={() => handleSubmit(item)}
+                            >
+                                <Text style={styles.buttonText}>Book Offer</Text>
+                            </TouchableOpacity>
                         </Card.Content>
                     </Card>
-                    )}
-                    ListHeaderComponent={renderHeader}
-                    refreshControl={
-                        <RefreshControl
-                            refreshing={refreshing}
-                            onRefresh={onRefresh}
+                )}
+                ListEmptyComponent={
+                    <View style={styles.noDataContainer}>
+                        <Text>No offers found.</Text>
+                    </View>
+                }
+            />
+
+
+            <View
+                style={{
+                    flexDirection: 'row',
+                    borderWidth: 1,
+                    height: 50,
+                    borderColor: '#0A5D47',
+                }}
+            >
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <TouchableOpacity
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            backgroundColor: '#135D66',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <Text style={{ color: '#fff', fontSize: 20 }}>Knotting Offers</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <TouchableOpacity
+                        style={{ width: '100%', justifyContent: 'center', alignItems: 'center' }}
+                        onPress={() => navigation.navigate('KnottingConfirmedT')}
+                    >
+                        <Text style={{ color: '#003C43', fontSize: 20, padding: 5 }}>
+                            Confirmed Offers
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            <Modal
+                visible={!!selectedImage}
+                transparent={false}
+                onRequestClose={() => setSelectedImage(null)}
+            >
+                <View style={styles.modalContainer}>
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={() => setSelectedImage(null)}
+                    >
+                        <Text style={styles.backButtonText}>Back</Text>
+                    </TouchableOpacity>
+                    {selectedImage ? (
+                        <Image
+                            source={{ uri: selectedImage }}
+                            style={styles.fullScreenImage}
+                            resizeMode="contain"
                         />
-                    }
-                />
-            )}
+                    ) : <ActivityIndicator size={70} color="green" />}
+                </View>
+            </Modal>
+
         </View>
     );
 };
@@ -254,31 +366,45 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: "row",
         alignItems: "center",
-        padding: 10,
+        justifyContent: "space-evenly",
+        padding: 0,
         backgroundColor: "#003C43",
+    },
+    drawerButton: {
+        padding: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     drawerIcon: {
         width: 30,
-        height: 30,
+        height: 35,
+        resizeMode: 'contain',
     },
     headerText: {
-        fontSize: 20,
-        fontWeight: "bold",
-        color: "#fff",
+        fontSize: 23,
+        fontWeight: 'bold',
+        color: '#fff',
+        textAlign: 'center',
+        flex: 1,
     },
-    content: {
+    searchContainer: {
+        backgroundColor: "#fff",
         padding: 10,
+        marginBottom: 10,
     },
     input: {
-        marginBottom: 10,
+        marginBottom: 0,
         backgroundColor: "white",
         borderRadius: 10,
         paddingHorizontal: 10,
-        paddingVertical: 5,
+        paddingVertical: 0,
+        width: "50%",
+        borderBottomWidth: 1
     },
     dateContainer: {
         flexDirection: "row",
         alignItems: "center",
+        marginBottom: 0,
     },
     calendarIcon: {
         marginLeft: 10,
@@ -326,12 +452,14 @@ const styles = StyleSheet.create({
     },
     button: {
         alignItems: "center",
-        marginTop: 10,
+        marginTop: 20,
     },
     buttonContainer: {
         backgroundColor: "#003C43",
         padding: 10,
         borderRadius: 5,
+        marginTop: 20,
+
     },
     buttonText: {
         color: "#fff",
@@ -346,42 +474,52 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: "#aaa",
     },
+    attachmentButton: {
+
+        padding: 10,
+        borderRadius: 5,
+        marginTop: 10,
+        alignItems: "flex-start",
+    },
+    attachmentText: {
+        color: "#003C43",
+        fontWeight: "bold",
+    },
     modalContainer: {
         flex: 1,
+        backgroundColor: "#fff",
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "rgba(0,0,0,0.5)",
     },
-    modalContent: {
-        backgroundColor: "white",
-        padding: 20,
-        borderRadius: 10,
-        alignItems: "center",
-    },
-    modalText: {
-        fontSize: 18,
-        marginBottom: 20,
-    },
-    modalButton: {
+    backButton: {
+        position: "absolute",
+        top: 40,
+        left: 20,
         backgroundColor: "#003C43",
         padding: 10,
         borderRadius: 5,
     },
-    modalButtonText: {
-        color: "white",
+    backButtonText: {
+        color: "#fff",
         fontWeight: "bold",
     },
-    animationContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#fff',
+    fullScreenImage: {
+        width: "100%",
+        height: "80%",
     },
-    redirectText: {
-        marginTop: 20,
-        fontSize: 16,
-        color: '#003C43',
+    clearButton: {
+        backgroundColor: '#003C43',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+        width: '50%',
+    },
+    clearButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        textAlign: 'center',
     },
 });
 
-export default KnottingOffersT;
+
+export default KnottingOffersT

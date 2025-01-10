@@ -174,17 +174,7 @@ const ProfileYarn = ({ navigation }) => {
                     <Text style={styles.optionText}>Contact Info</Text>
                     <Image source={require('../Images/rightarrow.png')} style={styles.optionIcon} />
                 </TouchableOpacity>
-                {LoomOrTrader === 'L' ? (
-                    <TouchableOpacity style={styles.optionCard} onPress={() => navigation.navigate('MyLooms')}>
-                        <Text style={styles.optionText}>My Looms</Text>
-                        <Image source={require('../Images/rightarrow.png')} style={styles.optionIcon} />
-                    </TouchableOpacity>
-                ) : (
-                    <TouchableOpacity style={styles.optionCard} onPress={() => navigation.navigate('Generated_Enquires')}>
-                        <Text style={styles.optionText}>My Enquiries</Text>
-                        <Image source={require('../Images/rightarrow.png')} style={styles.optionIcon} />
-                    </TouchableOpacity>
-                )}
+              
             </View>
             {/* 
       <View style={styles.summaryContainer}>

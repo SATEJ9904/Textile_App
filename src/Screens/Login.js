@@ -17,6 +17,8 @@ const Login = ({ navigation, route }) => {
     const [response, setResponse] = useState([]);
     const [otp, setOtp] = useState('');
     const [newpassword, setNewpassword] = useState('');
+    const [newpassword1, setNewpassword1] = useState('');
+
 
     useEffect(() => {
         if (email) setEmail(email);
@@ -99,7 +101,7 @@ const Login = ({ navigation, route }) => {
     }
 
 
-    const ResetPassword = async () => {
+    const ForgetPassword = async () => {
         if (!Email) {
             Alert.alert("Please Insert only Email to Continue")
         } else {
@@ -154,30 +156,37 @@ const Login = ({ navigation, route }) => {
     };
 
     const reset = () => {
-        const qs = require('qs');
-        let data = qs.stringify({
-            'AppUserId': Email,
-            'Password': newpassword,
-        });
 
-        let config = {
-            method: 'post',
-            maxBodyLength: Infinity,
-            url: 'https://textileapp.microtechsolutions.co.in/php/updatepassword.php',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            data: data
-        };
+        if (newpassword === newpassword1) {
 
-        axios.request(config)
-            .then((response) => {
-                console.log(response.data);
-                setShow1(0);
-            })
-            .catch((error) => {
-                console.log(error);
+            const qs = require('qs');
+            let data = qs.stringify({
+                'AppUserId': Email,
+                'Password': newpassword,
             });
+
+            let config = {
+                method: 'post',
+                maxBodyLength: Infinity,
+                url: 'https://textileapp.microtechsolutions.co.in/php/updatepassword.php',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                data: data
+            };
+
+            axios.request(config)
+                .then((response) => {
+                    console.log(response.data);
+                    setShow1(0);
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        }else{
+            Alert.alert("password dont match confirm password")
+        }
+
     }
 
     return (
@@ -204,42 +213,50 @@ const Login = ({ navigation, route }) => {
                             return (
                                 <View>
                                     <View style={{ alignItems: 'center' }}>
-                                        <Text style={styles.title}> Verify OTP </Text>
-                                        <View style={styles.inputContainer}>
-                                            <Icon name="email-outline" color="#003C43" size={32} padding={8} marginLeft={8} />
-                                            <TextInput
-                                                style={styles.inputField}
-                                                placeholder='Email'
-                                                placeholderTextColor={"#003C43"}
-                                                onChangeText={(txt) => setEmail(txt)}
-                                                value={Email}
-                                            />
-                                        </View>
-                                        <View style={styles.input}>
-                                            <Icon name="form-textbox-password" color="#003C43" size={32} padding={8} marginLeft={8} />
-                                            <TextInput
-                                                style={{ marginLeft: "5%", color: "black", width: "70%" }}
-                                                placeholder='OTP'
-                                                placeholderTextColor={"#003C43"}
-                                                onChangeText={(txt) => setOtp(txt)}
-                                                value={otp}
-                                            />
-                                        </View>
-                                        {visible ?
-                                            <TouchableOpacity
-                                                style={styles.verifyButton}
-                                                onPress={() => verifyotp()}>
-                                                <Text style={styles.buttonText}> Verify </Text>
-                                            </TouchableOpacity>
 
+
+
+                                        {!visible ?
+                                            <View>
+                                                <Text style={styles.title}>Enter Email</Text>
+                                                <View style={styles.inputContainer}>
+                                                    <Icon name="email-outline" color="#003C43" size={32} padding={8} marginLeft={8} />
+                                                    <TextInput
+                                                        style={styles.inputField}
+                                                        placeholder='Email'
+                                                        placeholderTextColor={"#003C43"}
+                                                        onChangeText={(txt) => setEmail(txt.toLowerCase())}
+                                                        value={Email}
+                                                    />
+                                                </View>
+                                                <TouchableOpacity
+                                                    style={styles.verifyButton}
+                                                    onPress={() => ForgetPassword()}>
+                                                    <Text style={styles.buttonText}> Sent OTP </Text>
+                                                </TouchableOpacity>
+
+                                            </View>
                                             :
 
-                                            <TouchableOpacity
-                                                style={styles.verifyButton}
-                                                onPress={() => ResetPassword()}>
-                                                <Text style={styles.buttonText}> submit </Text>
-                                            </TouchableOpacity>
+                                            <View>
+                                                <Text style={styles.title}> Verify OTP </Text>
+                                                <View style={styles.input}>
+                                                    <Icon name="form-textbox-password" color="#003C43" size={32} padding={8} marginLeft={8} />
+                                                    <TextInput
+                                                        style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                                        placeholder='OTP'
+                                                        placeholderTextColor={"#003C43"}
+                                                        onChangeText={(txt) => setOtp(txt)}
+                                                        value={otp}
+                                                    />
+                                                </View>
+                                                <TouchableOpacity
+                                                    style={styles.verifyButton}
+                                                    onPress={() => verifyotp()}>
+                                                    <Text style={styles.buttonText}> submit </Text>
+                                                </TouchableOpacity>
 
+                                            </View>
 
 
                                         }
@@ -263,6 +280,16 @@ const Login = ({ navigation, route }) => {
                                                 value={newpassword}
                                             />
                                         </View>
+                                        <View style={[styles.input, { marginTop: "3%" }]}>
+                                            <Icon name="lock-open-outline" color="#003C43" size={32} padding={8} marginLeft={8} />
+                                            <TextInput
+                                                style={{ marginLeft: "5%", color: "black", width: "70%" }}
+                                                placeholder='Confirm password'
+                                                placeholderTextColor={"#003C43"}
+                                                onChangeText={(txt) => setNewpassword1(txt)}
+                                                value={newpassword1}
+                                            />
+                                        </View>
                                         <TouchableOpacity
                                             style={styles.resetButton}
                                             onPress={() => reset()}>
@@ -283,7 +310,7 @@ const Login = ({ navigation, route }) => {
                                                 style={styles.inputField}
                                                 placeholder='Email'
                                                 placeholderTextColor={"#003C43"}
-                                                onChangeText={(txt) => setEmail(txt)}
+                                                onChangeText={(txt) => setEmail(txt.toLowerCase())}
                                                 value={Email}
                                             />
                                         </View>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -9,29 +9,18 @@ import {
   FlatList,
   Image,
   Dimensions,
-  Animated,
-  Easing,
   Modal,
   ScrollView,
   Alert,
-  PermissionsAndroid,
-  Platform,
-  Linking,
-  Button
+  ActivityIndicator,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
-import FileViewer from 'react-native-file-viewer';
-import RNFS from 'react-native-fs';
-import RNFetchBlob from 'rn-fetch-blob';
-
+import { WebView } from 'react-native-webview'; // For downloading files using WebView
+import RNFetchBlob from 'rn-fetch-blob'; // For saving the file after WebView download
+import FileViewer from 'react-native-file-viewer'; // For viewing files locally
 
 const { width, height } = Dimensions.get('window');
-
-
-const supportedURL = 'https://google.com';
-
-const unsupportedURL = 'slack://open?team=123456';
 
 const ViewOffers = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,49 +28,65 @@ const ViewOffers = ({ navigation }) => {
   const [filteredOffers, setFilteredOffers] = useState([]);
   const [selectedOffer, setSelectedOffer] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [animation] = useState(new Animated.Value(0));
+  const [loading, setLoading] = useState(false); // To handle loading animation
+  const [documentUrl, setDocumentUrl] = useState(null); // To manage document URL
+  const webviewRef = useRef(null); // WebView reference
 
   useEffect(() => {
     const fetchOffers = async () => {
-      await requestStoragePermission(); // Request storage permission for Android devices
-
       try {
-        const response = await fetch('https://textileapp.microtechsolutions.co.in/php/gettable.php?table=MarketOffer');
+        const response = await fetch(
+          'https://textileapp.microtechsolutions.co.in/php/gettable.php?table=MarketOffer'
+        );
         const data = await response.json();
-
+    
         const updatedOffers = await Promise.all(
           data.map(async (offer) => {
+            // Step 2: If Privacy is 1, fetch name
             if (offer.Privacy === 1) {
               const id = offer.TraderId || offer.LoomId || offer.YarnId;
-
+    
               if (id) {
                 try {
-                  const nameResponse = await fetch(`https://textileapp.microtechsolutions.co.in/php/getiddetail.php?Id=${id}`);
+                  const nameResponse = await fetch(
+                    `https://textileapp.microtechsolutions.co.in/php/getiddetail.php?Id=${id}`
+                  );
                   const nameData = await nameResponse.json();
-                  console.log("New Response = ", nameData)
-
-                  offer.Name = nameData[0].Name;
-
+                  offer.Name = nameData[0].Name; // Add Name property to the offer
                 } catch (error) {
                   console.log('Failed to fetch name:', error);
                 }
               }
             }
+    
+            // Step 3: Fetch ProductOpt Name using ProductOptId
+            if (offer.ProductOptId) {
+              try {
+                const productResponse = await fetch(
+                  `https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=ProductOpt&Colname=Id&Colvalue=${offer.ProductOptId}`
+                );
+                const productData = await productResponse.json();
+                offer.ProductName = productData[0]?.Name || ''; // Save the ProductOpt Name
+              } catch (error) {
+                console.log('Failed to fetch ProductOpt Name:', error);
+              }
+            }
+    
             return offer; // Return the updated offer
           })
         );
-
-        // Step 3: Update the state with the updated offers (with names if available)
+    
+        // Update state with the modified offers
         setOffers(updatedOffers);
         setFilteredOffers(updatedOffers);
       } catch (error) {
-        // Show an alert if fetching offers fails
         Alert.alert('Error', 'Failed to fetch offers');
       }
     };
-
+  
     fetchOffers();
   }, []);
+  
 
   useEffect(() => {
     if (searchQuery === '') {
@@ -97,145 +102,48 @@ const ViewOffers = ({ navigation }) => {
   const openModal = (offer) => {
     setSelectedOffer(offer);
     setModalVisible(true);
-    Animated.timing(animation, {
-      toValue: 1,
-      duration: 300,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }).start();
   };
 
   const closeModal = () => {
-    Animated.timing(animation, {
-      toValue: 0,
-      duration: 300,
-      easing: Easing.in(Easing.ease),
-      useNativeDriver: true,
-    }).start(() => {
-      setModalVisible(false);
-      setSelectedOffer(null);
-    });
+    setModalVisible(false);
+    setSelectedOffer(null);
   };
 
-  const requestStoragePermission = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          {
-            title: 'Storage Permission',
-            message: 'App needs access to your storage to download documents',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          }
-        );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-      } catch (err) {
-        console.warn(err);
-        return false;
-      }
-    } else {
-      return true;
-    }
-  };
-
-  const handleDocumentDownload = async (document) => {
-    console.log("permission modal called")
+  // Handle document download via WebView and save it
+  const handleDocumentDownload = async (documentUrl) => {
     try {
-      const hasPermission = await requestStoragePermission();
-      if (!hasPermission) {
-        Alert.alert('Error', 'Storage permission denied.');
-        return;
-      }
-
-      const { config, fs } = RNFetchBlob;
-      const date = new Date();
-      const fileName = document.split('/').pop(); // Get the file name from the URL
-      const downloadDest = `${fs.dirs.DownloadDir}/${fileName}`; // Save to the device's Download directory
-
-      const downloadOptions = {
-        fileCache: true,
-        addAndroidDownloads: {
-          useDownloadManager: true, // Use native Android download manager
-          notification: true,
-          path: downloadDest, // Set the destination path
-          description: 'Downloading document...',
-          mediaScannable: true, // Makes file visible in the downloads app
-        },
-      };
-
-      config(downloadOptions)
-        .fetch('GET', document)
-        .then((res) => {
-          Alert.alert('Success', 'Document downloaded successfully!');
-          // handleDocumentPreview(document); // Optionally preview the file
-        })
-        .catch((error) => {
-          console.error('Document download error:', error);
-          Alert.alert('Error', 'Document download failed.');
-        });
+      setLoading(true); // Show loading indicator
+      setDocumentUrl(documentUrl); // Set the document URL for WebView to trigger download
     } catch (error) {
-      console.error('Download error:', error);
-      Alert.alert('Error', 'Failed to download the document.');
+      console.error('File download error:', error);
+      Alert.alert('Error', `Failed to download the document. Error: ${error.message}`);
+    } finally {
+      setLoading(false); // Hide loading indicator
     }
-  };
-
-
-
-  const handleDocumentPreview = async (documentUrl) => {
-    console.log(documentUrl)
-    Linking.canOpenURL(documentUrl)
-      .then((supported) => {
-        if (supported) {
-          Linking.openURL(documentUrl);
-        } else {
-          Alert.alert("Can't open this URL");
-        }
-      })
-      .catch((err) => console.error('An error occurred', err));
-  };
-
-  const OpenURLButton = ({ url, children }) => {
-    const handlePress = useCallback(async () => {
-      // Checking if the link is supported for links with custom URL scheme.
-      const supported = await Linking.canOpenURL(url);
-
-      if (supported) {
-        // Opening the link with some app, if the URL scheme is "http" the web link should be opened
-        // by some browser in the mobile
-        await Linking.openURL(url);
-      } else {
-        Alert.alert(`Don't know how to open this URL: ${url}`);
-      }
-    }, [url]);
-
-    return <Button title={children} onPress={handlePress} />;
   };
 
   const handleSendMessage = (offer) => {
     let idParam;
     let idName;
-    let receiverId; // Define the receiverId to store the non-nullable ID
+    let receiverId;
 
     if (offer.TraderId) {
       idParam = { TraderId: offer.TraderId };
       idName = 'TraderId';
-      receiverId = offer.TraderId; // Set TraderId as the ReceiverId
+      receiverId = offer.TraderId;
     } else if (offer.LoomId) {
       idParam = { LoomId: offer.LoomId };
       idName = 'LoomId';
-      receiverId = offer.LoomId; // Set LoomId as the ReceiverId
+      receiverId = offer.LoomId;
     } else if (offer.YarnId) {
       idParam = { YarnId: offer.YarnId };
       idName = 'YarnId';
-      receiverId = offer.YarnId; // Set YarnId as the ReceiverId
+      receiverId = offer.YarnId;
     } else {
       Alert.alert('Error', 'No valid ID available for this offer');
       return;
     }
 
-    // Trigger an alert for confirmation
     Alert.alert(
       'Message',
       `You are messaging about offer: ${offer.Description}`,
@@ -248,15 +156,14 @@ const ViewOffers = ({ navigation }) => {
         {
           text: 'Next',
           onPress: () => {
-            // Navigate to the Message screen with required parameters
             navigation.navigate('Message', {
               offerId: offer.Id,
               Message: offer.Description,
               Privacy: offer.Privacy,
               Photopath: offer.Photopath,
-              idType: idName, // Include the name of the ID type
-              ReceiverId: receiverId, // Pass the non-nullable ReceiverId
-              ...idParam // Pass the specific ID value here as well
+              idType: idName,
+              ReceiverId: receiverId,
+              ...idParam,
             });
             setModalVisible(false);
           },
@@ -266,62 +173,62 @@ const ViewOffers = ({ navigation }) => {
     );
   };
 
+  // WebView onLoad function to trigger when the document starts loading
+  const handleWebViewLoad = (syntheticEvent) => {
+    const { nativeEvent } = syntheticEvent;
+    const filePath = `${RNFetchBlob.fs.dirs.DownloadDir}/downloaded-file.pdf`;
 
-
+    // Save the document to Downloads directory after WebView triggers the download
+    RNFetchBlob
+      .config({
+        fileCache: true,
+        path: filePath, // Save the file to the Downloads folder
+      })
+      .fetch('GET', documentUrl)
+      .then(async (res) => {
+        const filePath = res.path();
+        try {
+          await FileViewer.open(filePath); // Open the downloaded file
+        } catch (error) {
+          Alert.alert('Response from device', `Successfully downloaded, but this file type might not be supported on your device. Try opening it manually from downloads.`);
+        }
+      })
+      .catch((error) => {
+        console.error('File download error:', error);
+        Alert.alert('Error', `Failed to download the document: ${error.message}`);
+      });
+  };
 
   const renderOfferCard = ({ item }) => {
     const offerType = item.OfferOptId === 1 ? 'BUY' : 'SELL';
     const offerBackgroundColor = item.OfferOptId === 1 ? '#4CAF50' : '#F44336';
-    const offerTextColor = '#FFFFFF';
 
     return (
       <TouchableOpacity onPress={() => openModal(item)} activeOpacity={0.8}>
         <View style={styles.cardContainer}>
           <View
-            style={[
-              styles.typeLabel,
-              {
-                backgroundColor: offerBackgroundColor,
-              },
-            ]}
+            style={[styles.typeLabel, { backgroundColor: offerBackgroundColor }]}
           >
-            <Text style={[styles.typeLabelText, { color: offerTextColor }]}>
-              {offerType}
-            </Text>
+            <Text style={styles.typeLabelText}>{offerType}</Text>
           </View>
-          {item.Name && (
-            <Text style={styles.offerNameText}>
-              Offer By: {item.Name}
-            </Text>
-          )}
+          {item.ProductName && (
+          <Text style={styles.productNameText}>Product: {item.ProductName}</Text>
+        )}
+
+          {item.Name && <Text style={styles.offerNameText}>Offer By: {item.Name}</Text>}
           <Text style={styles.descriptionText} numberOfLines={2}>
             {item.Description}
           </Text>
-
         </View>
       </TouchableOpacity>
     );
-  };
-  const animatedStyle = {
-    transform: [
-      {
-        scale: animation.interpolate({
-          inputRange: [0, 1],
-          outputRange: [0.8, 1],
-        }),
-      },
-    ],
-    opacity: animation,
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient colors={['#003C43', '#006A6B']} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Image
-            source={require('../Images/back.png')}
-            style={styles.drawerIcon}
-          />
+          <Image source={require('../Images/back.png')} style={styles.drawerIcon} />
         </TouchableOpacity>
         <View style={styles.headerTitle}>
           <Text style={styles.title}>View Offers</Text>
@@ -329,12 +236,7 @@ const ViewOffers = ({ navigation }) => {
       </LinearGradient>
 
       <View style={styles.searchContainer}>
-        <Ionicons
-          name="search"
-          size={20}
-          color="#003C43"
-          style={styles.searchIcon}
-        />
+        <Ionicons name="search" size={20} color="#003C43" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
           placeholder="Search offers..."
@@ -348,9 +250,7 @@ const ViewOffers = ({ navigation }) => {
         renderItem={renderOfferCard}
         keyExtractor={(item) => item.Id.toString()}
         contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <Text style={styles.noOffersText}>No offers found.</Text>
-        }
+        ListEmptyComponent={<Text style={styles.noOffersText}>No offers found.</Text>}
       />
 
       {selectedOffer && (
@@ -361,20 +261,13 @@ const ViewOffers = ({ navigation }) => {
           onRequestClose={closeModal}
         >
           <View style={styles.modalBackground}>
-            <Animated.View style={[styles.modalContainer, animatedStyle]}>
+            <View style={styles.modalContainer}>
               <ScrollView>
-                <TouchableOpacity
-                  style={styles.closeButton}
-                  onPress={closeModal}
-                >
+                <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
                   <Ionicons name="close" size={30} color="#003C43" />
                 </TouchableOpacity>
-                <Text style={styles.modalProductText}>
-                  {selectedOffer.ProductOptId}
-                </Text>
-                <Text style={styles.modalDescriptionText}>
-                  {selectedOffer.Description}
-                </Text>
+                <Text style={styles.modalProductText}>{selectedOffer.ProductOptId}</Text>
+                <Text style={styles.modalDescriptionText}>{selectedOffer.Description}</Text>
                 {selectedOffer.Photopath && (
                   <Image
                     source={{ uri: selectedOffer.Photopath }}
@@ -385,24 +278,15 @@ const ViewOffers = ({ navigation }) => {
                 {selectedOffer.Document && (
                   <View style={styles.documentsContainer}>
                     <Text style={styles.documentsTitle}>Documents:</Text>
-                    <View style={styles.documentItem}>
-                      {/* <TouchableOpacity
-                          onPress={() =>
-                            handleDocumentPreview(selectedOffer.Document)
-                          }
-                        >
-                          <Text style={styles.documentText}>Preview</Text>
-                        </TouchableOpacity> */}
-                      <TouchableOpacity
-                        onPress={() =>
-                          handleDocumentDownload(selectedOffer.Document)
-                        }
-                      >
-                        <Text style={styles.documentText}>Download</Text>
-                      </TouchableOpacity>
-                    </View>
+                    <TouchableOpacity
+                      onPress={() => handleDocumentDownload(selectedOffer.Document)}
+                    >
+                      <Text style={styles.documentText}>Download</Text>
+                    </TouchableOpacity>
                   </View>
                 )}
+
+                {/* Message Button */}
                 <TouchableOpacity
                   style={styles.messageButton}
                   onPress={() => handleSendMessage(selectedOffer)}
@@ -410,12 +294,30 @@ const ViewOffers = ({ navigation }) => {
                   <Text style={styles.messageButtonText}>Message</Text>
                 </TouchableOpacity>
               </ScrollView>
-            </Animated.View>
+            </View>
           </View>
         </Modal>
       )}
-      <View style={{ flexDirection: "row", borderWidth: 1, height: 50, borderColor: "#0A5D47" }}>
 
+      {/* WebView (hidden) to trigger file downloads */}
+      {documentUrl && (
+        <WebView
+          ref={webviewRef}
+          source={{ uri: documentUrl }}
+          onLoad={handleWebViewLoad} // Handle when WebView starts loading the document
+          style={{ height: 0, width: 0 }} // Hidden WebView
+        />
+      )}
+
+      {loading && (
+        <Modal transparent={true} visible={loading}>
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color="#006A6B" />
+            <Text style={styles.loadingText}>Downloading...</Text>
+          </View>
+        </Modal>
+      )}
+       <View style={{ flexDirection: "row", borderWidth: 1, height: 50, borderColor: "#0A5D47" }}>
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center",backgroundColor:"#003C43" }}>
           <TouchableOpacity
             style={{ justifyContent: "center", alignItems: "center", }}
@@ -424,7 +326,6 @@ const ViewOffers = ({ navigation }) => {
             <Text style={{ color: "#fff", fontSize: 20 }}>View Offers</Text>
           </TouchableOpacity>
         </View>
-
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <TouchableOpacity
             style={{ width: '100%', height: '100%', backgroundColor: "#FFF", justifyContent: "center", alignItems: "center", }}
@@ -433,10 +334,6 @@ const ViewOffers = ({ navigation }) => {
             <Text style={{ color: "#003C43", fontSize: 20, }}>Messages</Text>
           </TouchableOpacity>
         </View>
-
-
-
-
       </View>
     </SafeAreaView>
   );
@@ -445,7 +342,12 @@ const ViewOffers = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F1F1F1',
+    backgroundColor: '#F5F8FA',
+  },
+  drawerIcon: {
+    width: 30,
+    height: 30,
+    tintColor: '#FFFFFF',
   },
   header: {
     height: 60,
@@ -455,23 +357,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#006A6B',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8,
-  },
-  drawerIcon: {
-    width: 30,
-    height: 30,
-    tintColor: '#FFFFFF',
+    elevation: 10,
   },
   headerTitle: {
     flex: 1,
     alignItems: 'center',
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#FFFFFF',
     letterSpacing: 1.2,
@@ -481,42 +374,53 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     margin: 10,
-    paddingHorizontal: 10,
-    borderRadius: 10,
-    elevation: 5,
-  },
-  searchIcon: {
-    marginRight: 8,
+    paddingHorizontal: 15,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
   },
   searchInput: {
     flex: 1,
     fontSize: 16,
     color: '#003C43',
   },
-  listContent: {
-    paddingHorizontal: 10,
-  },
   cardContainer: {
     backgroundColor: '#FFF',
     borderRadius: 15,
     padding: 15,
     marginVertical: 10,
-    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 6,
   },
   typeLabel: {
     alignSelf: 'flex-start',
     borderRadius: 10,
     paddingVertical: 5,
-    paddingHorizontal: 15,
+    paddingHorizontal: 12,
+    marginBottom: 10,
   },
   typeLabelText: {
     color: '#FFF',
     fontWeight: 'bold',
   },
-  descriptionText: {
+  offerNameText: {
     fontSize: 16,
+    fontWeight: '600',
     color: '#333',
-    marginTop: 10,
+    marginBottom: 5,
+  },
+  descriptionText: {
+    color: '#555',
+    fontSize: 14,
+    lineHeight: 18,
+    marginTop: 5,
+    fontWeight: '500',
   },
   modalBackground: {
     flex: 1,
@@ -529,6 +433,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     borderRadius: 15,
     padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
     elevation: 10,
   },
   closeButton: {
@@ -563,31 +471,35 @@ const styles = StyleSheet.create({
     color: '#006A6B',
     textDecorationLine: 'underline',
   },
-  noOffersText: {
-    textAlign: 'center',
-    color: '#333',
-    fontSize: 16,
-    marginTop: 20,
-  },
-  offerNameText: {
-    fontSize: 16,
-    color: '#003C43',
-    marginTop: 10,
-  },
   messageButton: {
     backgroundColor: '#006A6B',
-    padding: 10,
+    padding: 12,
     marginVertical: 20,
     borderRadius: 5,
     alignItems: 'center',
   },
-
+  productNameText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 5,
+  },
   messageButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
   },
+  loadingOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  loadingText: {
+    color: '#FFF',
+    fontSize: 16,
+    marginTop: 10,
+  },
 });
-
 
 export default ViewOffers;

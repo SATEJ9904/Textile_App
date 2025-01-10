@@ -1,4 +1,4 @@
-package com.textilemanagement
+package com.KapadaBanao
 
 import android.app.Application
 import com.facebook.react.PackageList

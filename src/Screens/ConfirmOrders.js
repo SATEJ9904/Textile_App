@@ -1764,33 +1764,6 @@ const ConfirmOrders = ({ navigation }) => {
                     </View >
 
 
-
-
-                    {/* {
-                        showmsg ? <View style={{ flex: 1, alignItems: "flex-end", justifyContent: "flex-end" }}>
-                            <View style={{
-                                bottom: 0,
-                                height: 20,
-                                width: '100%',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                backgroundColor: isConected ? 'green' : 'red'
-
-                            }}>
-                                <Text style={{ color: "#fff" }}>
-                                    {(() => {
-                                        if (isConected === true) {
-                                            'Back Online'
-                                        } else {
-                                            'No Internet'
-                                        }
-                                    })}
-                                </Text>
-
-                            </View>
-                        </View> : null
-                    } */}
-
                     <Modal
                         animationType="slide"
                         transparent={true}

@@ -411,7 +411,7 @@ const JobWorkEnquires = ({ navigation }) => {
             <Text style={styles.detailValue}>{isFieldNotProvided(selectedEnquiry.RPM) ? "Field not provided" : selectedEnquiry.RPM}</Text>
           </View>
           <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Shedding Type</Text>
+            <Text style={styles.detailLabel}>Dobby InShedding Type</Text>
             <Text style={styles.detailValue}>{isFieldNotProvided(selectedEnquiry.SheddingType) ? "Field not provided" : selectedEnquiry.SheddingType}</Text>
           </View>
         </View>
@@ -573,13 +573,15 @@ const JobWorkEnquires = ({ navigation }) => {
               {
                 showlooms ?
 
-                  loomdata.length ?
+                  loomdata && loomdata.length ? (
                     loomdata.map((item, index) => (
-                      <View key={index} >
+                      <View key={index}>
                         <Text style={{ fontSize: 17, fontWeight: 500, color: "#000" }}> {item.LoomNo} </Text>
                       </View>
-                    )) : <Text style={{ fontSize: 17, fontWeight: 500, color: "#000" }}> No Loom Available </Text>
-
+                    ))
+                  ) : (
+                    <Text style={{ fontSize: 17, fontWeight: 500, color: "#000" }}> No Loom Available </Text>
+                  )
                   : null}
             </View>
           </View>

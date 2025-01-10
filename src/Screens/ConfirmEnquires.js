@@ -106,11 +106,13 @@ const ConfirmEnquires = ({ navigation }) => {
   };
 
   const [enquiryDetailsmodal, setEnquiryDetailsModal] = useState([])
+  const [FQ,setFQ]=useState(null)
 
   const fetchEnquiryDetails1 = async (EnquiryId) => {
     try {
       const response = await axios.get('https://textileapp.microtechsolutions.co.in/php/getjoin.php?EnquiryId=' + EnquiryId);
       setEnquiryDetailsModal(response.data);
+      setFQ(response.data[0].FabricQuality)
     } catch (error) {
       console.error('Error fetching enquiry details: ', error);
     }
@@ -252,7 +254,7 @@ const ConfirmEnquires = ({ navigation }) => {
       ) : (
         <>
           {showE ? (
-            <View style={{width:"100%"}}>
+            <View style={{ width: "100%" }}>
               <View style={{ flexDirection: "row", backgroundColor: "#003C43", width: "100%", marginBottom: "5%" }}>
                 <TouchableOpacity onPress={() => navigation.navigate('PlanLooms')}>
                   <ImageBackground
@@ -308,10 +310,13 @@ const ConfirmEnquires = ({ navigation }) => {
                 }
               </View>
               <ScrollView>
+                <View>
+                <Text style={{color:"#000",fontSize:20,marginTop:"5%",fontWeight:"600"}}>Fabric Quality : <Text style={{fontWeight:"400"}}>{FQ}</Text></Text>
+                </View>
                 <View style={styles.detailsHeaderContainer}>
                   <ScrollView horizontal>
                     <Text style={[styles.detailsHeaderText]}>Loom</Text>
-                    <Text style={[styles.detailsHeaderText, { marginLeft: 100 }]}>Date Possible</Text>
+                    <Text style={[styles.detailsHeaderText, { marginLeft: 60 }]}>Date Possible</Text>
                     <Text style={[styles.detailsHeaderText, { marginLeft: 50 }]}>Job Rate Exp</Text>
 
                   </ScrollView>
@@ -319,32 +324,34 @@ const ConfirmEnquires = ({ navigation }) => {
                 <View>
                   {
                     enquiryDetails.map((item, index) => (
-                      <ScrollView key={index} horizontal={true}>
-                        <View style={[styles.detailsItemContainer, index % 2 === 0 ? styles.rowColor1 : styles.rowColor2]}>
-                          <Text style={[styles.detailsItemText, styles.column1]}>{item.Name}</Text>
-                          <View style={{ flexDirection: "column", marginLeft: "-15%" }}>
-                            <Text style={[styles.detailsItemText, styles.column2]}>{item.DatePossibleFrom.date.substring(0, 10)}</Text>
-                            <Text style={[styles.detailsItemText, styles.column2]}>{item.DatePossibleTo.date.substring(0, 10)}</Text>
-                          </View>
-                          <Text style={[styles.detailsItemText, styles.column3]}>{item.JobRateExp}</Text>
-                          {/* <TouchableOpacity
-                            style={[
-                              styles.confirmButton,
-                              confirmed.has(item.LoomTraderId) ? styles.confirmedButton : null,
-                            ]}
-                            onPress={() => handleLoomDetails(item)}
-                          >
-                            <Text style={styles.buttonText}>View</Text>
-                          </TouchableOpacity> */}
-                          <TouchableOpacity style={{marginLeft:"-25%"}}  onPress={() => handleLoomDetails(item)}>
-                            <Icon name="information-circle" size={22} color="grey" />
-                          </TouchableOpacity>
+                      <ScrollView key={index} horizontal={true} showsHorizontalScrollIndicator={false}>
+                        <View >
+                          {/* Name Column */}
 
+                          <TouchableOpacity style={[styles.detailsItemContainer, index % 2 === 0 ? styles.rowColor1 : styles.rowColor2]} onPress={() => handleLoomDetails(item)}>
+                            <Text style={[styles.detailsItemText, styles.column1]}>{item.Name}</Text>
+
+                            {/* Date Range Column */}
+                            <View style={{ flexDirection: "column", marginLeft: 20 }}>
+                              <Text style={[styles.detailsItemText, styles.column2]}>
+                                {item.DatePossibleFrom.date.substring(0, 10)}
+                              </Text>
+                              <Text style={[styles.detailsItemText, styles.column2]}>
+                                {item.DatePossibleTo.date.substring(0, 10)}
+                              </Text>
+                            </View>
+
+                            {/* Job Rate Expected Column */}
+                            <Text style={[styles.detailsItemText, styles.column3]}>{item.JobRateExp}</Text>
+
+                            {/* Icon Button */}
+                          </TouchableOpacity>
                         </View>
                       </ScrollView>
                     ))
                   }
                 </View>
+
               </ScrollView>
             </View>
           ) : null}
@@ -498,40 +505,40 @@ const styles = StyleSheet.create({
     width: width * 0.2
   },
   detailsItemContainer: {
-    width: width * 1,
-    flexDirection: 'row',
-    backgroundColor: '#0909ff',
-    padding: width * 0.02,
-    marginBottom: height * 0.01,
-    borderRadius: width * 0.02,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#bdc3c7',
+    flexDirection: "row",
+    alignItems: "center",  // Ensures vertical alignment of text and buttons
+    paddingVertical: 10,   // Padding for better row spacing
+    paddingHorizontal: 15, // Space on the left and right
+  },
+  rowColor1: {
+    backgroundColor: "#f9f9f9", // Alternating row color 1
+  },
+  rowColor2: {
+    backgroundColor: "#e0e0e0", // Alternating row color 2
   },
   detailsItemText: {
-    flex: 1,
-    fontSize: width * 0.04,
-    textAlign: 'center',
-    color: '#333333',
-    paddingHorizontal: width * 0.01,
+    fontSize: 16, // General text size
+    color: "#333", // Text color
   },
   column1: {
-    flex: 1,
-    marginLeft: "-20%"
+    width: 120, // Fixed width for Name column
+    paddingHorizontal: 10, // Padding for spacing
   },
   column2: {
-    flex: 1.5,
-    flexDirection: "column",
-    marginLeft: "10%"
-
+    width: 160, // Fixed width for Date columns
+    paddingHorizontal: 10, // Padding for spacing
   },
   column3: {
-    flex: 1,
-    marginLeft: "-18%"
+    width: 100, // Fixed width for JobRate column
+    paddingHorizontal: 10, // Padding for spacing
   },
-  column4: {
-    flex: 1,
+  iconButton: {
+    marginLeft: "auto", // Align the button to the right
+    paddingHorizontal: 10, // Space for button
+    paddingVertical: 5,
   },
+
+
   modalBackground: {
     flex: 1,
     justifyContent: 'center',

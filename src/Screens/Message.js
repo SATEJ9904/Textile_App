@@ -21,41 +21,54 @@ const Message = ({ route }) => {
     useEffect(() => {
         setRenderedImage(Photopath);
         setUserId(AsyncStorage.getItem("Id"))
+        console.log("Privacy",Privacy)
     }, []);
 
     const fetchOfferDetails = async () => {
-        const sendersId = await AsyncStorage.getItem("Id");
-        setSenderId(sendersId);
-    
         try {
+            const sendersId = await AsyncStorage.getItem("Id");
+            setSenderId(sendersId);
+    
+            // Fetch chat details based on SenderId and ReceiverId
             const response = await fetch(
-                `https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=MarketChat&Colname=SenderId&Colvalue=${sendersId}&Colname2=ReceiverId&Colvalue2=${ReceiverId}&MarketOfferId=${offerId}`
+                `https://textileapp.microtechsolutions.co.in/php/getbyid.php?Table=MarketChat&Colname=SenderId&Colvalue=${sendersId}&Colname2=ReceiverId&Colvalue2=${ReceiverId}`
             );
             const data = await response.json();
-            console.log("Chat Response = ", data);
     
+          
+    
+            // Filter chats related to the specific offer
             const filteredChats = data.filter(chat => chat.MarketOfferId === offerId);
             setChatHistory(filteredChats);
+            console.log("Chat Response = ", filteredChats);
     
-            const { TraderId, LoomId, YarnId } = data[0] || {};
-            const nonNullId = TraderId || LoomId || YarnId;
+            // Ensure data is not empty before destructuring
+            if (data.length > 0) {
+                const { ReceiverId, SenderId } = data[0];
+                const nonNullId = ReceiverId || SenderId;
     
-            if (nonNullId) {
-                fetchUserDetails(nonNullId);
+                if (nonNullId) {
+                    fetchUserDetails(nonNullId); // Fetch user details if a valid ID exists
+                } else {
+                    console.log('No valid user ID found.');
+                }
             } else {
-                setName('Privacy applied');
+                console.log('No chat history found.');
             }
         } catch (error) {
             console.error('Failed to fetch offer details:', error);
         }
     };
+    
 
     const fetchUserDetails = async (id) => {
+        console.log(id)
         try {
-            const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/getiddetail.php?Id=${id}`);
+            const response = await fetch(`https://textileapp.microtechsolutions.co.in/php/getiddetail.php?Id=${ReceiverId}`);
             const userDetails = await response.json();
+            console.log("User Details : ",userDetails)
 
-            if (userDetails.length !== 0 && Privacy !== 0) {
+            if (userDetails.length !== 0 && Privacy === 1 ) {
                 setName(userDetails[0].Name);
                 setPrimaryContact(userDetails[0].PrimaryContact);
                 setProfileImg(userDetails[0].Profilepic);
@@ -123,7 +136,7 @@ const Message = ({ route }) => {
                         onPress={() => setReplyToMessage(item.Message)} 
                         style={styles.replyButton}
                     >
-                        <Ionicons name="ios-arrow-back" size={24} color="white" />
+                        <Ionicons name="arrow-back" size={24} color="white" />
                     </TouchableOpacity>
                 )}
             >

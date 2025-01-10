@@ -62,7 +62,7 @@ const NewEnquiry = ({ navigation }) => {
     const [fabricWidth, setFabricWidth] = useState("");
     const [description, setDescription] = useState("")
     const [modalVisible2, setModalVisible2] = useState(false);
-    const [date,setDate]=useState(null)
+    const [date, setDate] = useState(null)
     const width1 = Dimensions.get('window');
 
 
@@ -83,6 +83,43 @@ const NewEnquiry = ({ navigation }) => {
             console.log('ImagePicker Error: ', error);
         });
     };
+
+    // Open Gallery
+    const openGallery = () => {
+        ImagePicker.openPicker({
+            width: 300,
+            height: 400,
+            cropping: true,
+        }).then(image => {
+            setDesignPaper(image);
+        }).catch(error => {
+            console.log('ImagePicker Error: ', error);
+        });
+    };
+
+    // Provide option to choose Camera or Gallery
+    const chooseImageOption = () => {
+        Alert.alert(
+            "Upload Design Paper",
+            "Choose an option",
+            [
+                {
+                    text: "Camera",
+                    onPress: openCamera
+                },
+                {
+                    text: "Gallery",
+                    onPress: openGallery
+                },
+                {
+                    text: "Cancel",
+                    style: "cancel"
+                }
+            ],
+            { cancelable: true }
+        );
+    };
+
 
     // Format date in 'YYYY-MM-DD' format
     const formatDate = (date) => {
@@ -498,16 +535,16 @@ const NewEnquiry = ({ navigation }) => {
 
                     {/* Date Fields */}
                     <View style={{ flexDirection: "column", justifyContent: "space-evenly" }}>
-                        <Text style={{ marginTop: "3%", fontSize: 20, marginLeft: "0%", color: "#000",fontWeight:"500" }}>Date : {TodaysDate}</Text>
+                        <Text style={{ marginTop: "3%", fontSize: 20, marginLeft: "0%", color: "#000", fontWeight: "500" }}>Date : {TodaysDate}</Text>
 
-                        <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500" , marginTop:"5%" }}>Expected From to To Dates :- </Text>
+                        <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%", fontWeight: "500", marginTop: "5%" }}>Expected Delivery Date :- </Text>
                         <View style={{ flexDirection: "row", marginTop: "2%" }}>
 
                             <TextInput
                                 style={[styles.input, { width: "100%" }]}
                                 value={date}
                                 onChangeText={setDate}
-                                placeholder="YYYY-MM-DD To YYYY-MM-DD"
+                                placeholder="DD-MM-YYYY"
                                 keyboardType="numeric"
                                 placeholderTextColor={"grey"}
                             />
@@ -516,9 +553,11 @@ const NewEnquiry = ({ navigation }) => {
 
                     </View>
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>Fabric Quality :- <Text style={styles.redText}>*</Text> </Text>
-                    <View style={styles.fabricQuality}>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%", fontWeight: "500" }}>
+                        Fabric Quality :- <Text style={styles.redText}>*</Text>
+                    </Text>
 
+                    <View style={styles.fabricQuality}>
                         <TextInput
                             style={styles.fabricDetails}
                             placeholder="Reed"
@@ -527,7 +566,7 @@ const NewEnquiry = ({ navigation }) => {
                             value={epi}
                             onChangeText={setEpi}
                         />
-                        <Text style={{ marginTop: "3%", fontSize: 20, color: "#000" }}> * </Text>
+                        <Text style={styles.operatorText}> * </Text>
                         <TextInput
                             style={styles.fabricDetails}
                             placeholder="PPI"
@@ -536,7 +575,7 @@ const NewEnquiry = ({ navigation }) => {
                             value={ppi}
                             onChangeText={setPpi}
                         />
-                        <Text style={{ marginTop: "3%", fontSize: 20, color: "#000" }}> / </Text>
+                        <Text style={styles.operatorText}> / </Text>
                         <TextInput
                             style={styles.fabricDetails}
                             placeholder={`Warp\nCount`}
@@ -545,7 +584,7 @@ const NewEnquiry = ({ navigation }) => {
                             value={warpCount}
                             onChangeText={setWarpCount}
                         />
-                        <Text style={{ marginTop: "3%", fontSize: 20, color: "#000" }}> * </Text>
+                        <Text style={styles.operatorText}> * </Text>
                         <TextInput
                             style={styles.fabricDetails}
                             placeholder={`Weft\nCount`}
@@ -554,7 +593,7 @@ const NewEnquiry = ({ navigation }) => {
                             value={weftCount}
                             onChangeText={setWeftCount}
                         />
-                        <Text style={{ marginTop: "3%", fontSize: 20, color: "#000" }}> : </Text>
+                        <Text style={styles.operatorText}> : </Text>
                         <TextInput
                             style={styles.fabricDetails}
                             placeholder={`Reed\nSpace`}
@@ -563,13 +602,11 @@ const NewEnquiry = ({ navigation }) => {
                             value={panna}
                             onChangeText={setPanna}
                         />
-
-
                     </View>
 
 
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>Fabric Length :- <Text style={styles.redText}>*</Text> </Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%", fontWeight: "500" }}>Fabric Length :- <Text style={styles.redText}>*</Text> </Text>
                     <TextInput
 
                         style={styles.input}
@@ -580,7 +617,7 @@ const NewEnquiry = ({ navigation }) => {
                         placeholderTextColor={"grey"}
 
                     />
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>Fabric Width :- </Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%", fontWeight: "500" }}>Fabric Width :- </Text>
                     <View style={{ flexDirection: "row", marginTop: "2%" }}>
 
                         <TextInput
@@ -593,7 +630,7 @@ const NewEnquiry = ({ navigation }) => {
                         />
                     </View>
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500" ,fontWeight:"500" }}>Agent Name :-</Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%", fontWeight: "500", fontWeight: "500" }}>Agent Name :-</Text>
                     <TextInput
                         style={[styles.input, { width: "100%" }]}
                         value={dalalAgent}
@@ -604,7 +641,7 @@ const NewEnquiry = ({ navigation }) => {
                     />
 
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>Machine Type :- <Text style={styles.redText}>*</Text> </Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%", fontWeight: "500" }}>Machine Type :- <Text style={styles.redText}>*</Text> </Text>
                     <Dropdown
                         style={[styles.input, isFocus3 && { borderColor: 'blue' }]}
                         placeholderStyle={styles.placeholderStyle}
@@ -627,7 +664,7 @@ const NewEnquiry = ({ navigation }) => {
                             setIsFocus3(false);
                         }} />
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>Machine Width :- </Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%", fontWeight: "500" }}>Machine Width :- </Text>
                     <View style={{ flexDirection: "row", marginTop: "2%" }}>
                         <TextInput
                             style={[styles.input, { width: "100%" }]}
@@ -641,7 +678,7 @@ const NewEnquiry = ({ navigation }) => {
                     </View>
 
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>RPM:-</Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%", fontWeight: "500" }}>RPM:-</Text>
                     <TextInput
                         style={styles.input}
                         value={rpm}
@@ -652,7 +689,7 @@ const NewEnquiry = ({ navigation }) => {
 
                     />
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>Shedding Type :- </Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%", fontWeight: "500" }}>Shedding Type :- </Text>
                     <Dropdown
                         style={[styles.input, isFocus4 && { borderColor: 'blue' }]}
                         placeholderStyle={styles.placeholderStyle}
@@ -675,7 +712,7 @@ const NewEnquiry = ({ navigation }) => {
                             setIsFocus4(false);
                         }} />
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>No Of Feeders :- </Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%", fontWeight: "500" }}>No Of Feeders :- </Text>
                     <Dropdown
                         style={[styles.input, isFocus6 && { borderColor: 'blue' }]}
                         placeholderStyle={styles.placeholderStyle}
@@ -699,7 +736,7 @@ const NewEnquiry = ({ navigation }) => {
                         }} />
 
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>No Of Frames :-<Text style={styles.redText}> *</Text></Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%", fontWeight: "500" }}>No Of Frames :-<Text style={styles.redText}> *</Text></Text>
                     <Dropdown
                         style={[styles.input, isFocus5 && { borderColor: 'blue' }]}
                         placeholderStyle={styles.placeholderStyle}
@@ -723,7 +760,7 @@ const NewEnquiry = ({ navigation }) => {
                         }} />
 
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>No Of Looms Required :- </Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%", fontWeight: "500" }}>No Of Looms Required :- </Text>
                     <TextInput
                         style={styles.input}
                         value={numLoomsRequired}
@@ -735,7 +772,7 @@ const NewEnquiry = ({ navigation }) => {
                     />
 
 
-                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%",fontWeight:"500"  }}>Job Rate:-</Text>
+                    <Text style={{ color: "#000", fontSize: 18, marginLeft: "1%", fontWeight: "500" }}>Job Rate:-</Text>
                     <View style={{ flexDirection: "row" }}>
                         <TextInput
                             style={[styles.input, { width: "100%" }]}
@@ -753,63 +790,60 @@ const NewEnquiry = ({ navigation }) => {
                         margin: "2%",
                         justifyContent: "center",
                         alignItems: "center",
-                        borderRadius:10
+                        borderRadius: 10
 
                     }}>
-                        <Text style={{ color: "#003C43", fontSize: 20, fontWeight: "600", margin: "5%" }}>Other Loom Attachments</Text>
-                        <View style={styles.checkboxContainer}>
+                        <Text style={styles.loomAttachmentsTitle}>Other Loom Attachments</Text>
 
-                            <Text style={{ marginRight: "12%", fontSize: 17, color: "#000",fontWeight:"500" }}>Selvadge Jacquard</Text>
+                        <View style={styles.checkboxContainer}>
+                            <Text style={styles.checkboxLabel}>Selvadge Jacquard</Text>
                             <CheckBox
-                                tintColors={{ true: 'blue', false: 'black' }} // Change color when checked and unchecked
-                                tintColor="black" // Change the box color when unchecked
-                                onCheckColor="blue" // Change the check color when checked
+                                tintColors={{ true: 'blue', false: 'black' }}
+                                tintColor="black"
+                                onCheckColor="blue"
                                 value={selvadgeJacquard}
                                 onValueChange={setSelvadgeJacquard}
                             />
-                            <Text style={{ fontSize: 17, color: "#000" }}>Required</Text>
-
+                            <Text style={styles.requiredText}>Required</Text>
                         </View>
-                        <View style={styles.checkboxContainer}>
 
-                            <Text style={{ marginRight: "31%", fontSize: 17, color: "#000",fontWeight:"500" }}>Top Beam</Text>
+                        <View style={styles.checkboxContainer}>
+                            <Text style={styles.checkboxLabel}>Top Beam</Text>
                             <CheckBox
-                                tintColors={{ true: 'blue', false: 'black' }} // Change color when checked and unchecked
-                                tintColor="black" // Change the box color when unchecked
-                                onCheckColor="blue" // Change the check color when checked
+                                tintColors={{ true: 'blue', false: 'black' }}
+                                tintColor="black"
+                                onCheckColor="blue"
                                 value={topBeam}
                                 onValueChange={setTopBeam}
                             />
-                            <Text style={{ fontSize: 17, color: "#000" }}>Required</Text>
+                            <Text style={styles.requiredText}>Required</Text>
                         </View>
-                        <View style={styles.checkboxContainer}>
 
-                            <Text style={{ marginRight: "31%", fontSize: 17, color: "#000",fontWeight:"500" }}>Cramming</Text>
+                        <View style={styles.checkboxContainer}>
+                            <Text style={styles.checkboxLabel}>Cramming</Text>
                             <CheckBox
-                                tintColors={{ true: 'blue', false: 'black' }} // Change color when checked and unchecked
-                                tintColor="black" // Change the box color when unchecked
-                                onCheckColor="blue" // Change the check color when checked
+                                tintColors={{ true: 'blue', false: 'black' }}
+                                tintColor="black"
+                                onCheckColor="blue"
                                 value={cramming}
                                 onValueChange={setCramming}
                             />
-                            <Text style={{ fontSize: 17, color: "#000" }}>Required</Text>
-
+                            <Text style={styles.requiredText}>Required</Text>
                         </View>
-                        <View style={styles.checkboxContainer}>
 
-                            <Text style={{ marginRight: "3%", fontSize: 17, color: "#000",fontWeight:"500" }}>Leno Design Equipment</Text>
+                        <View style={styles.checkboxContainer}>
+                            <Text style={styles.checkboxLabel}>Leno Design Equipment</Text>
                             <CheckBox
-                                tintColors={{ true: 'blue', false: 'black' }} // Change color when checked and unchecked
-                                tintColor="black" // Change the box color when unchecked
-                                onCheckColor="blue" // Change the check color when checked
+                                tintColors={{ true: 'blue', false: 'black' }}
+                                tintColor="black"
+                                onCheckColor="blue"
                                 value={lenoDesign}
                                 onValueChange={setLenoDesign}
                             />
-                            <Text style={{ fontSize: 17, color: "#000" }}>Required</Text>
-
+                            <Text style={styles.requiredText}>Required</Text>
                         </View>
-                    </View>
 
+                    </View>
 
                     <View style={{ marginTop: "0%" }}>
                         <Text style={{ marginRight: "3%", fontSize: 17, color: "#000", marginBottom: "2%", marginVertical: "3%", fontWeight: "600" }}>Description (Optional)</Text>
@@ -829,7 +863,7 @@ const NewEnquiry = ({ navigation }) => {
 
 
                     <View style={{ flexDirection: "column", marginVertical: "5%", marginTop: "5%" }}>
-                        <Text style={{ color: "#000", fontSize: 18,fontWeight:"500" }}>Upload Design Paper</Text>
+                        <Text style={{ color: "#000", fontSize: 18, fontWeight: "500" }}>Upload Design Paper</Text>
                         <View style={{ flexDirection: "row" }}>
                             {designPaper && (
                                 <ImageBackground
@@ -837,17 +871,16 @@ const NewEnquiry = ({ navigation }) => {
                                     style={{ width: 100, height: 100, margin: 10, marginTop: "10%" }}
                                 />
                             )}
-                            {
-                                designPaper ? null : <TouchableOpacity onPress={openCamera}>
+                            {!designPaper && (
+                                <TouchableOpacity onPress={chooseImageOption}>
                                     <ImageBackground
                                         source={require('../Images/camera.png')}
-                                        style={{ width: 34, height: 30, alignSelf: 'flex-start', marginLeft: "30%" ,marginTop:"15%"}}
+                                        style={{ width: 34, height: 30, alignSelf: 'flex-start', marginLeft: "30%", marginTop: "15%" }}
                                         imageStyle={{ borderRadius: 0 }}
                                     />
                                 </TouchableOpacity>
-                            }
+                            )}
                         </View>
-
                     </View>
 
                     <View style={{ flexDirection: "row", justifyContent: "space-evenly", marginTop: "5%" }}>
@@ -965,7 +998,7 @@ const styles = StyleSheet.create({
     fabricDetails: {
         flex: 1,
         height: height * 0.055,
-        width: width * 0.12,
+        width: width * 0.19,
         borderColor: 'gray',
         borderBottomWidth: 1,
         marginBottom: height * 0.02,
@@ -1127,5 +1160,58 @@ const styles = StyleSheet.create({
         marginBottom: 30,
         borderColor: '#003C43',
         alignItems: 'center'
-    }
+    },
+    fabricQuality: {
+        width: '100%', // Ensure it uses full width of the screen
+        flexDirection: 'row',
+        justifyContent: 'space-between', // Space between inputs for better layout
+        alignItems: 'center',
+        marginVertical: 10, // Add vertical margin for better spacing on different screens
+    },
+    fabricDetails: {
+        flex: 1, // Each input takes up equal width
+        height: height * 0.07, // Responsive height based on screen height
+        marginHorizontal: 5, // Adjusts horizontal margin between inputs
+        borderColor: '#000',
+        borderWidth: 1.2,
+        borderRadius: 8, // Rounded corners for a better look
+        paddingHorizontal: 8, // Adds padding inside input
+        textAlign: 'center', // Center text in input fields
+        fontSize: 13, // Responsive font size
+        color: "#000",
+    },
+    operatorText: {
+        fontSize: 20, // Ensure the operator signs (*, /, :) are large enough
+        color: "#000",
+    },
+    redText: {
+        color: 'red',
+        fontSize: 20, // Highlight the red asterisk for required fields
+    },
+    loomAttachmentsTitle: {
+        color: "#003C43",
+        fontSize: 20,
+        fontWeight: "600",
+        marginVertical: 10, // Adjusted for better vertical spacing
+        textAlign: "center", // Centers the title on the screen
+    },
+    checkboxContainer: {
+        flexDirection: "row", // Row direction to keep the checkbox and label in line
+        alignItems: "center", // Centers items vertically
+        width: "100%", // Full width of the screen
+        marginVertical: 10, // Vertical margin between checkboxes
+        paddingHorizontal: 10, // Padding inside for better alignment on all screens
+    },
+    checkboxLabel: {
+        fontSize: 17, // Responsive font size
+        color: "#000",
+        fontWeight: "500",
+        flex: 1, // The label will expand to fill the available space
+    },
+    requiredText: {
+        fontSize: 17, // Keep the same font size as the label
+        color: "#000",
+        flex: 0.5, // The "Required" text will take up less space
+        textAlign: "right", // Align it to the right
+    },
 })

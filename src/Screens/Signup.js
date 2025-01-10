@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, ScrollView, Alert, Modal, ActivityIndicator, ToastAndroid, Dimensions } from 'react-native'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image, ScrollView, Alert, Modal, ActivityIndicator, ToastAndroid, Dimensions, Linking } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { getAllCountries, getStatesOfCountry, getCitiesOfState, Country, State, City } from 'country-state-city';
 import { Dropdown } from 'react-native-element-dropdown';
@@ -7,6 +7,7 @@ import axios from 'axios';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import LottieView from 'lottie-react-native';
+import CheckBox from '@react-native-community/checkbox';
 
 const { width, height } = Dimensions.get('window');
 
@@ -28,9 +29,9 @@ const Signup = ({ navigation }) => {
     const [primaryContactNo, setPrimaryContactNo] = useState('');
     const [TotalNoOfLooms, setTotalNoOfLooms] = useState("");
     const [LoomOrTrader, setLoomOrTrader] = useState(null);
-    const [value, setValue] = useState(null);
-    const [value2, setValue2] = useState(null);
-    const [value3, setValue3] = useState(null);
+    const [value, setValue] = useState('IN');
+    const [value2, setValue2] = useState('Maharashtra');
+    const [value3, setValue3] = useState('Ichalkaranji');
     const [isFocus, setIsFocus] = useState("")
     const [isFocus2, setIsFocus2] = useState("")
     const [isFocus3, setIsFocus3] = useState("")
@@ -150,7 +151,7 @@ const Signup = ({ navigation }) => {
 
 
     const sendOTP = () => {
-
+        setShow2(true)
         const formdata = new FormData();
         formdata.append("Email", Email);
         formdata.append("Name", loomShade);
@@ -168,10 +169,12 @@ const Signup = ({ navigation }) => {
                 setShow3(false)
                 setShow4(true)
                 setShow2(false);
+                Alert.alert("OTP is sent to your email")
             })
             .catch((error) => {
                 Alert.alert("Some Error Occured while submitting Data Please Try Again")
                 console.error(error)
+                setShow2(false);
             });
     }
 
@@ -279,20 +282,20 @@ const Signup = ({ navigation }) => {
                         console.log(JSON.stringify(response.data));
                         console.log(ownercontactDetails, managercontactDetails, otherscontactDetails)
                         showToast2();
-                        // setEmail("");
-                        // setPassword("")
-                        // setLoomShade("");
-                        // setOwnerName("");
-                        // setAddress("");
-                        // setValue("");
-                        // setValue2("");
-                        // setValue3("");
-                        // setPincode("");
-                        // setPrimaryContactNo("");
-                        // setGstNo("")
-                        // setOwnerContactDetails("");
-                        // setManagerContactDetails("");
-                        // setOthersContactDetails("");
+                        setEmail("");
+                        setPassword("")
+                        setLoomShade("");
+                        setOwnerName("");
+                        setAddress("");
+                        setValue("");
+                        setValue2("");
+                        setValue3("");
+                        setPincode("");
+                        setPrimaryContactNo("");
+                        setGstNo("")
+                        setOwnerContactDetails("");
+                        setManagerContactDetails("");
+                        setOthersContactDetails("");
                     })
                     .catch((error) => {
                         console.log(error);
@@ -370,7 +373,17 @@ const Signup = ({ navigation }) => {
 
     };
 
+    const [isSelected, setSelection] = useState(false);
 
+    const handlePrivacyPolicy = () => {
+        const privacyUrl = "https://textileapp.microtechsolutions.co.in/file/privacypolicy.html"; // Privacy Policy URL
+
+        // Try to open the URL directly
+        Linking.openURL(privacyUrl)
+            .catch(() => {
+                Alert.alert("Error", "Unable to open the privacy policy. Please check your connection or try again.");
+            });
+    };
 
 
 
@@ -416,7 +429,7 @@ const Signup = ({ navigation }) => {
 
                             />
                             <View style={{ alignItems: 'center', marginTop: '10%', marginBottom: 20 }}>
-                                <Text style={{ fontSize: 28, color: "#003C43", fontWeight: "500" }}> Sign </Text>
+                                <Text style={{ fontSize: 28, color: "#003C43", fontWeight: "500" }}> Sign In </Text>
                             </View>
 
 
@@ -430,7 +443,7 @@ const Signup = ({ navigation }) => {
                                         style={{ marginLeft: "5%", color: "black", width: "70%" }}
                                         placeholder='Email'
                                         placeholderTextColor={"#003C43"}
-                                        onChangeText={(txt) => setEmail(txt)}
+                                        onChangeText={(txt) => setEmail(txt.toLowerCase())}
                                         value={Email}
 
                                     />
@@ -443,7 +456,7 @@ const Signup = ({ navigation }) => {
 
                                     <TextInput
                                         style={{ marginLeft: "5%", color: "black", width: "70%" }}
-                                        placeholder='Password'
+                                        placeholder='Create Password'
                                         placeholderTextColor={"#003C43"}
                                         onChangeText={(txt) => setPassword(txt)}
                                         value={Password}
@@ -625,7 +638,6 @@ const Signup = ({ navigation }) => {
 
                                 <View style={styles.input}>
 
-
                                     <Icon name="account-plus" color="#003C43" size={32} padding={8} />
 
                                     <TextInput
@@ -640,19 +652,30 @@ const Signup = ({ navigation }) => {
 
                             </View>
 
-                            <TouchableOpacity style={styles.loginButton} onPress={() => {
-                                sendOTP();
+                            <View style={styles.checkboxContainer}>
+                                <View style={{ flexDirection: "row" }}>
+                                    <CheckBox
+                                        value={isSelected}
+                                        onValueChange={setSelection}
+                                        tintColors={{ true: '#2F539B', false: '#666' }} // Customize colors
+                                    />
+                                    <Text style={styles.label}>I accept the Terms and Conditions</Text>
+                                </View>
+                                <TouchableOpacity onPress={handlePrivacyPolicy}>
+                                    <Text style={styles.linkText}>Privacy Policy</Text>
+                                </TouchableOpacity>
+                            </View>
 
-                                console.log("OTP screen called")
-                            }}>
-                                <Text style={styles.loginText}>Submit</Text>
+                            <TouchableOpacity
+                                style={[styles.button, isSelected ? styles.buttonEnabled : styles.buttonDisabled]}
+                                disabled={!isSelected} // Disable button if checkbox is not selected
+                                onPress={() => { sendOTP(); setShow2(true); setShow3(false) }}
+                            >
+                                <Text style={styles.buttonText}>Continue</Text>
                             </TouchableOpacity>
 
-                            <View style={{ flex: 1 }}>
-                                {
-                                    show2 ? <ActivityIndicator size={70} color="green" /> : null
-                                }
-                            </View>
+
+
 
 
                         </View>
@@ -660,6 +683,12 @@ const Signup = ({ navigation }) => {
                 </View>
                 : null}
 
+          <View style={{justifyContent:"center",alignItems:"center"}}>
+          {
+                show2 ? <ActivityIndicator size={70} color="green" /> : null
+            }
+
+          </View>
 
             {show4 ?
                 <View style={{ flex: 1 }}>
@@ -862,6 +891,38 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
         marginBottom: 10,
+    },
+    checkboxContainer: {
+        flexDirection: 'column',
+        marginBottom: 20,
+        alignItems: 'center',
+    },
+    label: {
+        fontSize: 16,
+        color: '#666',
+    },
+    linkText: {
+        fontSize: 16,
+        color: '#2F539B',
+        textDecorationLine: 'underline',
+    },
+    button: {
+        padding: 15,
+        borderRadius: 10,
+        marginTop: 20,
+        width: '80%',
+        alignItems: 'center',
+        marginBottom: "5%"
+    },
+    buttonEnabled: {
+        backgroundColor: '#003C43',
+    },
+    buttonDisabled: {
+        backgroundColor: '#ddd',
+    },
+    buttonText: {
+        color: '#fff',
+        fontSize: 18,
     },
 });
 

@@ -115,7 +115,6 @@ const LiveOrders = ({ navigation }) => {
         console.log(order)
        
        
-        navigation.navigate("LiveBooking", { OrderNoId: order.LoomOrderId, OrderNo: order.OrderNo });
 
         const confirmed = true
         try {
@@ -125,6 +124,7 @@ const LiveOrders = ({ navigation }) => {
                 throw new Error('Something went wrong');
             } else {
                 Alert.alert("Order Confirmed Successfully !!!")
+                navigation.navigate("LiveBooking", { OrderNoId: order.LoomOrderId, OrderNo: order.OrderNo });
                 FetchTraderName(order)
                 console.log('Order updated successfully');
               

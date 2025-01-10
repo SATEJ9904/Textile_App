@@ -14,7 +14,7 @@ import React, { useState, useEffect } from 'react';
 import DocumentPicker from 'react-native-document-picker';
 import ImagePicker from 'react-native-image-crop-picker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import PickerSelect from 'react-native-picker-select';
+import DropDownPicker from 'react-native-dropdown-picker';
 import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -27,6 +27,7 @@ const GenerateOffers = ({ navigation }) => {
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
   const [document, setDocument] = useState(null);
+  const [open, setOpen] = useState(false);
 
   const [radioOptions, setRadioOptions] = useState([]);
   const [dropdownOptions, setDropdownOptions] = useState([]);
@@ -96,7 +97,7 @@ const GenerateOffers = ({ navigation }) => {
 
     let radio = radioOptions.find(option => option.Name === selectedOption)?.Id || null
 
-   // console.log(radio,"Image Data Source = ",image.path,"Document Data Source",document[0]?.uri,selectedOption,selectedIdentity,dropdownValue,description)
+    // console.log(radio,"Image Data Source = ",image.path,"Document Data Source",document[0]?.uri,selectedOption,selectedIdentity,dropdownValue,description)
 
     try {
       const LoomOrTrader = await AsyncStorage.getItem("LoomOrTrader");
@@ -113,11 +114,11 @@ const GenerateOffers = ({ navigation }) => {
       }
 
       const formData = new FormData();
-      formData.append("YarnId", YarnId || null);
-      formData.append("LoomId", LoomId || null);
-      formData.append("TraderId", TraderId || null);
+      formData.append("YarnId", YarnId || "");
+      formData.append("LoomId", LoomId || "");
+      formData.append("TraderId", TraderId || "");
       formData.append("OfferOptId", radio);
-      formData.append("ProductOptId", dropdownValue || null);
+      formData.append("ProductOptId", dropdownValue || "");
       formData.append("Description", description);
 
       if (image) {
@@ -136,7 +137,7 @@ const GenerateOffers = ({ navigation }) => {
         });
       }
 
-      formData.append("Privacy", selectedIdentity );
+      formData.append("Privacy", selectedIdentity);
 
       const requestOptions = {
         method: "POST",
@@ -160,12 +161,12 @@ const GenerateOffers = ({ navigation }) => {
       Alert.alert("Error", "Failed to retrieve data.");
     }
 
-    setSelectedOption(null)
-    setSelectedIdentity("Don't show my identity & message me")
-    setDropdownValue(null)
-    setDescription(null)
-    setImage(null)
-    setDocument(null)
+    // setSelectedOption(null)
+     setSelectedIdentity("Don't show my identity & message me")
+    // setDropdownValue(null)
+    // setDescription(null)
+    // setImage(null)
+    // setDocument(null)
   };
 
   const handleCancelImage = () => {
@@ -211,6 +212,12 @@ const GenerateOffers = ({ navigation }) => {
     return null;
   };
 
+  const items = dropdownOptions.map(option => ({
+    label: option.Name, // Displayed in the dropdown
+    value: option.Id.toString(), // Value when selected
+  }));
+
+
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient colors={['#003C43', '#006A6B']} style={styles.header}>
@@ -245,16 +252,20 @@ const GenerateOffers = ({ navigation }) => {
         </View>
 
         <View style={styles.section}>
-          <PickerSelect
-            value={dropdownValue}
-            onValueChange={(value) => setDropdownValue(value)}
-            items={dropdownOptions.map(option => ({
-              label: option.Name,
-              value: option.Id.toString(),
-            }))}
-            style={styles.pickerSelectStyles}
-          />
-        </View>
+
+      
+        <DropDownPicker
+        open={open}
+        value={dropdownValue}
+        items={items}
+        setOpen={setOpen}
+        setValue={setDropdownValue}
+        placeholder="Select an option"
+        showArrowIcon={true} // Adds a dropdown arrow
+        style={styles.dropdownStyle} // Styles the dropdown input
+        dropDownContainerStyle={styles.dropDownContainerStyle} // Styles the dropdown list
+      />
+    </View>
 
         <View style={styles.section}>
           <TextInput
@@ -289,15 +300,6 @@ const GenerateOffers = ({ navigation }) => {
         </View>
 
         <View style={styles.section}>
-          <TouchableOpacity
-            style={styles.createOfferButton}
-            onPress={handleCreateOffer}
-          >
-            <Text style={styles.createOfferButtonText}>Create Offer</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.section}>
           <Text style={styles.heading}>Identity Preference:</Text>
           <View style={styles.radioButtonContainer}>
             <TouchableOpacity
@@ -312,12 +314,23 @@ const GenerateOffers = ({ navigation }) => {
               style={selectedIdentity === 1 ? styles.radioButtonSelected : styles.radioButton}
               onPress={() => setSelectedIdentity(1)}
             >
-              <Text style={selectedIdentity === 1? styles.radioButtonTextSelected : styles.radioButtonText}>
+              <Text style={selectedIdentity === 1 ? styles.radioButtonTextSelected : styles.radioButtonText}>
                 Show my identity & message me
               </Text>
             </TouchableOpacity>
           </View>
         </View>
+
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={styles.createOfferButton}
+            onPress={handleCreateOffer}
+          >
+            <Text style={styles.createOfferButtonText}>Create Offer</Text>
+          </TouchableOpacity>
+        </View>
+
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -364,6 +377,16 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontFamily: "sans-serif-condensed",
   },
+  dropdownStyle: {
+    backgroundColor: '#fff',
+    borderColor: '#000',
+    borderWidth: 1,
+    color:"#000",
+    borderRadius: 5,
+  },
+  dropDownContainerStyle: {
+    backgroundColor: '#f9f9f9',
+  },
   radioButtonContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -395,13 +418,13 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   radioButtonText: {
-    fontSize:18, // Adjusted font size
+    fontSize: 18, // Adjusted font size
     color: "#003C43",
     fontWeight: "bold",
     fontFamily: "sans-serif-condensed",
   },
   radioButtonTextSelected: {
-    fontSize:18, // Adjusted font size
+    fontSize: 18, // Adjusted font size
     color: "#fff",
     fontWeight: "bold",
     fontFamily: "sans-serif-condensed",
@@ -446,7 +469,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 5,
-    marginTop:"5%"
+    marginTop: "5%"
   },
   createOfferButtonText: {
     fontSize: 20, // Responsive font size
@@ -477,7 +500,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     marginRight: width * 0.02, // Responsive margin
-    alignSelf:"flex-end"
+    alignSelf: "flex-end"
   },
   pickerSelectStyles: {
     inputIOS: {

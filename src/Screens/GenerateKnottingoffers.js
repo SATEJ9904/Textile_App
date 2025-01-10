@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, Modal, Image, ScrollView, Dimensions } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, Modal, Image, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
 import { TextInput, Button, IconButton, Snackbar, Card, Title } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -20,6 +20,8 @@ const GenerateKnottingoffers = ({ navigation }) => {
     const [designPaper, setDesignPaper] = useState(null);
     const [snackbarVisible, setSnackbarVisible] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
+    const [loading, setLoading] = useState(false);
+
 
     const onChangeDate = (event, selectedDate) => {
         const currentDate = selectedDate || availableFrom;
@@ -40,7 +42,7 @@ const GenerateKnottingoffers = ({ navigation }) => {
     };
 
     const handleSubmit = async () => {
-
+        setLoading(true);
         console.log(await AsyncStorage.getItem("Id"), reed, draft, reedSpace, noOfLooms, formatDate(availableFrom), jobRateRequired)
 
         const formdata = new FormData();
@@ -70,8 +72,20 @@ const GenerateKnottingoffers = ({ navigation }) => {
             .then(result => {
                 console.log(result);
                 setSnackbarVisible(true);
+                setReed('');
+                setDraft('');
+                setReedSpace('');
+                setNoOfLooms('');
+                setJobRateRequired('');
+                setAvailableFrom(new Date());
+                setDesignPaper(null); // Reset the design paper
+                setShowDatePicker(false);
+                setLoading(false);
             })
-            .catch(error => console.error(error));
+            .catch(error => {
+                console.error(error)
+                setLoading(false);
+            });
     };
 
     const handleImagePicker = () => {
@@ -136,10 +150,11 @@ const GenerateKnottingoffers = ({ navigation }) => {
                             onChangeText={setReed}
                             style={styles.input}
                             theme={{ colors: { primary: '#003C43' } }}
-                            keyboardType="numeric"
                         />
                         <TextInput
                             label="Draft"
+                            placeholder='Eg : 1.2.4.5.7.1.3'
+                            placeholderTextColor={"#000"}
                             value={draft}
                             onChangeText={setDraft}
                             style={styles.input}
@@ -147,11 +162,12 @@ const GenerateKnottingoffers = ({ navigation }) => {
                         />
                         <TextInput
                             label="Reed Space"
+                            placeholder='(in inches)'
+                            placeholderTextColor={"#000"}
                             value={reedSpace}
                             onChangeText={setReedSpace}
                             style={styles.input}
                             theme={{ colors: { primary: '#003C43' } }}
-                            keyboardType="numeric"
                         />
                         <TextInput
                             label="No of Looms"
@@ -159,7 +175,6 @@ const GenerateKnottingoffers = ({ navigation }) => {
                             onChangeText={setNoOfLooms}
                             style={styles.input}
                             theme={{ colors: { primary: '#003C43' } }}
-                            keyboardType="numeric"
                         />
                     </View>
                     <View style={styles.formSection}>
@@ -189,7 +204,7 @@ const GenerateKnottingoffers = ({ navigation }) => {
                         )}
                     </View>
                     <View style={styles.formSection}>
-                        <Text style={styles.formTitle}>Job Rate Required</Text>
+                        <Text style={styles.formTitle}>Job Rate Required (in paise)</Text>
                         <TextInput
                             label="Job Rate Required"
                             value={jobRateRequired}
@@ -233,13 +248,19 @@ const GenerateKnottingoffers = ({ navigation }) => {
                                 style={styles.enlargeImage}
                             />
                             <TouchableOpacity onPress={handleExitEnlargeImage} style={styles.exitButton}>
-                            <Icon name="exit" size={38} color="red" />
+                                <Icon name="exit" size={38} color="red" />
                             </TouchableOpacity>
                         </View>
                     </Modal>
-                    <Button mode="contained" onPress={handleSubmit} style={styles.submitButton}>
-                        Submit
-                    </Button>
+                    <View style={styles.container1}>
+                        {loading ? (
+                            <ActivityIndicator size="large" color="#003C43" />
+                        ) : (
+                            <Button mode="contained" onPress={handleSubmit} style={styles.submitButton}>
+                                Submit
+                            </Button>
+                        )}
+                    </View>
                 </View>
             </ScrollView>
             <Snackbar
@@ -362,7 +383,7 @@ const styles = StyleSheet.create({
     },
     submitButton: {
         backgroundColor: '#003C43',
-        paddingVertical: 15,
+        paddingVertical: 10,
         borderRadius: 10,
         elevation: 5,
     },

@@ -109,8 +109,14 @@ const MessageUserSelection = ({ route, navigation }) => {
                     style={styles.card}
                     onPress={() => navigation.navigate('Message', { offerId: marketOfferId, ReceiverId: item, Privacy: privacy })}
                 >
-                    <Text style={styles.cardTitle}>Name: {Name}</Text>
-                    <Text style={styles.cardSubtitle}>Contact: {PrimaryContact}</Text>
+                   {
+                    privacy ===1 ?
+                    <View>
+                        <Text style={styles.cardTitle}>Name: {Name}</Text>
+                        <Text style={styles.cardSubtitle}>Contact: {PrimaryContact}</Text>
+                    </View>
+                    :<Text>Privacy Applied</Text>
+                   }
                 </TouchableOpacity>
             );
         }
@@ -120,8 +126,8 @@ const MessageUserSelection = ({ route, navigation }) => {
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.openDrawer()}>
-                    <Image source={require("../Images/drawer1.png")} style={styles.drawerIcon} />
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                    <Image source={require("../Images/back.png")} style={styles.drawerIcon} />
                 </TouchableOpacity>
                 <Text style={styles.headerText}>Select Users</Text>
                 <View style={styles.headerRight}>
@@ -160,10 +166,10 @@ const styles = StyleSheet.create({
         height: 22,
     },
     headerText: {
-        fontSize: 24,
+        fontSize: 25,
         color: 'white',
         fontWeight: 'bold',
-        marginLeft: "20%",
+        marginLeft: "10%",
         textShadowColor: 'rgba(0, 0, 0, 0.75)',
         textShadowOffset: { width: -1, height: 1 },
         textShadowRadius: 10,

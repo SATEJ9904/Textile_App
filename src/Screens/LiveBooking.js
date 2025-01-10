@@ -67,6 +67,7 @@ const LiveBooking = ({ navigation, route }) => {
 
   useEffect(() => {
     fetchData();
+    console.log(OrderNo,OrderNoId)
   }, []);
 
   const handleBlockPress = (loom) => {

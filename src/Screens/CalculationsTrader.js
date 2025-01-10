@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 
-const CalculationScreen = () => {
+const CalculationScreen = ({navigation}) => {
     const [inputs, setInputs] = useState({
         epi: '',
         fabricWidth: '',
@@ -139,7 +139,15 @@ const CalculationScreen = () => {
 
     return (
         <ScrollView style={styles.container}>
+          <View style={{flexDirection:"row"}}>
+          <TouchableOpacity style={{marginBottom:"10%"}} onPress={()=>navigation.goBack()}>
+                <Image 
+                source={require("../Images/back.png")}
+                style={{width:40,height:40,tintColor:"#003C43",marginRight:"10%"}}
+                />
+            </TouchableOpacity>
             <Text style={styles.title}>Textile Cost Calculator</Text>
+          </View>
 
             {/* Warp Weight Calculation */}
             <View style={styles.section}>
@@ -294,7 +302,7 @@ const CalculationScreen = () => {
                 <Text style={styles.label}>Order Quantity </Text>
                 <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('orderQuantity', value)} />
 
-                <Text style={styles.label}>Loom Speed (picks per minute)</Text>
+                <Text style={styles.label}>Loom Speed (RPM)</Text>
                 <TextInput style={styles.input} keyboardType="numeric" onChangeText={(value) => handleChange('loomSpeed', value)} />
 
                 <Text style={styles.label}>Efficiency (%)</Text>

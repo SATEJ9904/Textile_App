@@ -81,9 +81,9 @@ console.log("Id=",Loom.Id,formatDate(startDate),formatDate(endDate))
         console.log(result)
         if (result === 'Available') {
           Alert.alert("Dates Matched Proceeding To Book Your Loom")
-          navigation.navigate("BookLoomForm", { LoomDetailId: Loom.Id, OrderNo: OrderNo,FromDate: formatDate(startDate),ToDate:formatDate(endDate) })
+          navigation.navigate("BookLoomForm", { LoomDetailId: Loom.Id, OrderNo: OrderNo,FromDate: formatDate(startDate),ToDate:formatDate(endDate),KnottingId:KnottingId })
         } else {
-          Alert.alert("Dates Not Matched")
+          Alert.alert("Loom Not Available for this dates")
         }
       })
       .catch((error) => console.error(error));
@@ -92,6 +92,8 @@ console.log("Id=",Loom.Id,formatDate(startDate),formatDate(endDate))
 
 
   const OrderNo = route.params?.OrderNo || OrderNo1;
+  const KnottingId = route.params?.KnottingId || OrderNo1;
+
   const fetchData = async () => {
     try {
       const id = await AsyncStorage.getItem("Id");
@@ -653,7 +655,8 @@ const styles = StyleSheet.create({
     padding: 20,
     margin: 10,
     width: '40%',
-    borderRadius: 8,
+    borderRadius: 30,
+    borderWidth:1
   },
   modalcontent: {
     justifyContent: "center",
